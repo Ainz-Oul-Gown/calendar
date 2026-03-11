@@ -310,6 +310,37 @@
         @keyframes slideFromLeft { 0% { transform: translateX(-30px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
         .anim-slide-from-right { animation: slideFromRight 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
         .anim-slide-from-left { animation: slideFromLeft 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+
+        /* --- АНИМАЦИИ КАРУСЕЛИ (СВАЙП В МОДАЛКЕ) --- */
+        .anim-carousel {
+            animation-duration: 0.25s;
+            animation-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+            animation-fill-mode: forwards;
+        }
+        
+        .carouselExitLeft { animation-name: exitLeft; }
+        .carouselExitRight { animation-name: exitRight; }
+        .carouselEnterLeft { animation-name: enterLeft; }
+        .carouselEnterRight { animation-name: enterRight; }
+
+        @keyframes exitLeft {
+            0% { transform: translateX(0) scale(1); opacity: 1; }
+            100% { transform: translateX(-50px) scale(0.95); opacity: 0; }
+        }
+        @keyframes exitRight {
+            0% { transform: translateX(0) scale(1); opacity: 1; }
+            100% { transform: translateX(50px) scale(0.95); opacity: 0; }
+        }
+        @keyframes enterLeft {
+            0% { transform: translateX(-50px) scale(0.95); opacity: 0; }
+            100% { transform: translateX(0) scale(1); opacity: 1; }
+        }
+        @keyframes enterRight {
+            0% { transform: translateX(50px) scale(0.95); opacity: 0; }
+            100% { transform: translateX(0) scale(1); opacity: 1; }
+        }
+
+
     </style>
 
 </head>
@@ -361,17 +392,23 @@
 
 <div class="modal-overlay" id="progress-modal">
     <div class="modal">
-        <div class="modal-header">
-            <h3 id="progress-modal-title" style="margin: 0;">Детали дня</h3>
-            <button class="close-btn" onclick="closeProgressModal()">&times;</button>
+        <div class="modal-content-wrapper" style="display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%;">
+            
+            <div class="modal-header">
+                <h3 id="progress-modal-title" style="margin: 0;">Детали дня</h3>
+                <button class="close-btn" onclick="closeProgressModal()">&times;</button>
+            </div>
+            
+            <div id="big-progress-container" style="flex-shrink: 0;"></div>
+            
+            <div id="progress-notes-list"></div>
+            
+            <button class="add-btn sticky-add-btn" onclick="addProgNote()">+ Добавить заметку</button>
+            
         </div>
-        <div id="big-progress-container" style="flex-shrink: 0;"></div>
-        
-        <div id="progress-notes-list"></div>
-        
-        <button class="add-btn sticky-add-btn" onclick="addProgNote()">+ Добавить заметку</button>
     </div>
 </div>
+
 
 
 <div class="modal-overlay" id="regular-events-modal">
@@ -468,7 +505,7 @@
 </div>
 
 <script>
-      const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+       const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
     let currentDate = new Date();
     const realToday = new Date();
     let calendarData = {};
@@ -535,30 +572,23 @@
         } else if (e.target.closest('#progress-modal .modal')) {
             let touchEndX = e.changedTouches[0].screenX; let touchEndY = e.changedTouches[0].screenY;
             let diffX = touchEndX - modalTouchStartX; let diffY = Math.abs(touchEndY - modalTouchStartY);
-            
-            // Если открыто окно редактирования заметки, запрещаем свайп, чтобы не сбросить введенные данные
             if (editingNoteIndex !== -1) return;
-
             if (Math.abs(diffX) > 50 && Math.abs(diffX) > diffY) {
-                if (diffX < 0) changeModalDay(1); // Свайп влево -> следующий день
-                else changeModalDay(-1); // Свайп вправо -> предыдущий день
+                if (diffX < 0) changeModalDay(1); 
+                else changeModalDay(-1); 
             }
         }
     }, {passive: true});
 
-    // Функция переключения дня внутри модального окна С АНИМАЦИЕЙ
     function changeModalDay(offset) {
-        const modal = document.querySelector('#progress-modal .modal');
-        const content = modal.querySelector('.modal-content-wrapper');
+        const wrapper = document.querySelector('.modal-content-wrapper');
+        if (!wrapper) return;
 
-        // Определяем направление анимации
         const exitAnimation = offset > 0 ? 'carouselExitLeft' : 'carouselExitRight';
         const enterAnimation = offset > 0 ? 'carouselEnterRight' : 'carouselEnterLeft';
 
-        // Применяем анимацию выхода
-        content.classList.add('anim-carousel', exitAnimation);
+        wrapper.classList.add('anim-carousel', exitAnimation);
 
-        // Ждем завершения анимации выхода (300 мс)
         setTimeout(() => {
             let [y, m, d] = progressModalDate.split('-').map(Number);
             let dateObj = new Date(y, m - 1, d);
@@ -569,35 +599,27 @@
             let newD = String(dateObj.getDate()).padStart(2, '0');
             progressModalDate = `${newY}-${newM}-${newD}`;
 
-            // Убираем старую анимацию выхода
-            content.classList.remove(exitAnimation);
-
-            // Если при свайпе перешли в другой месяц, обновляем фоновый календарь
             if (currentDate.getMonth() !== dateObj.getMonth() || currentDate.getFullYear() !== dateObj.getFullYear()) {
                 currentDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
                 renderCalendar();
             }
 
-            // Очищаем интерфейс от менюшек и тултипов перед рендером
             clearHighlights();
             document.getElementById('custom-tooltip').classList.remove('show');
             document.querySelectorAll('.custom-ui-options').forEach(el => el.classList.remove('open'));
             document.querySelectorAll('.prog-menu-dropdown').forEach(el => el.classList.remove('show'));
 
-            // Обновляем заголовок и контент
             document.getElementById('progress-modal-title').innerText = `${parseInt(newD)} ${monthNames[dateObj.getMonth()]} ${newY}`;
             currentDayEvents = getEventsForDate(progressModalDate);
             renderProgressModalContent();
 
-            // Применяем анимацию входа
-            content.classList.add(enterAnimation);
+            wrapper.classList.remove(exitAnimation);
+            wrapper.classList.add(enterAnimation);
 
-            // Ждем завершения анимации входа (300 мс)
             setTimeout(() => {
-                // Убираем все анимационные классы
-                content.classList.remove('anim-carousel', enterAnimation);
-            }, 300);
-        }, 300);
+                wrapper.classList.remove('anim-carousel', enterAnimation);
+            }, 250);
+        }, 250);
     }
 
     let deferredPrompt;
@@ -609,7 +631,6 @@
         if (savedData) { try { calendarData = JSON.parse(savedData); } catch (e) { console.error(e); } }
         const savedRegEvents = localStorage.getItem('myCalendarRegularEvents');
         if (savedRegEvents) { try { regularEvents = JSON.parse(savedRegEvents); } catch (e) { console.error(e); } }
-
         const savedTimeToggle = localStorage.getItem('showTimeOnMainScreen');
         if (savedTimeToggle !== null) { showTimeOnMainScreen = savedTimeToggle === 'true'; document.getElementById('time-toggle').checked = showTimeOnMainScreen; }
         const savedTheme = localStorage.getItem('isDarkMode');
@@ -617,7 +638,6 @@
     }
 
     function saveToLocalStorage() { localStorage.setItem('myCalendarData', JSON.stringify(calendarData)); localStorage.setItem('myCalendarRegularEvents', JSON.stringify(regularEvents)); }
-
     function toggleTimeDisplay() { showTimeOnMainScreen = document.getElementById('time-toggle').checked; localStorage.setItem('showTimeOnMainScreen', showTimeOnMainScreen); renderCalendar(); }
     function toggleTheme() { isDarkMode = document.getElementById('theme-toggle').checked; localStorage.setItem('isDarkMode', isDarkMode); if (isDarkMode) document.body.classList.add('dark-theme'); else document.body.classList.remove('dark-theme'); renderCalendar(); }
     function parseTimeMins(timeStr) { if (!timeStr) return Infinity; const match = timeStr.match(/(\d{1,2}):(\d{2})/); if (!match) return Infinity; return parseInt(match[1], 10) * 60 + parseInt(match[2], 10); }
@@ -638,7 +658,6 @@
     function getEventsForDate(dateKey) {
         let events = []; let deletedRules = [];
         const [y, m, d] = dateKey.split('-'); const dateObj = new Date(y, m - 1, d); dateObj.setHours(0,0,0,0);
-
         if (calendarData[dateKey]) { calendarData[dateKey].forEach(note => { if (note.deleted) deletedRules.push(note.ruleId); else events.push({...note}); }); }
         regularEvents.forEach(re => {
             if (deletedRules.includes(re.id)) return;
@@ -653,36 +672,24 @@
         let newCalendarData = []; let survivingRules = [];
         eventsArray.forEach(ev => { newCalendarData.push(ev); if (ev.ruleId) survivingRules.push(ev.ruleId); });
         const [y, m, d] = dateKey.split('-'); const dateObj = new Date(y, m - 1, d); dateObj.setHours(0,0,0,0);
-
         regularEvents.forEach(re => { if (checkRuleActive(re, dateObj) && !survivingRules.includes(re.id)) newCalendarData.push({ ruleId: re.id, deleted: true }); });
         if (calendarData[dateKey]) { calendarData[dateKey].forEach(n => { if (n.deleted && !survivingRules.includes(n.ruleId)) newCalendarData.push(n); }); }
-
         let finalData = []; let seenDeleted = new Set();
         newCalendarData.forEach(n => { if (n.deleted) { if (!seenDeleted.has(n.ruleId)) { seenDeleted.add(n.ruleId); finalData.push(n); } } else finalData.push(n); });
-
         if (finalData.length > 0) calendarData[dateKey] = finalData; else delete calendarData[dateKey];
         saveToLocalStorage();
     }
 
     function getProgressBarHTML(dateKey, isBig) {
         const bigClass = isBig ? ' big-progress' : ''; let html = `<div class="day-progress-bar${bigClass}">`;
-        
-        const dayPeriods = [ 
-            { name: 'morning', start: 300, end: 720, duration: 420, active: false, items: [] }, 
-            { name: 'day', start: 720, end: 1080, duration: 360, active: false, items: [] }, 
-            { name: 'evening', start: 1080, end: 1390, duration: 310, active: false, items: [] } 
-        ];
-        
+        const dayPeriods = [ { name: 'morning', start: 300, end: 720, duration: 420, active: false, items: [] }, { name: 'day', start: 720, end: 1080, duration: 360, active: false, items: [] }, { name: 'evening', start: 1080, end: 1390, duration: 310, active: false, items: [] } ];
         const todayEvents = getEventsForDate(dateKey);
-
         if (todayEvents.length > 0) {
             todayEvents.forEach(note => {
                 if (!note.time) return; const times = [...note.time.matchAll(/(\d{1,2}):(\d{2})/g)]; if (times.length === 0) return;
                 let startMin = parseInt(times[0][1], 10) * 60 + parseInt(times[0][2], 10); let endMin = startMin; let isPoint = true;
                 if (times.length > 1) { endMin = parseInt(times[1][1], 10) * 60 + parseInt(times[1][2], 10); isPoint = false; } else endMin = startMin + 10;
-                
                 const themeColor = getThemeColor(note.color);
-
                 dayPeriods.forEach(period => {
                     if (startMin < period.end && endMin > period.start) {
                         period.active = true;
@@ -693,65 +700,28 @@
                 });
             });
         }
-
         dayPeriods.forEach(period => {
             if (period.active) {
                 html += `<div class="progress-period active" style="flex-grow: ${period.duration}">`;
-                
                 let allTasks = [...period.items].sort((a,b) => a.start - b.start); 
                 let currentMin = period.start; let emptySegments = [];
-                allTasks.forEach(task => { 
-                    if (task.start > currentMin) emptySegments.push({ start: currentMin, end: task.start, isEmpty: true, time: `${formatMin(currentMin)}-${formatMin(task.start)}` }); 
-                    currentMin = Math.max(currentMin, task.end); 
-                });
+                allTasks.forEach(task => { if (task.start > currentMin) emptySegments.push({ start: currentMin, end: task.start, isEmpty: true, time: `${formatMin(currentMin)}-${formatMin(task.start)}` }); currentMin = Math.max(currentMin, task.end); });
                 if (currentMin < period.end) emptySegments.push({ start: currentMin, end: period.end, isEmpty: true, time: `${formatMin(currentMin)}-${formatMin(period.end)}` });
-
-                let itemsForLeveling = [...period.items].sort((a, b) => {
-                    let durA = a.end - a.start;
-                    let durB = b.end - b.start;
-                    if (durB !== durA) return durB - durA; 
-                    return a.start - b.start;
-                });
-
-                itemsForLeveling.forEach((task, index) => {
-                    let overlaps = 0;
-                    for (let i = 0; i < index; i++) {
-                        let prev = itemsForLeveling[i];
-                        if (Math.max(task.start, prev.start) < Math.min(task.end, prev.end)) {
-                            overlaps++;
-                        }
-                    }
-                    task.level = overlaps; 
-                });
-
+                let itemsForLeveling = [...period.items].sort((a, b) => { let durA = a.end - a.start; let durB = b.end - b.start; if (durB !== durA) return durB - durA; return a.start - b.start; });
+                itemsForLeveling.forEach((task, index) => { let overlaps = 0; for (let i = 0; i < index; i++) { let prev = itemsForLeveling[i]; if (Math.max(task.start, prev.start) < Math.min(task.end, prev.end)) overlaps++; } task.level = overlaps; });
                 itemsForLeveling.sort((a, b) => a.level - b.level);
-
                 const renderSeg = (item) => {
-                    const left = ((item.start - period.start) / period.duration) * 100; 
-                    const width = ((item.end - item.start) / period.duration) * 100;
-                    const bg = item.isEmpty ? 'transparent' : item.color; 
-                    const ttColor = item.isEmpty ? 'var(--empty-color)' : item.color; 
-                    const ttText = item.isEmpty ? 'Пусто' : item.text;
+                    const left = ((item.start - period.start) / period.duration) * 100; const width = ((item.end - item.start) / period.duration) * 100;
+                    const bg = item.isEmpty ? 'transparent' : item.color; const ttColor = item.isEmpty ? 'var(--empty-color)' : item.color; const ttText = item.isEmpty ? 'Пусто' : item.text;
                     const ptClass = item.isPoint ? ' point-segment' : '';
-
                     let styleStr = `left: ${left}%; width: ${width}%; background-color: ${bg};`;
-
                     if (!item.isEmpty && item.level > 0) {
-                        if (isBig) {
-                            let lvl = Math.min(item.level, 3);
-                            styleStr += ` height: ${100 - lvl * 18}%; top: ${lvl * 9}%; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25), 0 3px 10px rgba(0,0,0,0.4);`;
-                        } else {
-                            let lvl = Math.min(item.level, 2);
-                            styleStr += ` height: ${100 - lvl * 24}%; top: ${lvl * 12}%; box-shadow: 0 2px 5px rgba(0,0,0,0.5);`;
-                        }
+                        if (isBig) { let lvl = Math.min(item.level, 3); styleStr += ` height: ${100 - lvl * 18}%; top: ${lvl * 9}%; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25), 0 3px 10px rgba(0,0,0,0.4);`; }
+                        else { let lvl = Math.min(item.level, 2); styleStr += ` height: ${100 - lvl * 24}%; top: ${lvl * 12}%; box-shadow: 0 2px 5px rgba(0,0,0,0.5);`; }
                     }
-
                     html += `<div class="progress-segment${ptClass}" style="${styleStr}" data-color="${ttColor}" data-time="${item.time}" data-text="${ttText}"></div>`;
                 };
-
-                emptySegments.forEach(s => renderSeg(s)); 
-                itemsForLeveling.forEach(s => renderSeg(s)); 
-                html += `</div>`;
+                emptySegments.forEach(s => renderSeg(s)); itemsForLeveling.forEach(s => renderSeg(s)); html += `</div>`;
             } else {
                 html += `<div class="progress-period inactive" data-color="var(--empty-color)" data-time="${formatMin(period.start)}-${formatMin(period.end)}" data-text="Пусто"></div>`;
             }
@@ -762,44 +732,30 @@
     function renderCalendar() {
         const year = currentDate.getFullYear(); const month = currentDate.getMonth();
         document.getElementById('month-year-display').innerText = `${monthNames[month]} ${year}`;
-
         const grid = document.getElementById('calendar-grid'); grid.innerHTML = "";
         const firstDay = new Date(year, month, 1).getDay(); const startOffset = firstDay === 0 ? 6 : firstDay - 1;
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-
         for (let i = 0; i < startOffset; i++) { const emptyCell = document.createElement('div'); emptyCell.className = 'day-cell empty'; grid.appendChild(emptyCell); }
-
         for (let i = 1; i <= daysInMonth; i++) {
             const cell = document.createElement('div'); cell.className = 'day-cell';
             if (year === realToday.getFullYear() && month === realToday.getMonth() && i === realToday.getDate()) cell.classList.add('today');
-
             const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
             const todayEvents = getEventsForDate(dateKey);
-
             if (isMoveMode && dateKey === moveTargetDate) cell.classList.add('selected-move');
-
             const headerDiv = document.createElement('div'); headerDiv.className = 'day-header';
             headerDiv.innerHTML = `<div class="day-number">${i}</div>` + getProgressBarHTML(dateKey, false);
             cell.appendChild(headerDiv);
-
             const notesPreview = document.createElement('div'); notesPreview.className = 'day-notes-preview';
             if (todayEvents.length > 0) {
                 todayEvents.forEach(note => {
-                    const themeColor = getThemeColor(note.color);
-                    const textColor = getContrastYIQ(themeColor);
-
-                    const badge = document.createElement('div'); badge.className = 'note-badge'; 
-                    badge.style.backgroundColor = themeColor;
-                    badge.style.color = textColor; 
-
+                    const themeColor = getThemeColor(note.color); const textColor = getContrastYIQ(themeColor);
+                    const badge = document.createElement('div'); badge.className = 'note-badge'; badge.style.backgroundColor = themeColor; badge.style.color = textColor;
                     if (note.time && showTimeOnMainScreen) { const desktopTime = document.createElement('span'); desktopTime.className = 'badge-time-desktop'; desktopTime.innerText = note.time; badge.appendChild(desktopTime); }
-                    
                     const textContainer = document.createElement('div'); textContainer.className = 'badge-text-container';
                     const textSpan = document.createElement('span'); textSpan.className = 'badge-text';
                     let innerHTML = "";
                     if (note.time && showTimeOnMainScreen) innerHTML += `<span class="badge-time-mobile">${note.time}</span>`;
-                    innerHTML += note.text;
-                    textSpan.innerHTML = innerHTML; textContainer.appendChild(textSpan); badge.appendChild(textContainer); notesPreview.appendChild(badge);
+                    innerHTML += note.text; textSpan.innerHTML = innerHTML; textContainer.appendChild(textSpan); badge.appendChild(textContainer); notesPreview.appendChild(badge);
                 });
             }
             cell.appendChild(notesPreview);
@@ -833,29 +789,17 @@
         document.getElementById('progress-modal').classList.add('show');
     }
 
-    function closeProgressModal() { 
-        document.getElementById('progress-modal').classList.remove('show'); 
-        document.getElementById('custom-tooltip').classList.remove('show'); 
-        clearHighlights();
-        renderCalendar(); 
-    }
+    function closeProgressModal() { document.getElementById('progress-modal').classList.remove('show'); document.getElementById('custom-tooltip').classList.remove('show'); clearHighlights(); renderCalendar(); }
 
     function handleUiAction(e, index) {
-        e.stopPropagation();
-        let note = currentDayEvents[index];
-        if (note.uiType === 'radio') {
-            currentDayEvents.forEach((n, i) => { if (n.uiType === 'radio' && i !== index) n.uiState = false; });
-            note.uiState = true;
-        } else {
-            note.uiState = !note.uiState;
-        }
-        saveDayEvents(progressModalDate, currentDayEvents);
-        renderProgressModalContent();
+        e.stopPropagation(); let note = currentDayEvents[index];
+        if (note.uiType === 'radio') { currentDayEvents.forEach((n, i) => { if (n.uiType === 'radio' && i !== index) n.uiState = false; }); note.uiState = true; } 
+        else { note.uiState = !note.uiState; }
+        saveDayEvents(progressModalDate, currentDayEvents); renderProgressModalContent();
     }
 
     function toggleCustomSelect(menuId, event) {
-        event.stopPropagation();
-        document.querySelectorAll('.custom-ui-options').forEach(el => { if(el.id !== menuId) el.classList.remove('open'); });
+        event.stopPropagation(); document.querySelectorAll('.custom-ui-options').forEach(el => { if(el.id !== menuId) el.classList.remove('open'); });
         document.getElementById(menuId).classList.toggle('open');
     }
 
@@ -864,332 +808,95 @@
         let inputId = prefix === 'reg' ? 'reg-ui' : `prog-edit-ui-${index}`;
         let displayId = prefix === 'reg' ? 'reg-ui-display' : `prog-ui-display-${index}`;
         let optionsId = prefix === 'reg' ? 'reg-ui-options' : `prog-ui-options-${index}`;
-
         document.getElementById(inputId).value = value;
-        
         let uiDisplayHtml = '—';
         if(value === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>';
         if(value === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>';
         if(value === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>';
-
-        document.getElementById(displayId).innerHTML = uiDisplayHtml;
-        document.getElementById(optionsId).classList.remove('open');
+        document.getElementById(displayId).innerHTML = uiDisplayHtml; document.getElementById(optionsId).classList.remove('open');
     }
 
-    function clearHighlights() {
-        document.querySelectorAll('.highlighted-segment').forEach(el => {
-            el.classList.remove('highlighted-segment');
-        });
-    }
+    function clearHighlights() { document.querySelectorAll('.highlighted-segment').forEach(el => { el.classList.remove('highlighted-segment'); }); }
 
     function highlightSegment(index, e, isFromProgressBar = false) {
-        if (e && e.target && (e.target.closest('.prog-menu-wrap') || e.target.closest('.ui-checkbox') || e.target.closest('.ui-switch') || e.target.closest('.ui-radio') || e.target.closest('.custom-ui-select'))) {
-            return;
-        }
-
+        if (e && e.target && (e.target.closest('.prog-menu-wrap') || e.target.closest('.ui-checkbox') || e.target.closest('.ui-switch') || e.target.closest('.ui-radio') || e.target.closest('.custom-ui-select'))) return;
         clearHighlights();
-
-        let note = currentDayEvents[index];
-        if (!note) return;
-
+        let note = currentDayEvents[index]; if (!note) return;
         let segments = document.querySelectorAll('#big-progress-container .progress-segment');
         let matchedSegments = [];
-
         let targetText = note.text ? note.text.replace(/"/g, '&quot;') : 'Без описания';
         let targetTime = note.time ? note.time.replace(/"/g, '&quot;') : '';
-
-        segments.forEach(seg => {
-            if (seg.getAttribute('data-text') === targetText && seg.getAttribute('data-time') === targetTime) {
-                matchedSegments.push(seg);
-                seg.classList.add('highlighted-segment'); 
-            }
-        });
-
+        segments.forEach(seg => { if (seg.getAttribute('data-text') === targetText && seg.getAttribute('data-time') === targetTime) { matchedSegments.push(seg); seg.classList.add('highlighted-segment'); } });
         if (matchedSegments.length === 0) return;
-
-        let targetX = 0;
-        let targetSeg = matchedSegments[0];
-
-        if (isFromProgressBar && e && e.clientX) {
-            targetX = e.clientX;
-            targetSeg = e.target;
-        } else {
-            let bestRun = [];
-            let bestSeg = matchedSegments[0];
-
+        let targetX = 0; let targetSeg = matchedSegments[0];
+        if (isFromProgressBar && e && e.clientX) { targetX = e.clientX; targetSeg = e.target; } 
+        else {
+            let bestRun = []; let bestSeg = matchedSegments[0];
             matchedSegments.forEach(seg => {
-                let rect = seg.getBoundingClientRect();
-                let y = rect.top + rect.height / 2; 
-                
-                let currentRun = [];
-                let steps = Math.max(10, Math.floor(rect.width / 3)); 
-                
+                let rect = seg.getBoundingClientRect(); let y = rect.top + rect.height / 2;
+                let currentRun = []; let steps = Math.max(10, Math.floor(rect.width / 3));
                 for (let i = 0; i <= steps; i++) {
-                    let testX = rect.left + (rect.width * i / steps);
-                    if (i === 0) testX += 1;
-                    if (i === steps) testX -= 1;
-                    
+                    let testX = rect.left + (rect.width * i / steps); if (i === 0) testX += 1; if (i === steps) testX -= 1;
                     let topElement = document.elementFromPoint(testX, y);
-                    
-                    if (topElement && topElement.closest('.progress-segment') === seg) {
-                        currentRun.push(testX);
-                    } else {
-                        if (currentRun.length > bestRun.length) {
-                            bestRun = currentRun;
-                            bestSeg = seg;
-                        }
-                        currentRun = [];
-                    }
+                    if (topElement && topElement.closest('.progress-segment') === seg) { currentRun.push(testX); } 
+                    else { if (currentRun.length > bestRun.length) { bestRun = currentRun; bestSeg = seg; } currentRun = []; }
                 }
-                if (currentRun.length > bestRun.length) {
-                    bestRun = currentRun;
-                    bestSeg = seg;
-                }
+                if (currentRun.length > bestRun.length) { bestRun = currentRun; bestSeg = seg; }
             });
-
             targetSeg = bestSeg;
-            
-            if (bestRun.length > 0) {
-                targetX = bestRun[Math.floor(bestRun.length / 2)];
-            } else {
-                let r = targetSeg.getBoundingClientRect();
-                targetX = r.left + r.width / 2;
-            }
+            if (bestRun.length > 0) { targetX = bestRun[Math.floor(bestRun.length / 2)]; } 
+            else { let r = targetSeg.getBoundingClientRect(); targetX = r.left + r.width / 2; }
         }
-
-        let fakeEvent = { clientX: targetX };
-        showTooltip(fakeEvent, targetSeg);
-
-        clearTimeout(hideTooltipTimeout);
-        hideTooltipTimeout = setTimeout(() => {
-            document.getElementById('custom-tooltip').classList.remove('show');
-            clearHighlights();
-        }, 3000);
+        let fakeEvent = { clientX: targetX }; showTooltip(fakeEvent, targetSeg);
+        clearTimeout(hideTooltipTimeout); hideTooltipTimeout = setTimeout(() => { document.getElementById('custom-tooltip').classList.remove('show'); clearHighlights(); }, 3000);
     }
 
     function renderProgressModalContent() {
         document.getElementById('big-progress-container').innerHTML = getProgressBarHTML(progressModalDate, true);
         const listContainer = document.getElementById('progress-notes-list'); listContainer.innerHTML = "";
-
         currentDayEvents.forEach((note, index) => {
             if (editingNoteIndex === index) {
-                let startVal = "", endVal = "";
-                if (note.time) { const parts = note.time.split(note.time.includes(" - ") ? " - " : "-"); startVal = parts[0] ? parts[0].trim() : ""; endVal = parts[1] ? parts[1].trim() : ""; }
-                
-                let uiVal = note.uiType || 'none';
-                let uiDisplayHtml = '—';
+                let startVal = "", endVal = ""; if (note.time) { const parts = note.time.split(note.time.includes(" - ") ? " - " : "-"); startVal = parts[0] ? parts[0].trim() : ""; endVal = parts[1] ? parts[1].trim() : ""; }
+                let uiVal = note.uiType || 'none'; let uiDisplayHtml = '—';
                 if(uiVal === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>';
                 if(uiVal === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>';
                 if(uiVal === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>';
-
-                listContainer.innerHTML += `
-                    <div class="prog-list-item edit-mode">
-                        <div style="display: flex; align-items: center; width: 100%; gap: 6px; flex-wrap: wrap;">
-                            <div class="prog-num">${index + 1}</div>
-                            <div class="prog-edit-inputs">
-                                <input type="time" id="prog-edit-start-${index}" value="${startVal}">
-                                <span style="font-weight:bold; color:var(--text-color); opacity:0.7;">-</span>
-                                <input type="time" id="prog-edit-end-${index}" value="${endVal}">
-                                <input type="text" id="prog-edit-text-${index}" value="${note.text}">
-                                <select id="prog-edit-remind-${index}">
-                                    <option value="" ${!note.reminder ? 'selected' : ''}>Без увд.</option>
-                                    <option value="5" ${note.reminder == '5' ? 'selected' : ''}>За 5 мин</option>
-                                    <option value="15" ${note.reminder == '15' ? 'selected' : ''}>За 15 мин</option>
-                                    <option value="30" ${note.reminder == '30' ? 'selected' : ''}>За 30 мин</option>
-                                    <option value="60" ${note.reminder == '60' ? 'selected' : ''}>За 1 час</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="prog-edit-bottom-row">
-                            <div class="color-ui-wrap">
-                                <input type="color" id="prog-edit-color-${index}" value="${note.color}">
-                                <div class="custom-ui-select">
-                                    <input type="hidden" id="prog-edit-ui-${index}" value="${uiVal}">
-                                    <div class="custom-ui-trigger" onclick="toggleCustomSelect('prog-ui-options-${index}', event)">
-                                        <div class="ui-mock-wrap" id="prog-ui-display-${index}">${uiDisplayHtml}</div>
-                                    </div>
-                                    <div class="custom-ui-options" id="prog-ui-options-${index}">
-                                        <div class="custom-ui-option" onclick="selectUiOption('prog', 'none', ${index}, event)"><div class="ui-mock-wrap">—</div> Нет</div>
-                                        <div class="custom-ui-option" onclick="selectUiOption('prog', 'checkbox', ${index}, event)"><div class="ui-mock-wrap"><input type="checkbox" class="ui-checkbox" checked></div> Чек-бокс</div>
-                                        <div class="custom-ui-option" onclick="selectUiOption('prog', 'toggle', ${index}, event)"><div class="ui-mock-wrap"><label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label></div> Тогл</div>
-                                        <div class="custom-ui-option" onclick="selectUiOption('prog', 'radio', ${index}, event)"><div class="ui-mock-wrap"><input type="radio" class="ui-radio" checked></div> Радио</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="prog-edit-actions">
-                                <button class="cancel-btn" onclick="cancelProgEdit()">Отмена</button>
-                                <button class="save-btn" onclick="saveProgEdit(${index})">Сохранить</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                listContainer.innerHTML += `<div class="prog-list-item edit-mode"><div style="display: flex; align-items: center; width: 100%; gap: 6px; flex-wrap: wrap;"><div class="prog-num">${index + 1}</div><div class="prog-edit-inputs"><input type="time" id="prog-edit-start-${index}" value="${startVal}"><span style="font-weight:bold; color:var(--text-color); opacity:0.7;">-</span><input type="time" id="prog-edit-end-${index}" value="${endVal}"><input type="text" id="prog-edit-text-${index}" value="${note.text}"><select id="prog-edit-remind-${index}"><option value="" ${!note.reminder ? 'selected' : ''}>Без увд.</option><option value="5" ${note.reminder == '5' ? 'selected' : ''}>За 5 мин</option><option value="15" ${note.reminder == '15' ? 'selected' : ''}>За 15 мин</option><option value="30" ${note.reminder == '30' ? 'selected' : ''}>За 30 мин</option><option value="60" ${note.reminder == '60' ? 'selected' : ''}>За 1 час</option></select></div></div><div class="prog-edit-bottom-row"><div class="color-ui-wrap"><input type="color" id="prog-edit-color-${index}" value="${note.color}"><div class="custom-ui-select"><input type="hidden" id="prog-edit-ui-${index}" value="${uiVal}"><div class="custom-ui-trigger" onclick="toggleCustomSelect('prog-ui-options-${index}', event)"><div class="ui-mock-wrap" id="prog-ui-display-${index}">${uiDisplayHtml}</div></div><div class="custom-ui-options" id="prog-ui-options-${index}"><div class="custom-ui-option" onclick="selectUiOption('prog', 'none', ${index}, event)"><div class="ui-mock-wrap">—</div> Нет</div><div class="custom-ui-option" onclick="selectUiOption('prog', 'checkbox', ${index}, event)"><div class="ui-mock-wrap"><input type="checkbox" class="ui-checkbox" checked></div> Чек-бокс</div><div class="custom-ui-option" onclick="selectUiOption('prog', 'toggle', ${index}, event)"><div class="ui-mock-wrap"><label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label></div> Тогл</div><div class="custom-ui-option" onclick="selectUiOption('prog', 'radio', ${index}, event)"><div class="ui-mock-wrap"><input type="radio" class="ui-radio" checked></div> Радио</div></div></div></div><div class="prog-edit-actions"><button class="cancel-btn" onclick="cancelProgEdit()">Отмена</button><button class="save-btn" onclick="saveProgEdit(${index})">Сохранить</button></div></div></div>`;
             } else {
-                let remIcon = note.reminder ? ' 🔔' : '';
-                let themeColor = getThemeColor(note.color);
-                
-                let uiHtml = '';
-                if (note.uiType && note.uiType !== 'none') {
-                    let checked = note.uiState ? 'checked' : '';
-                    if (note.uiType === 'checkbox') uiHtml = `<input type="checkbox" class="ui-checkbox" onclick="handleUiAction(event, ${index})" ${checked}>`;
-                    else if (note.uiType === 'toggle') uiHtml = `<label class="ui-switch" onclick="event.stopPropagation()"><input type="checkbox" onchange="handleUiAction(event, ${index})" ${checked}><span class="ui-slider"></span></label>`;
-                    else if (note.uiType === 'radio') uiHtml = `<input type="radio" class="ui-radio" onclick="handleUiAction(event, ${index})" ${checked}>`;
-                }
-
-                listContainer.innerHTML += `
-                    <div class="prog-list-item" style="cursor: pointer;" onclick="highlightSegment(${index}, event, false)">
-                        <div class="prog-num">${index + 1}</div>
-                        ${uiHtml}
-                        <div class="prog-time">${note.time || '—'}</div>
-                        <div class="badge-text-container"><span class="badge-text">${note.text}${remIcon} ${note.ruleId ? '<small style="opacity:0.5;">(рег)</small>' : ''}</span></div>
-                        <div class="prog-color" style="background-color: ${themeColor};"></div>
-                        <div class="prog-menu-wrap">
-                            <button class="prog-menu-btn" onclick="toggleProgMenu(${index}, event)">⋮</button>
-                            <div class="prog-menu-dropdown" id="prog-menu-${index}">
-                                <div onclick="enterProgEdit(${index})">✏️ Редактировать</div>
-                                <div onclick="startMoveProgNote(${index})">➡️ Переместить</div>
-                                <div onclick="deleteProgNote(${index})" style="color: #ff4d4d;">🗑️ Удалить</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                let remIcon = note.reminder ? ' 🔔' : ''; let themeColor = getThemeColor(note.color); let uiHtml = '';
+                if (note.uiType && note.uiType !== 'none') { let checked = note.uiState ? 'checked' : ''; if (note.uiType === 'checkbox') uiHtml = `<input type="checkbox" class="ui-checkbox" onclick="handleUiAction(event, ${index})" ${checked}>`; else if (note.uiType === 'toggle') uiHtml = `<label class="ui-switch" onclick="event.stopPropagation()"><input type="checkbox" onchange="handleUiAction(event, ${index})" ${checked}><span class="ui-slider"></span></label>`; else if (note.uiType === 'radio') uiHtml = `<input type="radio" class="ui-radio" onclick="handleUiAction(event, ${index})" ${checked}>`; }
+                listContainer.innerHTML += `<div class="prog-list-item" style="cursor: pointer;" onclick="highlightSegment(${index}, event, false)"><div class="prog-num">${index + 1}</div>${uiHtml}<div class="prog-time">${note.time || '—'}</div><div class="badge-text-container"><span class="badge-text">${note.text}${remIcon} ${note.ruleId ? '<small style="opacity:0.5;">(рег)</small>' : ''}</span></div><div class="prog-color" style="background-color: ${themeColor};"></div><div class="prog-menu-wrap"><button class="prog-menu-btn" onclick="toggleProgMenu(${index}, event)">⋮</button><div class="prog-menu-dropdown" id="prog-menu-${index}"><div onclick="enterProgEdit(${index})">✏️ Редактировать</div><div onclick="startMoveProgNote(${index})">➡️ Переместить</div><div onclick="deleteProgNote(${index})" style="color: #ff4d4d;">🗑️ Удалить</div></div></div></div>`;
             }
         });
-
         setTimeout(updateMarquees, 0);
     }
 
     function toggleProgMenu(index, e) {
-        e.stopPropagation();
-        const menus = document.getElementsByClassName("prog-menu-dropdown");
+        e.stopPropagation(); const menus = document.getElementsByClassName("prog-menu-dropdown");
         for (let i = 0; i < menus.length; i++) { if (menus[i].id !== `prog-menu-${index}`) menus[i].classList.remove('show'); }
-        
         const menu = document.getElementById(`prog-menu-${index}`);
-        if (!menu.classList.contains('show')) {
-            menu.classList.remove('drop-up');
-            menu.style.visibility = 'hidden'; menu.style.display = 'block';
-            
-            const rect = menu.getBoundingClientRect();
-            const modalRect = document.getElementById('progress-modal').querySelector('.modal').getBoundingClientRect();
-            
-            if (rect.bottom > modalRect.bottom - 10) { menu.classList.add('drop-up'); }
-            menu.style.display = ''; menu.style.visibility = '';
-        }
+        if (!menu.classList.contains('show')) { menu.classList.remove('drop-up'); menu.style.visibility = 'hidden'; menu.style.display = 'block'; const rect = menu.getBoundingClientRect(); const modalRect = document.getElementById('progress-modal').querySelector('.modal').getBoundingClientRect(); if (rect.bottom > modalRect.bottom - 10) menu.classList.add('drop-up'); menu.style.display = ''; menu.style.visibility = ''; }
         menu.classList.toggle('show');
     }
 
     function enterProgEdit(index) { editingNoteIndex = index; renderProgressModalContent(); }
     function cancelProgEdit() { editingNoteIndex = -1; renderProgressModalContent(); }
-
-    function saveProgEdit(index) {
-        const start = document.getElementById(`prog-edit-start-${index}`).value; const end = document.getElementById(`prog-edit-end-${index}`).value;
-        let time = ""; if (start && end) time = `${start}-${end}`; else if (start) time = start; else if (end) time = end;
-        const text = document.getElementById(`prog-edit-text-${index}`).value;
-        const reminder = document.getElementById(`prog-edit-remind-${index}`).value;
-        const color = document.getElementById(`prog-edit-color-${index}`).value;
-        const uiType = document.getElementById(`prog-edit-ui-${index}`).value;
-        const ruleId = currentDayEvents[index].ruleId;
-        const uiState = currentDayEvents[index].uiState || false;
-
-        if (time || text) {
-            currentDayEvents[index] = { time, text, color, reminder, uiType, uiState };
-            if (ruleId) currentDayEvents[index].ruleId = ruleId;
-        } else { currentDayEvents.splice(index, 1); }
-
-        editingNoteIndex = -1; saveDayEvents(progressModalDate, currentDayEvents); renderCalendar(); renderProgressModalContent();
-    }
-
+    function saveProgEdit(index) { const start = document.getElementById(`prog-edit-start-${index}`).value; const end = document.getElementById(`prog-edit-end-${index}`).value; let time = ""; if (start && end) time = `${start}-${end}`; else if (start) time = start; else if (end) time = end; const text = document.getElementById(`prog-edit-text-${index}`).value; const reminder = document.getElementById(`prog-edit-remind-${index}`).value; const color = document.getElementById(`prog-edit-color-${index}`).value; const uiType = document.getElementById(`prog-edit-ui-${index}`).value; const ruleId = currentDayEvents[index].ruleId; const uiState = currentDayEvents[index].uiState || false; if (time || text) { currentDayEvents[index] = { time, text, color, reminder, uiType, uiState }; if (ruleId) currentDayEvents[index].ruleId = ruleId; } else { currentDayEvents.splice(index, 1); } editingNoteIndex = -1; saveDayEvents(progressModalDate, currentDayEvents); renderCalendar(); renderProgressModalContent(); }
     function deleteProgNote(index) { if (confirm("Точно удалить?")) { currentDayEvents.splice(index, 1); saveDayEvents(progressModalDate, currentDayEvents); renderCalendar(); renderProgressModalContent(); } }
     function addProgNote() { const existingColors = currentDayEvents.map(n => n.color); currentDayEvents.push({ time: "", text: "", color: generateDistinctColor(existingColors), reminder: "", uiType: "none", uiState: false }); editingNoteIndex = currentDayEvents.length - 1; renderProgressModalContent(); }
-
-    function startMoveProgNote(index) {
-        moveNoteIndex = index; moveNoteData = JSON.parse(JSON.stringify(currentDayEvents[index])); moveSourceDate = progressModalDate;
-        closeProgressModal(); isMoveMode = true; moveTargetDate = ""; document.getElementById('move-action-bar').classList.add('show'); updateMoveBar(); renderCalendar();
-    }
+    function startMoveProgNote(index) { moveNoteIndex = index; moveNoteData = JSON.parse(JSON.stringify(currentDayEvents[index])); moveSourceDate = progressModalDate; closeProgressModal(); isMoveMode = true; moveTargetDate = ""; document.getElementById('move-action-bar').classList.add('show'); updateMoveBar(); renderCalendar(); }
     function selectMoveTarget(dateKey) { moveTargetDate = dateKey; updateMoveBar(); renderCalendar(); }
     function updateMoveBar() { const btn = document.getElementById('move-confirm-btn'); if (moveTargetDate) { btn.classList.add('active'); btn.disabled = false; } else { btn.classList.remove('active'); btn.disabled = true; } }
     function cancelMove() { isMoveMode = false; document.getElementById('move-action-bar').classList.remove('show'); moveTargetDate = ""; moveNoteData = null; renderCalendar(); openProgressModal(null, moveSourceDate); }
-    function confirmMove() {
-        if (!moveTargetDate) return;
-        currentDayEvents.splice(moveNoteIndex, 1); saveDayEvents(moveSourceDate, currentDayEvents);
-        delete moveNoteData.ruleId; if (!calendarData[moveTargetDate]) calendarData[moveTargetDate] = []; calendarData[moveTargetDate].push(moveNoteData); saveToLocalStorage();
-        isMoveMode = false; document.getElementById('move-action-bar').classList.remove('show'); moveTargetDate = ""; moveNoteData = null; renderCalendar(); openProgressModal(null, moveSourceDate);
-    }
-
+    function confirmMove() { if (!moveTargetDate) return; currentDayEvents.splice(moveNoteIndex, 1); saveDayEvents(moveSourceDate, currentDayEvents); delete moveNoteData.ruleId; if (!calendarData[moveTargetDate]) calendarData[moveTargetDate] = []; calendarData[moveTargetDate].push(moveNoteData); saveToLocalStorage(); isMoveMode = false; document.getElementById('move-action-bar').classList.remove('show'); moveTargetDate = ""; moveNoteData = null; renderCalendar(); openProgressModal(null, moveSourceDate); }
     function openRegularEventsModal() { editingRegEventId = null; resetRegForm(); document.getElementById('regular-events-modal').classList.add('show'); renderRegularEventsList(); }
     function closeRegularEventsModal() { document.getElementById('regular-events-modal').classList.remove('show'); renderCalendar(); }
-    function resetRegForm() {
-        editingRegEventId = null; document.getElementById('reg-form-title').innerText = "Добавить новое"; document.getElementById('reg-save-btn').innerText = "Сохранить событие"; document.getElementById('reg-cancel-btn').style.display = "none";
-        document.getElementById('reg-text').value = ''; document.getElementById('reg-start').value = ''; document.getElementById('reg-end').value = ''; document.getElementById('reg-reminder').value = ''; document.getElementById('reg-color').value = '#4CAF50'; 
-        if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = 'none';
-        if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = '—';
-    }
-    function toggleRegType() {
-        const type = document.querySelector('input[name="reg-type"]:checked').value;
-        document.getElementById('reg-weekly-settings').style.display = type === 'weekly' ? 'flex' : 'none'; document.getElementById('reg-schedule-settings').style.display = type === 'schedule' ? 'flex' : 'none';
-    }
-
-    function editRegularEvent(id) {
-        const ev = regularEvents.find(r => r.id === id); if (!ev) return;
-        editingRegEventId = id; document.getElementById('reg-form-title').innerText = "Редактировать событие"; document.getElementById('reg-save-btn').innerText = "Обновить"; document.getElementById('reg-cancel-btn').style.display = "block";
-        document.getElementById('reg-text').value = ev.text || ""; document.getElementById('reg-reminder').value = ev.reminder || ""; document.getElementById('reg-color').value = ev.color || "#4CAF50"; 
-        
-        let uiVal = ev.uiType || "none";
-        if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = uiVal;
-        
-        let uiDisplayHtml = '—';
-        if(uiVal === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>';
-        if(uiVal === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>';
-        if(uiVal === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>';
-        if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = uiDisplayHtml;
-
-        if (ev.time) { const parts = ev.time.split('-'); document.getElementById('reg-start').value = parts[0] ? parts[0].trim() : ""; document.getElementById('reg-end').value = parts[1] ? parts[1].trim() : ""; } else { document.getElementById('reg-start').value = ""; document.getElementById('reg-end').value = ""; }
-        document.querySelector(`input[name="reg-type"][value="${ev.type}"]`).checked = true; toggleRegType();
-        if (ev.type === 'weekly') { document.querySelectorAll('.reg-day').forEach(cb => { cb.checked = ev.days.includes(cb.value); }); } else { document.getElementById('reg-start-date').value = ev.startDate; document.getElementById('reg-work-days').value = ev.workDays; document.getElementById('reg-rest-days').value = ev.restDays; }
-        document.getElementById('reg-form-title').scrollIntoView({behavior: "smooth"});
-    }
-    function cancelRegEdit() { resetRegForm(); }
-
-    function saveRegularEvent() {
-        const text = document.getElementById('reg-text').value; const start = document.getElementById('reg-start').value; const end = document.getElementById('reg-end').value; const color = document.getElementById('reg-color').value; const reminder = document.getElementById('reg-reminder').value; const uiType = document.getElementById('reg-ui') ? document.getElementById('reg-ui').value : 'none'; const type = document.querySelector('input[name="reg-type"]:checked').value;
-        if (!text) return alert("Введите название события!");
-        let time = ""; if (start && end) time = `${start}-${end}`; else if (start) time = start; else if (end) time = end;
-        const newEvent = { id: editingRegEventId || Date.now(), text, time, color, reminder, uiType, type };
-        if (type === 'weekly') { const checkedDays = Array.from(document.querySelectorAll('.reg-day:checked')).map(cb => cb.value); if (checkedDays.length === 0) return alert("Выберите дни недели!"); newEvent.days = checkedDays; } else { const startDate = document.getElementById('reg-start-date').value; const workDays = document.getElementById('reg-work-days').value; const restDays = document.getElementById('reg-rest-days').value; if (!startDate) return alert("Выберите дату начала графика!"); newEvent.startDate = startDate; newEvent.workDays = parseInt(workDays); newEvent.restDays = parseInt(restDays); }
-        if (editingRegEventId) { const idx = regularEvents.findIndex(r => r.id === editingRegEventId); if (idx !== -1) regularEvents[idx] = newEvent; } else regularEvents.push(newEvent);
-        saveToLocalStorage(); resetRegForm(); renderRegularEventsList(); renderCalendar();
-    }
-
-    function renderRegularEventsList() {
-        const list = document.getElementById('regular-events-list'); list.innerHTML = "";
-        regularEvents.forEach((ev, index) => {
-            let ruleText = ev.type === 'weekly' ? `Дни: ${ev.days.map(d => ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"][d]).join(', ')}` : `График ${ev.workDays}/${ev.restDays} (с ${ev.startDate.split('-').reverse().join('.')})`;
-            let remIcon = ev.reminder ? `🔔 (-${ev.reminder}м)` : '';
-            let themeColor = getThemeColor(ev.color);
-            list.innerHTML += `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color); background: var(--cell-bg); border-radius: 4px; margin-bottom: 4px;">
-                    <div style="flex:1;">
-                        <div style="font-weight: bold; color: ${themeColor}; font-size: 1.05em;">${ev.time ? ev.time + ' ' : ''}${ev.text} <span style="font-size: 0.8em; color:var(--text-color); opacity: 0.7;">${remIcon}</span></div>
-                        <div style="font-size: 0.85em; opacity: 0.7; margin-top: 2px;">${ruleText}</div>
-                    </div>
-                    <div style="display:flex; gap: 5px;">
-                        <button class="edit-btn" onclick="editRegularEvent(${ev.id})">✏️</button>
-                        <button class="del-btn" onclick="deleteRegularEvent(${index})">✖</button>
-                    </div>
-                </div>
-            `;
-        });
-        if (regularEvents.length === 0) list.innerHTML = `<div style="text-align: center; opacity: 0.5; padding: 10px;">Нет добавленных регулярных событий</div>`;
-    }
-
-    function deleteRegularEvent(index) {
-        if(confirm("Удалить это регулярное событие? Оно исчезнет из всех дней (кроме тех, где вы его отредактировали вручную).")) {
-            const ruleId = regularEvents[index].id; regularEvents.splice(index, 1);
-            for (let dateKey in calendarData) { calendarData[dateKey] = calendarData[dateKey].filter(note => note.ruleId !== ruleId); if (calendarData[dateKey].length === 0) delete calendarData[dateKey]; }
-            saveToLocalStorage(); renderRegularEventsList(); renderCalendar();
-        }
-    }
+    function resetRegForm() { editingRegEventId = null; document.getElementById('reg-form-title').innerText = "Добавить новое"; document.getElementById('reg-save-btn').innerText = "Сохранить событие"; document.getElementById('reg-cancel-btn').style.display = "none"; document.getElementById('reg-text').value = ''; document.getElementById('reg-start').value = ''; document.getElementById('reg-end').value = ''; document.getElementById('reg-reminder').value = ''; document.getElementById('reg-color').value = '#4CAF50'; if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = 'none'; if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = '—'; }
+    function toggleRegType() { const type = document.querySelector('input[name="reg-type"]:checked').value; document.getElementById('reg-weekly-settings').style.display = type === 'weekly' ? 'flex' : 'none'; document.getElementById('reg-schedule-settings').style.display = type === 'schedule' ? 'flex' : 'none'; }
+    function editRegularEvent(id) { const ev = regularEvents.find(r => r.id === id); if (!ev) return; editingRegEventId = id; document.getElementById('reg-form-title').innerText = "Редактировать событие"; document.getElementById('reg-save-btn').innerText = "Обновить"; document.getElementById('reg-cancel-btn').style.display = "block"; document.getElementById('reg-text').value = ev.text || ""; document.getElementById('reg-reminder').value = ev.reminder || ""; document.getElementById('reg-color').value = ev.color || "#4CAF50"; let uiVal = ev.uiType || "none"; if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = uiVal; let uiDisplayHtml = '—'; if(uiVal === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>'; if(uiVal === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>'; if(uiVal === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>'; if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = uiDisplayHtml; if (ev.time) { const parts = ev.time.split('-'); document.getElementById('reg-start').value = parts[0] ? parts[0].trim() : ""; document.getElementById('reg-end').value = parts[1] ? parts[1].trim() : ""; } else { document.getElementById('reg-start').value = ""; document.getElementById('reg-end').value = ""; } document.querySelector(`input[name="reg-type"][value="${ev.type}"]`).checked = true; toggleRegType(); if (ev.type === 'weekly') { document.querySelectorAll('.reg-day').forEach(cb => { cb.checked = ev.days.includes(cb.value); }); } else { document.getElementById('reg-start-date').value = ev.startDate; document.getElementById('reg-work-days').value = ev.workDays; document.getElementById('reg-rest-days').value = ev.restDays; } document.getElementById('reg-form-title').scrollIntoView({behavior: "smooth"}); }
+    function saveRegularEvent() { const text = document.getElementById('reg-text').value; const start = document.getElementById('reg-start').value; const end = document.getElementById('reg-end').value; const color = document.getElementById('reg-color').value; const reminder = document.getElementById('reg-reminder').value; const uiType = document.getElementById('reg-ui') ? document.getElementById('reg-ui').value : 'none'; const type = document.querySelector('input[name="reg-type"]:checked').value; if (!text) return alert("Введите название события!"); let time = ""; if (start && end) time = `${start}-${end}`; else if (start) time = start; else if (end) time = end; const newEvent = { id: editingRegEventId || Date.now(), text, time, color, reminder, uiType, type }; if (type === 'weekly') { const checkedDays = Array.from(document.querySelectorAll('.reg-day:checked')).map(cb => cb.value); if (checkedDays.length === 0) return alert("Выберите дни недели!"); newEvent.days = checkedDays; } else { const startDate = document.getElementById('reg-start-date').value; const workDays = document.getElementById('reg-work-days').value; const restDays = document.getElementById('reg-rest-days').value; if (!startDate) return alert("Выберите дату начала графика!"); newEvent.startDate = startDate; newEvent.workDays = parseInt(workDays); newEvent.restDays = parseInt(restDays); } if (editingRegEventId) { const idx = regularEvents.findIndex(r => r.id === editingRegEventId); if (idx !== -1) regularEvents[idx] = newEvent; } else regularEvents.push(newEvent); saveToLocalStorage(); resetRegForm(); renderRegularEventsList(); renderCalendar(); }
+    function renderRegularEventsList() { const list = document.getElementById('regular-events-list'); list.innerHTML = ""; regularEvents.forEach((ev, index) => { let ruleText = ev.type === 'weekly' ? `Дни: ${ev.days.map(d => ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"][d]).join(', ')}` : `График ${ev.workDays}/${ev.restDays} (с ${ev.startDate.split('-').reverse().join('.')})`; let remIcon = ev.reminder ? `🔔 (-${ev.reminder}м)` : ''; let themeColor = getThemeColor(ev.color); list.innerHTML += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color); background: var(--cell-bg); border-radius: 4px; margin-bottom: 4px;"><div style="flex:1;"><div style="font-weight: bold; color: ${themeColor}; font-size: 1.05em;">${ev.time ? ev.time + ' ' : ''}${ev.text} <span style="font-size: 0.8em; color:var(--text-color); opacity: 0.7;">${remIcon}</span></div><div style="font-size: 0.85em; opacity: 0.7; margin-top: 2px;">${ruleText}</div></div><div style="display:flex; gap: 5px;"><button class="edit-btn" onclick="editRegularEvent(${ev.id})">✏️</button><button class="del-btn" onclick="deleteRegularEvent(${index})">✖</button></div></div>`; }); if (regularEvents.length === 0) list.innerHTML = `<div style="text-align: center; opacity: 0.5; padding: 10px;">Нет добавленных регулярных событий</div>`; }
+    function deleteRegularEvent(index) { if(confirm("Удалить это регулярное событие? Оно исчезнет из всех дней (кроме тех, где вы его отредактировали вручную).")) { const ruleId = regularEvents[index].id; regularEvents.splice(index, 1); for (let dateKey in calendarData) { calendarData[dateKey] = calendarData[dateKey].filter(note => note.ruleId !== ruleId); if (calendarData[dateKey].length === 0) delete calendarData[dateKey]; } saveToLocalStorage(); renderRegularEventsList(); renderCalendar(); } }
 
     setInterval(() => {
         if (Notification.permission !== "granted") return;
@@ -1200,10 +907,7 @@
         todayEvents.forEach(ev => {
             if (ev.time && ev.reminder) {
                 const startStr = ev.time.split('-')[0].trim(); const startMins = parseTimeMins(startStr);
-                if (startMins !== Infinity) {
-                    const targetMins = startMins - parseInt(ev.reminder); const notifyKey = `${dateKey}-${ev.text}-${startStr}`;
-                    if (currentMins === targetMins && !notifiedSet.has(notifyKey)) { new Notification("Скоро: " + ev.text, { body: "Событие начнется в " + startStr, icon: "https://cdn-icons-png.flaticon.com/512/847/847329.png" }); notifiedSet.add(notifyKey); }
-                }
+                if (startMins !== Infinity) { const targetMins = startMins - parseInt(ev.reminder); const notifyKey = `${dateKey}-${ev.text}-${startStr}`; if (currentMins === targetMins && !notifiedSet.has(notifyKey)) { new Notification("Скоро: " + ev.text, { body: "Событие начнется в " + startStr, icon: "https://cdn-icons-png.flaticon.com/512/847/847329.png" }); notifiedSet.add(notifyKey); } }
             }
         });
     }, 30000);
@@ -1212,10 +916,7 @@
     function updateTooltipContentAnimated(target) {
         const ttColor = document.getElementById('tt-color'); const ttTime = document.getElementById('tt-time'); const ttText = document.getElementById('tt-text'); const ttContentWrap = document.getElementById('tt-content-wrap');
         const newColor = target.getAttribute('data-color'); const newTime = target.getAttribute('data-time'); const newText = target.getAttribute('data-text');
-        if (ttTime.textContent !== newTime || ttText.textContent !== newText) {
-            ttContentWrap.classList.remove('flip'); void ttContentWrap.offsetWidth; ttContentWrap.classList.add('flip');
-            setTimeout(() => { ttColor.style.backgroundColor = newColor; ttTime.textContent = newTime; ttText.textContent = newText; }, 100);
-        }
+        if (ttTime.textContent !== newTime || ttText.textContent !== newText) { ttContentWrap.classList.remove('flip'); void ttContentWrap.offsetWidth; ttContentWrap.classList.add('flip'); setTimeout(() => { ttColor.style.backgroundColor = newColor; ttTime.textContent = newTime; ttText.textContent = newText; }, 100); }
     }
     
     function showTooltip(e, target) {
@@ -1224,8 +925,7 @@
         const ttWidth = tooltipEl.offsetWidth; let x = e.clientX; let y = barRect.top - 8;
         if (target.classList.contains('point-segment')) { const segRect = target.getBoundingClientRect(); x = segRect.left + segRect.width / 2; }
         let leftPos = x; let tailOffset = 50;
-        if (x - ttWidth / 2 < 10) { leftPos = ttWidth / 2 + 10; tailOffset = (x - 10) / ttWidth * 100; }
-        else if (x + ttWidth / 2 > window.innerWidth - 10) { leftPos = window.innerWidth - ttWidth / 2 - 10; tailOffset = (x - (window.innerWidth - ttWidth - 10)) / ttWidth * 100; }
+        if (x - ttWidth / 2 < 10) { leftPos = ttWidth / 2 + 10; tailOffset = (x - 10) / ttWidth * 100; } else if (x + ttWidth / 2 > window.innerWidth - 10) { leftPos = window.innerWidth - ttWidth / 2 - 10; tailOffset = (x - (window.innerWidth - ttWidth - 10)) / ttWidth * 100; }
         tailOffset = Math.max(10, Math.min(90, tailOffset)); tooltipEl.style.left = leftPos + 'px'; tooltipEl.style.top = y + 'px'; tooltipEl.style.setProperty('--tail-pos', tailOffset + '%');
     }
     
@@ -1235,61 +935,28 @@
     
     document.body.addEventListener('click', function(e) {
         if (window.innerWidth > 768) return;
-        
         if (e.target.closest('.prog-list-item')) return;
-
         const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive');
-        
         if (target && target.closest('.big-progress')) { 
             e.stopPropagation(); 
-            
-            const text = target.getAttribute('data-text');
-            const time = target.getAttribute('data-time');
-            
-            const index = currentDayEvents.findIndex(n => {
-               let safeText = n.text ? n.text.replace(/"/g, '&quot;') : 'Без описания';
-               let safeTime = n.time ? n.time.replace(/"/g, '&quot;') : '';
-               return safeText === text && safeTime === time;
-            });
-            
-            let clientX = e.clientX;
-            if (clientX === undefined && e.changedTouches) clientX = e.changedTouches[0].clientX;
-            if (!clientX) {
-                const r = target.getBoundingClientRect();
-                clientX = r.left + r.width / 2;
-            }
-
-            if(index !== -1) {
-                highlightSegment(index, { target: target, clientX: clientX }, true); 
-            } else {
-                clearHighlights(); 
-                
-                const fauxEvent = { clientX: clientX };
-                showTooltip(fauxEvent, target); 
-                
-                clearTimeout(hideTooltipTimeout);
-                hideTooltipTimeout = setTimeout(() => {
-                    tooltipEl.classList.remove('show');
-                }, 3000); 
-            }
-        } else if (!e.target.closest('.custom-tooltip')) {
-            tooltipEl.classList.remove('show');
-            clearHighlights();
-        }
+            const text = target.getAttribute('data-text'); const time = target.getAttribute('data-time');
+            const index = currentDayEvents.findIndex(n => { let safeText = n.text ? n.text.replace(/"/g, '&quot;') : 'Без описания'; let safeTime = n.time ? n.time.replace(/"/g, '&quot;') : ''; return safeText === text && safeTime === time; });
+            let clientX = e.clientX; if (clientX === undefined && e.changedTouches) clientX = e.changedTouches[0].clientX; if (!clientX) { const r = target.getBoundingClientRect(); clientX = r.left + r.width / 2; }
+            if(index !== -1) highlightSegment(index, { target: target, clientX: clientX }, true); 
+            else { clearHighlights(); const fauxEvent = { clientX: clientX }; showTooltip(fauxEvent, target); clearTimeout(hideTooltipTimeout); hideTooltipTimeout = setTimeout(() => { tooltipEl.classList.remove('show'); }, 3000); }
+        } else if (!e.target.closest('.custom-tooltip')) { tooltipEl.classList.remove('show'); clearHighlights(); }
     });
 
     function hslToHex(h, s, l) { l /= 100; const a = s * Math.min(l, 1 - l) / 100; const f = n => { const k = (n + h / 30) % 12; const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1); return Math.round(255 * color).toString(16).padStart(2, '0'); }; return `#${f(0)}${f(8)}${f(4)}`; }
     function generateDistinctColor(existingColors) { let newColor; let isDistinct = false; let attempts = 0; while (!isDistinct && attempts < 50) { const h = Math.floor(Math.random() * 360); const s = Math.floor(Math.random() * 30 + 70); const l = isDarkMode ? Math.floor(Math.random() * 15 + 65) : Math.floor(Math.random() * 15 + 75); newColor = hslToHex(h, s, l); isDistinct = true; for (let existing of existingColors) if (existing === newColor) { isDistinct = false; break; } attempts++; } return newColor; }
 
     function exportData() { const fullData = { calendarData, regularEvents }; const dataStr = JSON.stringify(fullData, null, 2); const blob = new Blob([dataStr], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = "calendar_data.json"; a.click(); URL.revokeObjectURL(url); }
-    function importData(event) { const file = event.target.files[ File ]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const imported = JSON.parse(e.target.result); if (imported.calendarData) { calendarData = imported.calendarData; regularEvents = imported.regularEvents || []; } else { calendarData = imported; regularEvents = []; } saveToLocalStorage(); renderCalendar(); alert("Импорт успешен!"); } catch (err) { alert("Ошибка JSON!"); } }; reader.readAsText(file); }
+    function importData(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const imported = JSON.parse(e.target.result); if (imported.calendarData) { calendarData = imported.calendarData; regularEvents = imported.regularEvents || []; } else { calendarData = imported; regularEvents = []; } saveToLocalStorage(); renderCalendar(); alert("Импорт успешен!"); } catch (err) { alert("Ошибка JSON!"); } }; reader.readAsText(file); }
 
     window.onclick = function(event) {
         if (event.target === document.getElementById('progress-modal')) closeProgressModal();
         if (event.target === document.getElementById('regular-events-modal')) closeRegularEventsModal();
-        if (!event.target.closest('.custom-ui-select')) {
-            document.querySelectorAll('.custom-ui-options').forEach(el => el.classList.remove('open'));
-        }
+        if (!event.target.closest('.custom-ui-select')) { document.querySelectorAll('.custom-ui-options').forEach(el => el.classList.remove('open')); }
         if (!event.target.matches('.prog-menu-btn') && !event.target.closest('.ui-switch') && !event.target.closest('.ui-checkbox') && !event.target.closest('.ui-radio')) { const dropdowns = document.getElementsByClassName("prog-menu-dropdown"); for (let i = 0; i < dropdowns.length; i++) dropdowns[i].classList.remove('show'); }
     }
     document.addEventListener('keydown', function(event) { if (event.key === "Escape") { if (document.getElementById('progress-modal').classList.contains('show')) closeProgressModal(); if (document.getElementById('regular-events-modal').classList.contains('show')) closeRegularEventsModal(); } });
@@ -1297,23 +964,10 @@
     loadFromLocalStorage(); renderCalendar();
 
     (function() {
-        if (localStorage.getItem('installBtnHiddenPermanently') === 'true') {
-            const style = document.createElement('style'); style.innerHTML = '#btn-install { display: none !important; }'; document.head.appendChild(style);
-            return;
-        }
-        const btn = document.getElementById('btn-install');
-        if (!btn) return;
+        if (localStorage.getItem('installBtnHiddenPermanently') === 'true') { const style = document.createElement('style'); style.innerHTML = '#btn-install { display: none !important; }'; document.head.appendChild(style); return; }
+        const btn = document.getElementById('btn-install'); if (!btn) return;
         let clickCount = 0; let clickTimer;
-        btn.addEventListener('click', () => {
-            clickCount++;
-            clearTimeout(clickTimer);
-            clickTimer = setTimeout(() => { clickCount = 0; }, 200);
-            if (clickCount >= 3) {
-                localStorage.setItem('installBtnHiddenPermanently', 'true');
-                const style = document.createElement('style'); style.innerHTML = '#btn-install { display: none !important; }'; document.head.appendChild(style);
-                clickCount = 0; 
-            }
-        });
+        btn.addEventListener('click', () => { clickCount++; clearTimeout(clickTimer); clickTimer = setTimeout(() => { clickCount = 0; }, 200); if (clickCount >= 3) { localStorage.setItem('installBtnHiddenPermanently', 'true'); const style = document.createElement('style'); style.innerHTML = '#btn-install { display: none !important; }'; document.head.appendChild(style); clickCount = 0; } });
     })();
 
 </script>
