@@ -462,7 +462,7 @@
 </div>
 
 <script>
-       const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
     let currentDate = new Date();
     const realToday = new Date();
     let calendarData = {};
@@ -745,9 +745,9 @@
         document.getElementById(optionsId).classList.remove('open');
     }
 
-    // --- ФУНКЦИЯ ПОДСВЕТКИ СЕГМЕНТА ПРИ КЛИКЕ НА ЗАМЕТКУ ---
+    // --- УМНАЯ ФУНКЦИЯ ПОДСВЕТКИ СЕГМЕНТА ---
     function highlightSegment(index, e) {
-        // Игнорируем клики по элементам управления (меню, чекбоксы, селекторы и тд)
+        // Игнорируем клики по элементам управления (меню, чекбоксы, селекторы)
         if (e.target.closest('.prog-menu-wrap') || e.target.closest('.ui-checkbox') || e.target.closest('.ui-switch') || e.target.closest('.ui-radio') || e.target.closest('.custom-ui-select')) {
             return;
         }
@@ -755,14 +755,13 @@
         let note = currentDayEvents[index];
         if (!note) return;
 
-        // Ищем сегменты только внутри модального окна
         let segments = document.querySelectorAll('#big-progress-container .progress-segment');
         let matchedSegments = [];
 
         let targetText = note.text ? note.text.replace(/"/g, '&quot;') : 'Без описания';
         let targetTime = note.time ? note.time.replace(/"/g, '&quot;') : '';
 
-        // Ищем все отрезки этой заметки по тексту и времени
+        // Находим ВСЕ отрезки (куски) этой заметки
         segments.forEach(seg => {
             if (seg.getAttribute('data-text') === targetText && seg.getAttribute('data-time') === targetTime) {
                 matchedSegments.push(seg);
@@ -771,7 +770,16 @@
 
         if (matchedSegments.length === 0) return;
 
-        // Ищем самый длинный отрезок
+        // 1. ПОДСВЕЧИВАЕМ ВСЕ ЧАСТИ на прогресс-баре (а не только одну)
+        matchedSegments.forEach(seg => {
+            seg.style.transition = 'filter 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            seg.style.filter = 'brightness(1.5) drop-shadow(0 0 6px rgba(255,255,255,0.6))';
+            setTimeout(() => { 
+                seg.style.filter = 'none';
+            }, 400); // 400мс - это время свечения отрезков
+        });
+
+        // 2. Ищем самый длинный кусок, чтобы показать над ним облачко
         let longestSeg = matchedSegments[0];
         let maxW = longestSeg.getBoundingClientRect().width;
 
@@ -783,19 +791,27 @@
             }
         }
 
-        // Высчитываем центр самого длинного отрезка
+        // 3. Вычисляем видимую (не перекрытую другой заметкой) координату для облачка
         let rect = longestSeg.getBoundingClientRect();
-        let fakeEvent = { clientX: rect.left + rect.width / 2 };
+        let targetX = rect.left + rect.width / 2; // Центр по умолчанию
+        let y = rect.top + rect.height / 2;
 
-        // Визуально "мигаем" найденным отрезком (добавляем свечение)
-        longestSeg.style.transition = 'filter 0.25s';
-        longestSeg.style.filter = 'brightness(1.5) drop-shadow(0 0 6px rgba(255,255,255,0.6))';
-        
-        setTimeout(() => { 
-            longestSeg.style.filter = 'none';
-        }, 3000);
+        // Сканируем кусок по ширине с шагом в 10%
+        for (let i = 1; i <= 9; i++) {
+            let testX = rect.left + (rect.width * i / 10);
+            let topElement = document.elementFromPoint(testX, y);
+            
+            // Если точка принадлежит нашей заметке (ее никто не перекрыл сверху)
+            if (topElement === longestSeg) {
+                targetX = testX;
+                // Идеально, если эта точка находится ближе к середине куска
+                if (i >= 3 && i <= 7) break; 
+            }
+        }
 
-        // Показываем тултип строго над вычисленным центром
+        let fakeEvent = { clientX: targetX };
+
+        // Показываем облачко точно там, где цвет не перекрыт!
         showTooltip(fakeEvent, longestSeg);
 
         // Прячем тултип через 3 секунды
@@ -1070,11 +1086,12 @@
     document.body.addEventListener('mouseover', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color') && target.closest('.day-progress-bar')) showTooltip(e, target); });
     document.body.addEventListener('mousemove', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color') && target.closest('.day-progress-bar')) showTooltip(e, target); });
     document.body.addEventListener('mouseout', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color')) tooltipEl.classList.remove('show'); });
-        document.body.addEventListener('click', function(e) {
+    
+    // Исправленный глобальный обработчик кликов для правильного скрытия тултипов на телефонах
+    document.body.addEventListener('click', function(e) {
         if (window.innerWidth > 768) return;
         
-        // ИСПРАВЛЕНИЕ: Если мы кликнули по строке заметки, прерываем этот код,
-        // чтобы он моментально не скрыл облачко, которое только что вызвала функция highlightSegment
+        // Предотвращаем автоматическое закрытие облачка, если кликнули по строке заметки
         if (e.target.closest('.prog-list-item')) return;
 
         const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive');
@@ -1090,7 +1107,6 @@
         }
     });
 
-
     function hslToHex(h, s, l) { l /= 100; const a = s * Math.min(l, 1 - l) / 100; const f = n => { const k = (n + h / 30) % 12; const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1); return Math.round(255 * color).toString(16).padStart(2, '0'); }; return `#${f(0)}${f(8)}${f(4)}`; }
     function generateDistinctColor(existingColors) { let newColor; let isDistinct = false; let attempts = 0; while (!isDistinct && attempts < 50) { const h = Math.floor(Math.random() * 360); const s = Math.floor(Math.random() * 30 + 70); const l = isDarkMode ? Math.floor(Math.random() * 15 + 65) : Math.floor(Math.random() * 15 + 75); newColor = hslToHex(h, s, l); isDistinct = true; for (let existing of existingColors) if (existing === newColor) { isDistinct = false; break; } attempts++; } return newColor; }
 
@@ -1101,7 +1117,6 @@
         if (event.target === document.getElementById('progress-modal')) closeProgressModal();
         if (event.target === document.getElementById('regular-events-modal')) closeRegularEventsModal();
         
-        // Закрываем кастомные меню UI-селектора при клике вне их
         if (!event.target.closest('.custom-ui-select')) {
             document.querySelectorAll('.custom-ui-options').forEach(el => el.classList.remove('open'));
         }
