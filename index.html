@@ -816,11 +816,12 @@
                 }
 
                 listContainer.innerHTML += `
-                    <div class="prog-list-item">
+                                        <div class="prog-list-item">
                         <div class="prog-num">${index + 1}</div>
-                        <div class="prog-time">${note.time || '—'}</div>
                         ${uiHtml}
+                        <div class="prog-time">${note.time || '—'}</div>
                         <div class="badge-text-container"><span class="badge-text">${note.text}${remIcon} ${note.ruleId ? '<small style="opacity:0.5;">(рег)</small>' : ''}</span></div>
+
                         <div class="prog-color" style="background-color: ${themeColor};"></div>
                         <div class="prog-menu-wrap">
                             <button class="prog-menu-btn" onclick="toggleProgMenu(${index}, event)">⋮</button>
