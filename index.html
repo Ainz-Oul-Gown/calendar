@@ -1091,6 +1091,44 @@
     document.addEventListener('keydown', function(event) { if (event.key === "Escape") { if (document.getElementById('progress-modal').classList.contains('show')) closeProgressModal(); if (document.getElementById('regular-events-modal').classList.contains('show')) closeRegularEventsModal(); } });
 
     loadFromLocalStorage(); renderCalendar();
+    // --- ПАСХАЛКА: Скрытие кнопки "Установить" навсегда при 3 быстрых кликах ---
+    (function() {
+        // Проверяем, не скрыли ли мы её уже навсегда в прошлый раз
+        if (localStorage.getItem('installBtnHiddenPermanently') === 'true') {
+            const style = document.createElement('style');
+            style.innerHTML = '#btn-install { display: none !important; }';
+            document.head.appendChild(style);
+            return;
+        }
+
+        const btn = document.getElementById('btn-install');
+        if (!btn) return;
+
+        let clickCount = 0;
+        let clickTimer;
+
+        btn.addEventListener('click', () => {
+            clickCount++;
+            
+            // Если между кликами проходит больше 200мс — сбрасываем счетчик
+            clearTimeout(clickTimer);
+            clickTimer = setTimeout(() => {
+                clickCount = 0; 
+            }, 200);
+
+            // Если успели кликнуть 3 раза подряд
+            if (clickCount >= 3) {
+                localStorage.setItem('installBtnHiddenPermanently', 'true'); // Запоминаем навсегда
+                
+                // Жестко скрываем кнопку через стили, чтобы другие скрипты не могли её показать
+                const style = document.createElement('style');
+                style.innerHTML = '#btn-install { display: none !important; }';
+                document.head.appendChild(style);
+                
+                clickCount = 0; 
+            }
+        });
+    })();
 
 </script>
 </body>
