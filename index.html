@@ -9,7 +9,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-        <style>
+           <style>
         :root {
             --bg-color: #f4f4f9; --cell-bg: #ffffff; --border-color: #ddd; --text-color: #333;
             --primary-color: #4CAF50; --cell-hover-bg: #f9f9f9; --cell-empty-bg: #fafafa;
@@ -75,10 +75,24 @@
         .progress-period { position: relative; overflow: visible; transition: flex-grow 0.4s ease; }
         .progress-period.active { flex-grow: 1; border-radius: 4px; background-color: var(--prog-active-bg); overflow: hidden; }
         .progress-period.inactive { aspect-ratio: 1 / 1; height: 100%; border-radius: 50%; background-color: var(--prog-inactive-bg); flex-shrink: 0; }
+        
         .progress-segment { position: absolute; top: 0; height: 100%; border-radius: 4px; min-width: 4px; transition: left 0.3s ease, width 0.3s ease; }
         .point-segment::before { content: ''; position: absolute; top: -10px; bottom: -10px; left: -10px; right: -10px; z-index: 10; cursor: pointer; }
         .big-progress { height: 28px !important; gap: 4px !important; cursor: pointer; margin-bottom: 20px; }
         .big-progress .progress-period.active { border-radius: 14px; }
+
+        /* --- НОВАЯ АНИМАЦИЯ ПУЛЬСАЦИИ ЗАМЕТОК --- */
+        .highlighted-segment {
+            z-index: 50 !important;
+            animation: segmentPulse 0.7s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+        }
+        @keyframes segmentPulse {
+            0% { transform: scaleY(1) scaleX(1); filter: drop-shadow(0 0 0 rgba(0,0,0,0)); }
+            100% { 
+                transform: scaleY(1.45) scaleX(1.015); 
+                filter: brightness(1.15) drop-shadow(0 4px 6px rgba(0,0,0,0.5)) drop-shadow(0 0 4px rgba(255,255,255,0.4)); 
+            }
+        }
 
         .day-notes-preview { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding-right: 2px; font-size: 0.75em; margin-top: 2px; pointer-events: none; }
         .day-notes-preview::-webkit-scrollbar { width: 3px; }
@@ -92,9 +106,9 @@
         .badge-text.scrolling { animation-name: scrollText; animation-timing-function: linear; animation-iteration-count: infinite; }
         @keyframes scrollText { 0%, 15% { transform: translateX(0); } 85%, 100% { transform: translateX(calc(var(--scroll-amount) - 4px)); } }
 
-        /* Всплывающие подсказки */
+        /* Всплывающие подсказки (ОПУЩЕН ХВОСТИК ВНИЗ margin-top: -3px) */
         .custom-tooltip { position: fixed; z-index: 99999; background: #222; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85em; pointer-events: none; opacity: 0; visibility: hidden; transform: translate(-50%, 15px) scale(0.9); transition: opacity 0.25s ease, visibility 0.25s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.15s ease-out, top 0.15s ease-out; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); white-space: nowrap; border: 1px solid rgba(255,255,255,0.15); }
-        .custom-tooltip.show { opacity: 1; visibility: visible; transform: translate(-50%, -100%) scale(1); margin-top: -12px; }
+        .custom-tooltip.show { opacity: 1; visibility: visible; transform: translate(-50%, -100%) scale(1); margin-top: -3px; }
         .custom-tooltip::before { content: ''; position: absolute; top: 100%; left: var(--tail-pos, 50%); transform: translateX(-50%); border-width: 8px; border-style: solid; border-color: rgba(255,255,255,0.15) transparent transparent transparent; transition: left 0.15s ease; }
         .custom-tooltip::after { content: ''; position: absolute; top: calc(100% - 1px); left: var(--tail-pos, 50%); transform: translateX(-50%); border-width: 8px; border-style: solid; border-color: #222 transparent transparent transparent; transition: left 0.15s ease; }
         .tooltip-color-box { width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2); transition: background-color 0.2s ease; }
@@ -114,13 +128,12 @@
         }
         .modal-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
 
-        /* ИСПРАВЛЕНО: Скролл теперь на самом окне, увеличен минимальный размер */
         .modal {
             background: var(--modal-bg); padding: 15px 20px; border-radius: 12px; width: 95%; max-width: 550px;
-            min-height: 75vh; min-height: 75dvh; /* Увеличен минимальный размер */
+            min-height: 75vh; min-height: 75dvh; 
             max-height: 90vh; max-height: 90dvh; 
             display: flex; flex-direction: column; 
-            overflow-y: auto; overflow-x: hidden; /* Скроллим само модальное окно */
+            overflow-y: auto; overflow-x: hidden; 
             box-sizing: border-box; border: 1px solid var(--border-color);
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             transform: translateY(30px) scale(0.95); opacity: 0;
@@ -128,11 +141,10 @@
         }
         .modal-overlay.show .modal { transform: translateY(0) scale(1); opacity: 1; }
         
-        /* ИСПРАВЛЕНО: Убран overflow: hidden со списков. Меню больше не обрезается! */
         #progress-notes-list, #regular-events-list { 
             overflow: visible; 
             flex: 1 1 auto; 
-            padding-bottom: 30px; /* Даем место, чтобы меню не упиралось в кнопку */
+            padding-bottom: 30px; 
         }
 
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
@@ -146,21 +158,19 @@
         .del-btn { color: #ff4d4d; opacity: 1;}
         .edit-btn:hover, .del-btn:hover { opacity: 1; transform: scale(1.15); }
         
-        /* ИСПРАВЛЕНО: Кнопка "Добавить" всегда внизу */
         .add-btn { width: 100%; padding: 12px; background: var(--primary-color); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.2s, transform 0.1s; flex-shrink: 0; }
         .add-btn:active { transform: scale(0.98); }
         .sticky-add-btn { 
             position: sticky; 
-            bottom: -5px; /* Зафиксирована в самом низу окна */
+            bottom: -5px; 
             z-index: 50; 
-            margin-top: auto; /* Толкает кнопку в самый низ, если список короткий */
-            box-shadow: 0 -10px 15px var(--modal-bg); /* Скрывает прокручиваемый контент под ней */
+            margin-top: auto; 
+            box-shadow: 0 -10px 15px var(--modal-bg); 
         }
 
         .prog-list-item { display: flex; align-items: center; gap: 8px; padding: 10px 8px; border-bottom: 1px solid var(--border-color); position: relative; } 
         .prog-list-item:last-child { border-bottom: none; }
         
-        /* Режим редактирования с анимацией */
         .prog-list-item.edit-mode { 
             background-color: var(--cell-hover-bg); border-radius: 8px; border: 1px solid var(--border-color); 
             padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
@@ -202,16 +212,13 @@
         .prog-edit-inputs input[type="text"] { flex-grow: 1; padding: 6px; min-width: 100px; border-radius: 4px;}
         .prog-edit-inputs select { padding: 6px; border-radius: 4px; font-size: 0.9em;}
         
-        /* ЦВЕТА И UI ЭЛЕМЕНТЫ */
         .prog-edit-bottom-row { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; }
         .color-ui-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-top: 0; }
         .color-ui-wrap input[type="color"] { width: 32px; height: 32px; border: none; padding: 0; border-radius: 4px; cursor: pointer; flex-shrink: 0; }
         
-        /* КАСТОМНЫЙ СЕЛЕКТОР UI */
         .custom-ui-select { position: relative; width: 85px; height: 32px; flex-shrink: 0; user-select: none; }
         .custom-ui-trigger { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); cursor: pointer; }
         
-        /* Плавное появление меню UI */
         .custom-ui-options { 
             position: absolute; bottom: 100%; right: 0; margin-bottom: 5px; background: var(--menu-bg); 
             border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
@@ -273,16 +280,14 @@
             .prog-edit-inputs input[type="text"] { width: 100%; }
             .prog-edit-inputs select { width: 100%; }
             
-            /* ИСПРАВЛЕНО: Выравнивание нижнего ряда в один ряд на телефонах */
             .prog-edit-bottom-row { 
-                flex-wrap: nowrap !important; /* Строго запрещаем перенос на новую строку */
+                flex-wrap: nowrap !important; 
                 justify-content: space-between; 
-                gap: 5px; /* Уменьшили отступы */
+                gap: 5px; 
             }
             .color-ui-wrap { width: auto; justify-content: flex-start; gap: 5px; }
             .prog-edit-actions { width: auto; justify-content: flex-end; gap: 5px; }
             
-            /* Сжимаем элементы, чтобы все точно влезло */
             .color-ui-wrap input[type="color"] { width: 28px; height: 28px; }
             .custom-ui-select { width: 65px; height: 28px; }
             .save-btn, .cancel-btn { padding: 8px 10px; font-size: 0.8em; white-space: nowrap; }
@@ -303,8 +308,6 @@
         .anim-slide-from-right { animation: slideFromRight 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
         .anim-slide-from-left { animation: slideFromLeft 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
     </style>
-
-
 
 </head>
 <body>
@@ -658,13 +661,9 @@
                     if (!item.isEmpty && item.level > 0) {
                         if (isBig) {
                             let lvl = Math.min(item.level, 3);
-                            // ИСПРАВЛЕНО: Уменьшили шаг уменьшения высоты (lvl * 18 вместо 26). Стало больше места.
-                            // ИСПРАВЛЕНО: Увеличили внешнюю тень (с 0 2px 6px до 0 3px 10px, rgba 0.4).
-                            styleStr += ` height: ${100 - lvl * 18}%; top: ${lvl * 9}%; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25), 0 3px 8px rgba(0,0,0,0.4);`;
+                            styleStr += ` height: ${100 - lvl * 18}%; top: ${lvl * 9}%; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25), 0 3px 10px rgba(0,0,0,0.4);`;
                         } else {
                             let lvl = Math.min(item.level, 2);
-                            // ИСПРАВЛЕНО: Уменьшили шаг на главном экране (lvl * 24 вместо 34).
-                            // ИСПРАВЛЕНО: Увеличили тень (0 2px 5px, rgba 0.5).
                             styleStr += ` height: ${100 - lvl * 24}%; top: ${lvl * 12}%; box-shadow: 0 2px 5px rgba(0,0,0,0.5);`;
                         }
                     }
@@ -756,7 +755,12 @@
         document.getElementById('progress-modal').classList.add('show');
     }
 
-    function closeProgressModal() { document.getElementById('progress-modal').classList.remove('show'); document.getElementById('custom-tooltip').classList.remove('show'); renderCalendar(); }
+    function closeProgressModal() { 
+        document.getElementById('progress-modal').classList.remove('show'); 
+        document.getElementById('custom-tooltip').classList.remove('show'); 
+        clearHighlights();
+        renderCalendar(); 
+    }
 
     function handleUiAction(e, index) {
         e.stopPropagation();
@@ -794,10 +798,21 @@
         document.getElementById(optionsId).classList.remove('open');
     }
 
+    // --- ФУНКЦИЯ ДЛЯ СБРОСА ВСЕХ ПУЛЬСИРУЮЩИХ ЗАМЕТОК ---
+    function clearHighlights() {
+        document.querySelectorAll('.highlighted-segment').forEach(el => {
+            el.classList.remove('highlighted-segment');
+        });
+    }
+
+    // --- УМНАЯ ФУНКЦИЯ ПОДСВЕТКИ (НАХОДИТ ЛУЧШЕЕ НЕПЕРЕКРЫТОЕ МЕСТО) ---
     function highlightSegment(index, e) {
-        if (e.target.closest('.prog-menu-wrap') || e.target.closest('.ui-checkbox') || e.target.closest('.ui-switch') || e.target.closest('.ui-radio') || e.target.closest('.custom-ui-select')) {
+        if (e && e.target && (e.target.closest('.prog-menu-wrap') || e.target.closest('.ui-checkbox') || e.target.closest('.ui-switch') || e.target.closest('.ui-radio') || e.target.closest('.custom-ui-select'))) {
             return;
         }
+
+        // Сразу сбрасываем предыдущую подсветку
+        clearHighlights();
 
         let note = currentDayEvents[index];
         if (!note) return;
@@ -816,12 +831,12 @@
 
         if (matchedSegments.length === 0) return;
 
+        // Включаем пульсацию для всех найденных отрезков через новый CSS-класс
         matchedSegments.forEach(seg => {
-            seg.style.transition = 'filter 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-            seg.style.filter = 'brightness(1.5) drop-shadow(0 0 6px rgba(255,255,255,0.6))';
-            setTimeout(() => { seg.style.filter = 'none'; }, 3000); 
+            seg.classList.add('highlighted-segment');
         });
 
+        // Находим самый длинный кусок для отображения тултипа
         let longestSeg = matchedSegments[0];
         let maxW = longestSeg.getBoundingClientRect().width;
 
@@ -834,25 +849,47 @@
         }
 
         let rect = longestSeg.getBoundingClientRect();
-        let targetX = rect.left + rect.width / 2; 
-        let y = rect.top + rect.height / 2;
+        let y = rect.top + rect.height / 2; // Строгий центр по вертикали
+        let bestX = rect.left + rect.width / 2; // По умолчанию - геометрический центр
 
-        for (let i = 1; i <= 9; i++) {
-            let testX = rect.left + (rect.width * i / 10);
+        // Алгоритм поиска самого большого непрерывного и НЕПЕРЕКРЫТОГО куска
+        let currentRun = [];
+        let maxRun = [];
+        
+        for (let i = 0; i <= 20; i++) {
+            let testX = rect.left + (rect.width * i / 20);
+            
+            // Чуть-чуть сдвигаем по краям, чтобы не кликнуть мимо элемента
+            if (i === 0) testX += 1;
+            if (i === 20) testX -= 1;
+            
             let topElement = document.elementFromPoint(testX, y);
             
+            // Если в этой точке сверху находится именно наш кусок (его никто не перекрыл)
             if (topElement === longestSeg) {
-                targetX = testX;
-                if (i >= 3 && i <= 7) break; 
+                currentRun.push(testX);
+            } else {
+                if (currentRun.length > maxRun.length) {
+                    maxRun = currentRun;
+                }
+                currentRun = [];
             }
         }
+        if (currentRun.length > maxRun.length) maxRun = currentRun;
+        
+        // Берем середину самого длинного непрерывного куска!
+        if (maxRun.length > 0) {
+            bestX = maxRun[Math.floor(maxRun.length / 2)];
+        }
 
-        let fakeEvent = { clientX: targetX };
+        let fakeEvent = { clientX: bestX };
         showTooltip(fakeEvent, longestSeg);
 
+        // Выключаем класс пульсации и прячем тултип ровно через 3 секунды
         clearTimeout(hideTooltipTimeout);
         hideTooltipTimeout = setTimeout(() => {
             document.getElementById('custom-tooltip').classList.remove('show');
+            clearHighlights();
         }, 3000);
     }
 
@@ -1122,19 +1159,43 @@
     document.body.addEventListener('mousemove', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color') && target.closest('.day-progress-bar')) showTooltip(e, target); });
     document.body.addEventListener('mouseout', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color')) tooltipEl.classList.remove('show'); });
     
+    // ИСПРАВЛЕНО: Клик напрямую по прогресс-бару теперь вызывает такую же красивую анимацию
     document.body.addEventListener('click', function(e) {
         if (window.innerWidth > 768) return;
+        
         if (e.target.closest('.prog-list-item')) return;
+
         const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive');
         if (target && target.closest('.big-progress')) { 
             e.stopPropagation(); 
-            const fauxEvent = { clientX: e.clientX }; 
-            if (fauxEvent.clientX === undefined && e.changedTouches) fauxEvent.clientX = e.changedTouches[0].clientX; 
-            if (!fauxEvent.clientX) { const r = target.getBoundingClientRect(); fauxEvent.clientX = r.left + r.width / 2; } 
-            showTooltip(fauxEvent, target); 
-            hideTooltipTimeout = setTimeout(() => tooltipEl.classList.remove('show'), 3000); 
+            
+            // Если кликнули на существующую заметку
+            const text = target.getAttribute('data-text');
+            const time = target.getAttribute('data-time');
+            const index = currentDayEvents.findIndex(n => {
+               let safeText = n.text ? n.text.replace(/"/g, '&quot;') : 'Без описания';
+               let safeTime = n.time ? n.time.replace(/"/g, '&quot;') : '';
+               return safeText === text && safeTime === time;
+            });
+            
+            // Запускаем полную функцию умной подсветки (так же, как при клике на текст)
+            if(index !== -1) {
+                highlightSegment(index, { target: target }); 
+            } else {
+                const fauxEvent = { clientX: e.clientX }; 
+                if (fauxEvent.clientX === undefined && e.changedTouches) fauxEvent.clientX = e.changedTouches[0].clientX; 
+                if (!fauxEvent.clientX) { const r = target.getBoundingClientRect(); fauxEvent.clientX = r.left + r.width / 2; } 
+                showTooltip(fauxEvent, target); 
+                
+                clearTimeout(hideTooltipTimeout);
+                hideTooltipTimeout = setTimeout(() => {
+                    tooltipEl.classList.remove('show');
+                    clearHighlights();
+                }, 3000); 
+            }
         } else if (!e.target.closest('.custom-tooltip')) {
             tooltipEl.classList.remove('show');
+            clearHighlights(); // Выключаем свечение при клике мимо
         }
     });
 
