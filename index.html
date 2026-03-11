@@ -462,7 +462,7 @@
 </div>
 
 <script>
-        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+     const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
     let currentDate = new Date();
     const realToday = new Date();
     let calendarData = {};
@@ -482,7 +482,6 @@
     let moveSourceDate = "";
     let moveTargetDate = "";
 
-    // Функция контраста (Возвращает белый или черный в зависимости от яркости фона)
     function getContrastYIQ(hexcolor){
         if(!hexcolor) return '#000000';
         hexcolor = hexcolor.replace("#", "");
@@ -494,7 +493,6 @@
         return (yiq >= 128) ? '#000000' : '#ffffff';
     }
 
-    // Умный цвет (Черный/Белый в зависимости от темы)
     function getThemeColor(color) {
         if(!color) return '#4CAF50';
         let c = color.toLowerCase();
@@ -585,9 +583,16 @@
         saveToLocalStorage();
     }
 
+    // --- ОБНОВЛЕННАЯ ФУНКЦИЯ ПРОГРЕСС-БАРА (УМНЫЕ ВЛОЖЕНИЯ) ---
     function getProgressBarHTML(dateKey, isBig) {
         const bigClass = isBig ? ' big-progress' : ''; let html = `<div class="day-progress-bar${bigClass}">`;
-        const dayPeriods = [ { name: 'morning', start: 300, end: 720, duration: 420, active: false, ranges: [], points: [] }, { name: 'day', start: 720, end: 1080, duration: 360, active: false, ranges: [], points: [] }, { name: 'evening', start: 1080, end: 1390, duration: 310, active: false, ranges: [], points: [] } ];
+        
+        const dayPeriods = [ 
+            { name: 'morning', start: 300, end: 720, duration: 420, active: false, items: [] }, 
+            { name: 'day', start: 720, end: 1080, duration: 360, active: false, items: [] }, 
+            { name: 'evening', start: 1080, end: 1390, duration: 310, active: false, items: [] } 
+        ];
+        
         const todayEvents = getEventsForDate(dateKey);
 
         if (todayEvents.length > 0) {
@@ -603,8 +608,9 @@
                         period.active = true;
                         const clampStart = Math.max(period.start, startMin); const clampEnd = Math.min(period.end, endMin);
                         const safeText = note.text ? note.text.replace(/"/g, '&quot;') : 'Без описания'; const safeTime = note.time ? note.time.replace(/"/g, '&quot;') : '';
-                        const item = { start: clampStart, end: clampEnd, color: themeColor, text: safeText, time: safeTime };
-                        if (isPoint) period.points.push(item); else period.ranges.push(item);
+                        
+                        // Складываем все сегменты в единый массив items
+                        period.items.push({ start: clampStart, end: clampEnd, color: themeColor, text: safeText, time: safeTime, isPoint: isPoint });
                     }
                 });
             });
@@ -613,17 +619,70 @@
         dayPeriods.forEach(period => {
             if (period.active) {
                 html += `<div class="progress-period active" style="flex-grow: ${period.duration}">`;
-                let allTasks = [...period.ranges, ...period.points].sort((a,b) => a.start - b.start); let currentMin = period.start; let emptySegments = [];
-                allTasks.forEach(task => { if (task.start > currentMin) emptySegments.push({ start: currentMin, end: task.start, isEmpty: true, time: `${formatMin(currentMin)}-${formatMin(task.start)}` }); currentMin = Math.max(currentMin, task.end); });
+                
+                // Вычисляем абсолютно пустые отрезки (как и раньше)
+                let allTasks = [...period.items].sort((a,b) => a.start - b.start); 
+                let currentMin = period.start; let emptySegments = [];
+                allTasks.forEach(task => { 
+                    if (task.start > currentMin) emptySegments.push({ start: currentMin, end: task.start, isEmpty: true, time: `${formatMin(currentMin)}-${formatMin(task.start)}` }); 
+                    currentMin = Math.max(currentMin, task.end); 
+                });
                 if (currentMin < period.end) emptySegments.push({ start: currentMin, end: period.end, isEmpty: true, time: `${formatMin(currentMin)}-${formatMin(period.end)}` });
 
-                const renderSeg = (item, isPt) => {
-                    const left = ((item.start - period.start) / period.duration) * 100; const width = ((item.end - item.start) / period.duration) * 100;
-                    const bg = item.isEmpty ? 'transparent' : item.color; const ttColor = item.isEmpty ? 'var(--empty-color)' : item.color; const ttText = item.isEmpty ? 'Пусто' : item.text;
-                    const ptClass = isPt ? ' point-segment' : '';
-                    html += `<div class="progress-segment${ptClass}" style="left: ${left}%; width: ${width}%; background-color: ${bg};" data-color="${ttColor}" data-time="${item.time}" data-text="${ttText}"></div>`;
+                // --- МАГИЯ ВЛОЖЕННОСТИ ---
+                // 1. Сортируем заметки по длительности (самые длинные идут первыми - они будут фоном)
+                let itemsForLeveling = [...period.items].sort((a, b) => {
+                    let durA = a.end - a.start;
+                    let durB = b.end - b.start;
+                    if (durB !== durA) return durB - durA; 
+                    return a.start - b.start;
+                });
+
+                // 2. Считаем пересечения (уровень глубины)
+                itemsForLeveling.forEach((task, index) => {
+                    let overlaps = 0;
+                    for (let i = 0; i < index; i++) {
+                        let prev = itemsForLeveling[i];
+                        // Если текущая заметка наслаивается на более длинную предыдущую
+                        if (Math.max(task.start, prev.start) < Math.min(task.end, prev.end)) {
+                            overlaps++;
+                        }
+                    }
+                    task.level = overlaps; // Назначаем ей уровень (0 - фон, 1, 2, 3 - внутренние слои)
+                });
+
+                // 3. Возвращаем сортировку по уровню, чтобы более короткие заметки рисовались ПОВЕРХ длинных
+                itemsForLeveling.sort((a, b) => a.level - b.level);
+
+                const renderSeg = (item) => {
+                    const left = ((item.start - period.start) / period.duration) * 100; 
+                    const width = ((item.end - item.start) / period.duration) * 100;
+                    const bg = item.isEmpty ? 'transparent' : item.color; 
+                    const ttColor = item.isEmpty ? 'var(--empty-color)' : item.color; 
+                    const ttText = item.isEmpty ? 'Пусто' : item.text;
+                    const ptClass = item.isPoint ? ' point-segment' : '';
+
+                    let styleStr = `left: ${left}%; width: ${width}%; background-color: ${bg};`;
+
+                    // Если это не пустой кусок и он наслаивается на что-то (level > 0)
+                    if (!item.isEmpty && item.level > 0) {
+                        if (isBig) {
+                            // Для модального окна: уменьшаем высоту и центрируем, добавляем тень-карточку
+                            let lvl = Math.min(item.level, 3);
+                            styleStr += ` height: ${100 - lvl * 26}%; top: ${lvl * 13}%; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2), 0 2px 6px rgba(0,0,0,0.3);`;
+                        } else {
+                            // Для главного экрана: делаем вложение более аккуратным
+                            let lvl = Math.min(item.level, 2);
+                            styleStr += ` height: ${100 - lvl * 34}%; top: ${lvl * 17}%; box-shadow: 0 1px 3px rgba(0,0,0,0.4);`;
+                        }
+                    }
+
+                    html += `<div class="progress-segment${ptClass}" style="${styleStr}" data-color="${ttColor}" data-time="${item.time}" data-text="${ttText}"></div>`;
                 };
-                emptySegments.forEach(s => renderSeg(s, false)); period.ranges.forEach(s => renderSeg(s, false)); period.points.forEach(s => renderSeg(s, true));
+
+                // Отрисовываем всё по порядку Z-индекса
+                emptySegments.forEach(s => renderSeg(s)); 
+                itemsForLeveling.forEach(s => renderSeg(s)); 
                 html += `</div>`;
             } else {
                 html += `<div class="progress-period inactive" data-color="var(--empty-color)" data-time="${formatMin(period.start)}-${formatMin(period.end)}" data-text="Пусто"></div>`;
@@ -721,7 +780,6 @@
         renderProgressModalContent();
     }
 
-    // --- ЛОГИКА КАСТОМНОГО СЕЛЕКТОРА UI ---
     function toggleCustomSelect(menuId, event) {
         event.stopPropagation();
         document.querySelectorAll('.custom-ui-options').forEach(el => { if(el.id !== menuId) el.classList.remove('open'); });
@@ -745,9 +803,7 @@
         document.getElementById(optionsId).classList.remove('open');
     }
 
-    // --- УМНАЯ ФУНКЦИЯ ПОДСВЕТКИ СЕГМЕНТА ---
     function highlightSegment(index, e) {
-        // Игнорируем клики по элементам управления (меню, чекбоксы, селекторы)
         if (e.target.closest('.prog-menu-wrap') || e.target.closest('.ui-checkbox') || e.target.closest('.ui-switch') || e.target.closest('.ui-radio') || e.target.closest('.custom-ui-select')) {
             return;
         }
@@ -761,7 +817,7 @@
         let targetText = note.text ? note.text.replace(/"/g, '&quot;') : 'Без описания';
         let targetTime = note.time ? note.time.replace(/"/g, '&quot;') : '';
 
-        // Находим ВСЕ отрезки (куски) этой заметки
+        // Находим ВСЕ отрезки этой заметки
         segments.forEach(seg => {
             if (seg.getAttribute('data-text') === targetText && seg.getAttribute('data-time') === targetTime) {
                 matchedSegments.push(seg);
@@ -770,16 +826,7 @@
 
         if (matchedSegments.length === 0) return;
 
-        // 1. ПОДСВЕЧИВАЕМ ВСЕ ЧАСТИ на прогресс-баре (а не только одну)
-        matchedSegments.forEach(seg => {
-            seg.style.transition = 'filter 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-            seg.style.filter = 'brightness(1.5) drop-shadow(0 0 6px rgba(255,255,255,0.6))';
-            setTimeout(() => { 
-                seg.style.filter = 'none';
-            }, 400); // 400мс - это время свечения отрезков
-        });
-
-        // 2. Ищем самый длинный кусок, чтобы показать над ним облачко
+        // Ищем самый длинный кусок
         let longestSeg = matchedSegments[0];
         let maxW = longestSeg.getBoundingClientRect().width;
 
@@ -791,30 +838,33 @@
             }
         }
 
-        // 3. Вычисляем видимую (не перекрытую другой заметкой) координату для облачка
+        // Вычисляем координату, которая НЕ ПЕРЕКРЫТА другой вложенной заметкой
         let rect = longestSeg.getBoundingClientRect();
         let targetX = rect.left + rect.width / 2; // Центр по умолчанию
-        let y = rect.top + rect.height / 2;
+        let y = rect.top + rect.height / 2; // Строгий центр по Y (даже для уменьшенных)
 
-        // Сканируем кусок по ширине с шагом в 10%
+        // Сканируем отрезок горизонтально, ищем видимую точку
         for (let i = 1; i <= 9; i++) {
             let testX = rect.left + (rect.width * i / 10);
             let topElement = document.elementFromPoint(testX, y);
             
-            // Если точка принадлежит нашей заметке (ее никто не перекрыл сверху)
             if (topElement === longestSeg) {
                 targetX = testX;
-                // Идеально, если эта точка находится ближе к середине куска
-                if (i >= 3 && i <= 7) break; 
+                if (i >= 3 && i <= 7) break; // Идеально, если точка ближе к центру
             }
         }
 
         let fakeEvent = { clientX: targetX };
 
-        // Показываем облачко точно там, где цвет не перекрыт!
+        // Красивая пульсация ВСЕХ отрезков этой заметки
+        matchedSegments.forEach(seg => {
+            seg.style.transition = 'filter 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            seg.style.filter = 'brightness(1.5) drop-shadow(0 0 6px rgba(255,255,255,0.6))';
+            setTimeout(() => { seg.style.filter = 'none'; }, 400); 
+        });
+
         showTooltip(fakeEvent, longestSeg);
 
-        // Прячем тултип через 3 секунды
         clearTimeout(hideTooltipTimeout);
         hideTooltipTimeout = setTimeout(() => {
             document.getElementById('custom-tooltip').classList.remove('show');
@@ -1087,11 +1137,9 @@
     document.body.addEventListener('mousemove', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color') && target.closest('.day-progress-bar')) showTooltip(e, target); });
     document.body.addEventListener('mouseout', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color')) tooltipEl.classList.remove('show'); });
     
-    // Исправленный глобальный обработчик кликов для правильного скрытия тултипов на телефонах
     document.body.addEventListener('click', function(e) {
         if (window.innerWidth > 768) return;
         
-        // Предотвращаем автоматическое закрытие облачка, если кликнули по строке заметки
         if (e.target.closest('.prog-list-item')) return;
 
         const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive');
@@ -1127,22 +1175,18 @@
 
     loadFromLocalStorage(); renderCalendar();
 
-    // --- ПАСХАЛКА: Скрытие кнопки "Установить" навсегда при 3 быстрых кликах ---
     (function() {
         if (localStorage.getItem('installBtnHiddenPermanently') === 'true') {
             const style = document.createElement('style'); style.innerHTML = '#btn-install { display: none !important; }'; document.head.appendChild(style);
             return;
         }
-
         const btn = document.getElementById('btn-install');
         if (!btn) return;
-
         let clickCount = 0; let clickTimer;
         btn.addEventListener('click', () => {
             clickCount++;
             clearTimeout(clickTimer);
             clickTimer = setTimeout(() => { clickCount = 0; }, 200);
-
             if (clickCount >= 3) {
                 localStorage.setItem('installBtnHiddenPermanently', 'true');
                 const style = document.createElement('style'); style.innerHTML = '#btn-install { display: none !important; }'; document.head.appendChild(style);
