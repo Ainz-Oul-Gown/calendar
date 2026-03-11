@@ -468,7 +468,7 @@
 </div>
 
 <script>
-     const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
     let currentDate = new Date();
     const realToday = new Date();
     let calendarData = {};
@@ -515,15 +515,65 @@
         }
     }
 
+    // --- ЛОГИКА СВАЙПОВ (КАЛЕНДАРЬ И МОДАЛЬНОЕ ОКНО) ---
     let touchStartX = 0; let touchStartY = 0;
-    document.addEventListener('touchstart', e => { if(e.target.closest('#calendar-grid')) { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; } }, {passive: true});
+    let modalTouchStartX = 0; let modalTouchStartY = 0;
+
+    document.addEventListener('touchstart', e => {
+        if(e.target.closest('#calendar-grid')) { 
+            touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; 
+        } else if (e.target.closest('#progress-modal .modal')) {
+            modalTouchStartX = e.changedTouches[0].screenX; modalTouchStartY = e.changedTouches[0].screenY;
+        }
+    }, {passive: true});
+
     document.addEventListener('touchend', e => {
         if(e.target.closest('#calendar-grid')) {
             let touchEndX = e.changedTouches[0].screenX; let touchEndY = e.changedTouches[0].screenY;
             let diffX = touchEndX - touchStartX; let diffY = Math.abs(touchEndY - touchStartY);
             if (Math.abs(diffX) > 50 && Math.abs(diffX) > diffY) { if (diffX < 0) changeMonth(1); else changeMonth(-1); }
+        } else if (e.target.closest('#progress-modal .modal')) {
+            let touchEndX = e.changedTouches[0].screenX; let touchEndY = e.changedTouches[0].screenY;
+            let diffX = touchEndX - modalTouchStartX; let diffY = Math.abs(touchEndY - modalTouchStartY);
+            
+            // Если открыто окно редактирования заметки, запрещаем свайп, чтобы не сбросить введенные данные
+            if (editingNoteIndex !== -1) return;
+
+            if (Math.abs(diffX) > 50 && Math.abs(diffX) > diffY) {
+                if (diffX < 0) changeModalDay(1); // Свайп влево -> следующий день
+                else changeModalDay(-1); // Свайп вправо -> предыдущий день
+            }
         }
     }, {passive: true});
+
+    // Функция переключения дня внутри модального окна
+    function changeModalDay(offset) {
+        let [y, m, d] = progressModalDate.split('-').map(Number);
+        let dateObj = new Date(y, m - 1, d);
+        dateObj.setDate(dateObj.getDate() + offset);
+
+        let newY = dateObj.getFullYear();
+        let newM = String(dateObj.getMonth() + 1).padStart(2, '0');
+        let newD = String(dateObj.getDate()).padStart(2, '0');
+        progressModalDate = `${newY}-${newM}-${newD}`;
+
+        // Если при свайпе перешли в другой месяц, обновляем фоновый календарь
+        if (currentDate.getMonth() !== dateObj.getMonth() || currentDate.getFullYear() !== dateObj.getFullYear()) {
+            currentDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
+            renderCalendar();
+        }
+
+        // Очищаем интерфейс от менюшек и тултипов перед рендером
+        clearHighlights();
+        document.getElementById('custom-tooltip').classList.remove('show');
+        document.querySelectorAll('.custom-ui-options').forEach(el => el.classList.remove('open'));
+        document.querySelectorAll('.prog-menu-dropdown').forEach(el => el.classList.remove('show'));
+
+        // Обновляем заголовок и контент
+        document.getElementById('progress-modal-title').innerText = `${parseInt(newD)} ${monthNames[dateObj.getMonth()]} ${newY}`;
+        currentDayEvents = getEventsForDate(progressModalDate);
+        renderProgressModalContent();
+    }
 
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('btn-install').style.display = 'block'; });
@@ -801,21 +851,17 @@
         document.getElementById(optionsId).classList.remove('open');
     }
 
-    // --- ФУНКЦИЯ ДЛЯ СБРОСА ВСЕХ ПУЛЬСИРУЮЩИХ ЗАМЕТОК ---
     function clearHighlights() {
         document.querySelectorAll('.highlighted-segment').forEach(el => {
             el.classList.remove('highlighted-segment');
         });
     }
 
-    // --- УМНАЯ ФУНКЦИЯ ПОДСВЕТКИ (НАХОДИТ ЛУЧШЕЕ НЕПЕРЕКРЫТОЕ МЕСТО ВО ВСЕХ КУСКАХ) ---
     function highlightSegment(index, e, isFromProgressBar = false) {
-        // Игнорируем клики по элементам управления списка
         if (e && e.target && (e.target.closest('.prog-menu-wrap') || e.target.closest('.ui-checkbox') || e.target.closest('.ui-switch') || e.target.closest('.ui-radio') || e.target.closest('.custom-ui-select'))) {
             return;
         }
 
-        // Сбрасываем старое выделение
         clearHighlights();
 
         let note = currentDayEvents[index];
@@ -827,11 +873,10 @@
         let targetText = note.text ? note.text.replace(/"/g, '&quot;') : 'Без описания';
         let targetTime = note.time ? note.time.replace(/"/g, '&quot;') : '';
 
-        // Собираем ВСЕ кусочки этой заметки
         segments.forEach(seg => {
             if (seg.getAttribute('data-text') === targetText && seg.getAttribute('data-time') === targetTime) {
                 matchedSegments.push(seg);
-                seg.classList.add('highlighted-segment'); // Сразу включаем им пульсацию
+                seg.classList.add('highlighted-segment'); 
             }
         });
 
@@ -840,39 +885,30 @@
         let targetX = 0;
         let targetSeg = matchedSegments[0];
 
-        // ЕСЛИ ПОЛЬЗОВАТЕЛЬ КЛИКНУЛ НА ПРОГРЕСС-БАР ПАЛЬЦЕМ
         if (isFromProgressBar && e && e.clientX) {
             targetX = e.clientX;
             targetSeg = e.target;
-        } 
-        // ЕСЛИ КЛИКНУЛИ В СПИСКЕ -> ИЩЕМ САМУЮ ДЛИННУЮ СВОБОДНУЮ ЗОНУ ВО ВСЕХ КУСКАХ
-        else {
+        } else {
             let bestRun = [];
             let bestSeg = matchedSegments[0];
 
             matchedSegments.forEach(seg => {
                 let rect = seg.getBoundingClientRect();
-                let y = rect.top + rect.height / 2; // середина по вертикали
+                let y = rect.top + rect.height / 2; 
                 
                 let currentRun = [];
-                // Нарезаем кусок на части для сканирования (каждые 3 пикселя)
                 let steps = Math.max(10, Math.floor(rect.width / 3)); 
                 
                 for (let i = 0; i <= steps; i++) {
                     let testX = rect.left + (rect.width * i / steps);
-                    
-                    // Защита по краям
                     if (i === 0) testX += 1;
                     if (i === steps) testX -= 1;
                     
-                    // Кто находится сверху в этой точке?
                     let topElement = document.elementFromPoint(testX, y);
                     
-                    // Если это наш кусок (его не перекрыла заметка сверху)
                     if (topElement && topElement.closest('.progress-segment') === seg) {
                         currentRun.push(testX);
                     } else {
-                        // Кусок перекрыт. Сохраняем длину непрерывной линии, если она рекордная
                         if (currentRun.length > bestRun.length) {
                             bestRun = currentRun;
                             bestSeg = seg;
@@ -880,7 +916,6 @@
                         currentRun = [];
                     }
                 }
-                // Проверяем в конце цикла
                 if (currentRun.length > bestRun.length) {
                     bestRun = currentRun;
                     bestSeg = seg;
@@ -889,11 +924,9 @@
 
             targetSeg = bestSeg;
             
-            // Если нашли свободную зону - берем ее центр
             if (bestRun.length > 0) {
                 targetX = bestRun[Math.floor(bestRun.length / 2)];
             } else {
-                // Если заметка 100% перекрыта, просто берем центр самого длинного куска
                 let r = targetSeg.getBoundingClientRect();
                 targetX = r.left + r.width / 2;
             }
@@ -902,7 +935,6 @@
         let fakeEvent = { clientX: targetX };
         showTooltip(fakeEvent, targetSeg);
 
-        // Таймер для скрытия облачка и отключения пульсации (3000 мс)
         clearTimeout(hideTooltipTimeout);
         hideTooltipTimeout = setTimeout(() => {
             document.getElementById('custom-tooltip').classList.remove('show');
@@ -1176,11 +1208,9 @@
     document.body.addEventListener('mousemove', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color') && target.closest('.day-progress-bar')) showTooltip(e, target); });
     document.body.addEventListener('mouseout', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color')) tooltipEl.classList.remove('show'); });
     
-    // --- ГЛОБАЛЬНЫЙ ОБРАБОТЧИК КЛИКОВ (ДЛЯ ПРОГРЕСС-БАРА) ---
     document.body.addEventListener('click', function(e) {
         if (window.innerWidth > 768) return;
         
-        // Не мешаем, если кликнули по списку (там работает своя функция)
         if (e.target.closest('.prog-list-item')) return;
 
         const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive');
@@ -1205,7 +1235,6 @@
             }
 
             if(index !== -1) {
-                // Вызываем подсветку с флагом isFromProgressBar = true
                 highlightSegment(index, { target: target, clientX: clientX }, true); 
             } else {
                 clearHighlights(); 
@@ -1220,7 +1249,7 @@
             }
         } else if (!e.target.closest('.custom-tooltip')) {
             tooltipEl.classList.remove('show');
-            clearHighlights(); // Выключаем мигание, если кликнули в пустоту
+            clearHighlights();
         }
     });
 
