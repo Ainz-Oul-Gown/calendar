@@ -191,6 +191,18 @@
         .cancel-btn { background-color: #777; }
         .save-btn:active, .cancel-btn:active { transform: scale(0.95); }
 
+
+        /* КАСТОМНЫЙ СЕЛЕКТОР UI */
+        .custom-ui-select { position: relative; width: 85px; height: 32px; flex-shrink: 0; user-select: none; }
+        .custom-ui-trigger { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); cursor: pointer; }
+        .custom-ui-options { position: absolute; bottom: 100%; right: 0; margin-bottom: 5px; background: var(--menu-bg); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 100; overflow: hidden; min-width: 120px;}
+        .custom-ui-options.open { display: flex; }
+        .custom-ui-option { display: flex; align-items: center; justify-content: flex-start; gap: 10px; padding: 8px 15px; cursor: pointer; transition: background 0.2s; min-height: 36px; }
+        .custom-ui-option:hover { background: var(--menu-hover); }
+        .ui-mock-wrap { display: flex; align-items: center; justify-content: center; pointer-events: none; }
+
+
+
         #move-action-bar {
             display: flex; gap: 10px; justify-content: center; width: 100%; max-width: 1400px; flex-shrink: 0;
             height: 0; padding: 0; opacity: 0; overflow: hidden;
@@ -319,12 +331,19 @@
 
                 <div class="color-ui-wrap">
                     <input type="color" id="reg-color" value="#4CAF50">
-                    <select id="reg-ui">
-                        <option value="none">— (Нет)</option>
-                        <option value="checkbox">☑ Чек-бокс</option>
-                        <option value="toggle">🎚 Тогл</option>
-                        <option value="radio">🔘 Радио</option>
-                    </select>
+                                        <div class="custom-ui-select" id="reg-ui-container">
+                        <input type="hidden" id="reg-ui" value="none">
+                        <div class="custom-ui-trigger" onclick="toggleCustomSelect('reg-ui-options', event)">
+                            <div class="ui-mock-wrap" id="reg-ui-display">—</div>
+                        </div>
+                        <div class="custom-ui-options" id="reg-ui-options">
+                            <div class="custom-ui-option" onclick="selectUiOption('reg', 'none')"><div class="ui-mock-wrap">—</div> Нет</div>
+                            <div class="custom-ui-option" onclick="selectUiOption('reg', 'checkbox')"><div class="ui-mock-wrap"><input type="checkbox" class="ui-checkbox" checked></div> Чек-бокс</div>
+                            <div class="custom-ui-option" onclick="selectUiOption('reg', 'toggle')"><div class="ui-mock-wrap"><label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label></div> Тогл</div>
+                            <div class="custom-ui-option" onclick="selectUiOption('reg', 'radio')"><div class="ui-mock-wrap"><input type="radio" class="ui-radio" checked></div> Радио</div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -377,7 +396,7 @@
 </div>
 
 <script>
-    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
     let currentDate = new Date();
     const realToday = new Date();
     let calendarData = {};
@@ -578,7 +597,7 @@
 
                     const badge = document.createElement('div'); badge.className = 'note-badge'; 
                     badge.style.backgroundColor = themeColor;
-                    badge.style.color = textColor; // Адаптивный цвет текста
+                    badge.style.color = textColor; 
 
                     if (note.time && showTimeOnMainScreen) { const desktopTime = document.createElement('span'); desktopTime.className = 'badge-time-desktop'; desktopTime.innerText = note.time; badge.appendChild(desktopTime); }
                     
@@ -636,6 +655,30 @@
         renderProgressModalContent();
     }
 
+    // --- ЛОГИКА КАСТОМНОГО СЕЛЕКТОРА UI ---
+    function toggleCustomSelect(menuId, event) {
+        event.stopPropagation();
+        document.querySelectorAll('.custom-ui-options').forEach(el => { if(el.id !== menuId) el.classList.remove('open'); });
+        document.getElementById(menuId).classList.toggle('open');
+    }
+
+    function selectUiOption(prefix, value, index = null, event = null) {
+        if(event) event.stopPropagation();
+        let inputId = prefix === 'reg' ? 'reg-ui' : `prog-edit-ui-${index}`;
+        let displayId = prefix === 'reg' ? 'reg-ui-display' : `prog-ui-display-${index}`;
+        let optionsId = prefix === 'reg' ? 'reg-ui-options' : `prog-ui-options-${index}`;
+
+        document.getElementById(inputId).value = value;
+        
+        let uiDisplayHtml = '—';
+        if(value === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>';
+        if(value === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>';
+        if(value === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>';
+
+        document.getElementById(displayId).innerHTML = uiDisplayHtml;
+        document.getElementById(optionsId).classList.remove('open');
+    }
+
     function renderProgressModalContent() {
         document.getElementById('big-progress-container').innerHTML = getProgressBarHTML(progressModalDate, true);
         const listContainer = document.getElementById('progress-notes-list'); listContainer.innerHTML = "";
@@ -644,6 +687,13 @@
             if (editingNoteIndex === index) {
                 let startVal = "", endVal = "";
                 if (note.time) { const parts = note.time.split(note.time.includes(" - ") ? " - " : "-"); startVal = parts[0] ? parts[0].trim() : ""; endVal = parts[1] ? parts[1].trim() : ""; }
+                
+                let uiVal = note.uiType || 'none';
+                let uiDisplayHtml = '—';
+                if(uiVal === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>';
+                if(uiVal === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>';
+                if(uiVal === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>';
+
                 listContainer.innerHTML += `
                     <div class="prog-list-item edit-mode">
                         <div class="prog-num">${index + 1}</div>
@@ -661,12 +711,18 @@
                             </select>
                             <div class="color-ui-wrap">
                                 <input type="color" id="prog-edit-color-${index}" value="${note.color}">
-                                <select id="prog-edit-ui-${index}">
-                                    <option value="none" ${!note.uiType || note.uiType==='none'?'selected':''}>— (Нет)</option>
-                                    <option value="checkbox" ${note.uiType==='checkbox'?'selected':''}>☑ Чек-бокс</option>
-                                    <option value="toggle" ${note.uiType==='toggle'?'selected':''}>🎚 Тогл</option>
-                                    <option value="radio" ${note.uiType==='radio'?'selected':''}>🔘 Радио</option>
-                                </select>
+                                <div class="custom-ui-select">
+                                    <input type="hidden" id="prog-edit-ui-${index}" value="${uiVal}">
+                                    <div class="custom-ui-trigger" onclick="toggleCustomSelect('prog-ui-options-${index}', event)">
+                                        <div class="ui-mock-wrap" id="prog-ui-display-${index}">${uiDisplayHtml}</div>
+                                    </div>
+                                    <div class="custom-ui-options" id="prog-ui-options-${index}">
+                                        <div class="custom-ui-option" onclick="selectUiOption('prog', 'none', ${index}, event)"><div class="ui-mock-wrap">—</div> Нет</div>
+                                        <div class="custom-ui-option" onclick="selectUiOption('prog', 'checkbox', ${index}, event)"><div class="ui-mock-wrap"><input type="checkbox" class="ui-checkbox" checked></div> Чек-бокс</div>
+                                        <div class="custom-ui-option" onclick="selectUiOption('prog', 'toggle', ${index}, event)"><div class="ui-mock-wrap"><label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label></div> Тогл</div>
+                                        <div class="custom-ui-option" onclick="selectUiOption('prog', 'radio', ${index}, event)"><div class="ui-mock-wrap"><input type="radio" class="ui-radio" checked></div> Радио</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="prog-edit-actions">
@@ -772,7 +828,9 @@
     function closeRegularEventsModal() { document.getElementById('regular-events-modal').classList.remove('show'); renderCalendar(); }
     function resetRegForm() {
         editingRegEventId = null; document.getElementById('reg-form-title').innerText = "Добавить новое"; document.getElementById('reg-save-btn').innerText = "Сохранить событие"; document.getElementById('reg-cancel-btn').style.display = "none";
-        document.getElementById('reg-text').value = ''; document.getElementById('reg-start').value = ''; document.getElementById('reg-end').value = ''; document.getElementById('reg-reminder').value = ''; document.getElementById('reg-color').value = '#4CAF50'; document.getElementById('reg-ui').value = 'none';
+        document.getElementById('reg-text').value = ''; document.getElementById('reg-start').value = ''; document.getElementById('reg-end').value = ''; document.getElementById('reg-reminder').value = ''; document.getElementById('reg-color').value = '#4CAF50'; 
+        if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = 'none';
+        if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = '—';
     }
     function toggleRegType() {
         const type = document.querySelector('input[name="reg-type"]:checked').value;
@@ -782,7 +840,17 @@
     function editRegularEvent(id) {
         const ev = regularEvents.find(r => r.id === id); if (!ev) return;
         editingRegEventId = id; document.getElementById('reg-form-title').innerText = "Редактировать событие"; document.getElementById('reg-save-btn').innerText = "Обновить"; document.getElementById('reg-cancel-btn').style.display = "block";
-        document.getElementById('reg-text').value = ev.text || ""; document.getElementById('reg-reminder').value = ev.reminder || ""; document.getElementById('reg-color').value = ev.color || "#4CAF50"; document.getElementById('reg-ui').value = ev.uiType || "none";
+        document.getElementById('reg-text').value = ev.text || ""; document.getElementById('reg-reminder').value = ev.reminder || ""; document.getElementById('reg-color').value = ev.color || "#4CAF50"; 
+        
+        let uiVal = ev.uiType || "none";
+        if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = uiVal;
+        
+        let uiDisplayHtml = '—';
+        if(uiVal === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>';
+        if(uiVal === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>';
+        if(uiVal === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>';
+        if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = uiDisplayHtml;
+
         if (ev.time) { const parts = ev.time.split('-'); document.getElementById('reg-start').value = parts[0] ? parts[0].trim() : ""; document.getElementById('reg-end').value = parts[1] ? parts[1].trim() : ""; } else { document.getElementById('reg-start').value = ""; document.getElementById('reg-end').value = ""; }
         document.querySelector(`input[name="reg-type"][value="${ev.type}"]`).checked = true; toggleRegType();
         if (ev.type === 'weekly') { document.querySelectorAll('.reg-day').forEach(cb => { cb.checked = ev.days.includes(cb.value); }); } else { document.getElementById('reg-start-date').value = ev.startDate; document.getElementById('reg-work-days').value = ev.workDays; document.getElementById('reg-rest-days').value = ev.restDays; }
@@ -791,7 +859,7 @@
     function cancelRegEdit() { resetRegForm(); }
 
     function saveRegularEvent() {
-        const text = document.getElementById('reg-text').value; const start = document.getElementById('reg-start').value; const end = document.getElementById('reg-end').value; const color = document.getElementById('reg-color').value; const reminder = document.getElementById('reg-reminder').value; const uiType = document.getElementById('reg-ui').value; const type = document.querySelector('input[name="reg-type"]:checked').value;
+        const text = document.getElementById('reg-text').value; const start = document.getElementById('reg-start').value; const end = document.getElementById('reg-end').value; const color = document.getElementById('reg-color').value; const reminder = document.getElementById('reg-reminder').value; const uiType = document.getElementById('reg-ui') ? document.getElementById('reg-ui').value : 'none'; const type = document.querySelector('input[name="reg-type"]:checked').value;
         if (!text) return alert("Введите название события!");
         let time = ""; if (start && end) time = `${start}-${end}`; else if (start) time = start; else if (end) time = end;
         const newEvent = { id: editingRegEventId || Date.now(), text, time, color, reminder, uiType, type };
@@ -884,11 +952,18 @@
     window.onclick = function(event) {
         if (event.target === document.getElementById('progress-modal')) closeProgressModal();
         if (event.target === document.getElementById('regular-events-modal')) closeRegularEventsModal();
+        
+        // Закрываем кастомные меню UI-селектора при клике вне их
+        if (!event.target.closest('.custom-ui-select')) {
+            document.querySelectorAll('.custom-ui-options').forEach(el => el.classList.remove('open'));
+        }
+
         if (!event.target.matches('.prog-menu-btn') && !event.target.closest('.ui-switch') && !event.target.closest('.ui-checkbox') && !event.target.closest('.ui-radio')) { const dropdowns = document.getElementsByClassName("prog-menu-dropdown"); for (let i = 0; i < dropdowns.length; i++) dropdowns[i].classList.remove('show'); }
     }
     document.addEventListener('keydown', function(event) { if (event.key === "Escape") { if (document.getElementById('progress-modal').classList.contains('show')) closeProgressModal(); if (document.getElementById('regular-events-modal').classList.contains('show')) closeRegularEventsModal(); } });
 
     loadFromLocalStorage(); renderCalendar();
+
 </script>
 </body>
 </html>
