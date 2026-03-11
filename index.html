@@ -468,7 +468,7 @@
 </div>
 
 <script>
-    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+      const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
     let currentDate = new Date();
     const realToday = new Date();
     let calendarData = {};
@@ -515,7 +515,7 @@
         }
     }
 
-    // --- ЛОГИКА СВАЙПОВ (КАЛЕНДАРЬ И МОДАЛЬНОЕ ОКНО) ---
+    // --- ЛОГИКА СВАЙПОВ (КАЛЕНДАРЬ И МОДАЛЬНОЕ ОКНО С КАРУСЕЛЬЮ) ---
     let touchStartX = 0; let touchStartY = 0;
     let modalTouchStartX = 0; let modalTouchStartY = 0;
 
@@ -546,33 +546,58 @@
         }
     }, {passive: true});
 
-    // Функция переключения дня внутри модального окна
+    // Функция переключения дня внутри модального окна С АНИМАЦИЕЙ
     function changeModalDay(offset) {
-        let [y, m, d] = progressModalDate.split('-').map(Number);
-        let dateObj = new Date(y, m - 1, d);
-        dateObj.setDate(dateObj.getDate() + offset);
+        const modal = document.querySelector('#progress-modal .modal');
+        const content = modal.querySelector('.modal-content-wrapper');
 
-        let newY = dateObj.getFullYear();
-        let newM = String(dateObj.getMonth() + 1).padStart(2, '0');
-        let newD = String(dateObj.getDate()).padStart(2, '0');
-        progressModalDate = `${newY}-${newM}-${newD}`;
+        // Определяем направление анимации
+        const exitAnimation = offset > 0 ? 'carouselExitLeft' : 'carouselExitRight';
+        const enterAnimation = offset > 0 ? 'carouselEnterRight' : 'carouselEnterLeft';
 
-        // Если при свайпе перешли в другой месяц, обновляем фоновый календарь
-        if (currentDate.getMonth() !== dateObj.getMonth() || currentDate.getFullYear() !== dateObj.getFullYear()) {
-            currentDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
-            renderCalendar();
-        }
+        // Применяем анимацию выхода
+        content.classList.add('anim-carousel', exitAnimation);
 
-        // Очищаем интерфейс от менюшек и тултипов перед рендером
-        clearHighlights();
-        document.getElementById('custom-tooltip').classList.remove('show');
-        document.querySelectorAll('.custom-ui-options').forEach(el => el.classList.remove('open'));
-        document.querySelectorAll('.prog-menu-dropdown').forEach(el => el.classList.remove('show'));
+        // Ждем завершения анимации выхода (300 мс)
+        setTimeout(() => {
+            let [y, m, d] = progressModalDate.split('-').map(Number);
+            let dateObj = new Date(y, m - 1, d);
+            dateObj.setDate(dateObj.getDate() + offset);
 
-        // Обновляем заголовок и контент
-        document.getElementById('progress-modal-title').innerText = `${parseInt(newD)} ${monthNames[dateObj.getMonth()]} ${newY}`;
-        currentDayEvents = getEventsForDate(progressModalDate);
-        renderProgressModalContent();
+            let newY = dateObj.getFullYear();
+            let newM = String(dateObj.getMonth() + 1).padStart(2, '0');
+            let newD = String(dateObj.getDate()).padStart(2, '0');
+            progressModalDate = `${newY}-${newM}-${newD}`;
+
+            // Убираем старую анимацию выхода
+            content.classList.remove(exitAnimation);
+
+            // Если при свайпе перешли в другой месяц, обновляем фоновый календарь
+            if (currentDate.getMonth() !== dateObj.getMonth() || currentDate.getFullYear() !== dateObj.getFullYear()) {
+                currentDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
+                renderCalendar();
+            }
+
+            // Очищаем интерфейс от менюшек и тултипов перед рендером
+            clearHighlights();
+            document.getElementById('custom-tooltip').classList.remove('show');
+            document.querySelectorAll('.custom-ui-options').forEach(el => el.classList.remove('open'));
+            document.querySelectorAll('.prog-menu-dropdown').forEach(el => el.classList.remove('show'));
+
+            // Обновляем заголовок и контент
+            document.getElementById('progress-modal-title').innerText = `${parseInt(newD)} ${monthNames[dateObj.getMonth()]} ${newY}`;
+            currentDayEvents = getEventsForDate(progressModalDate);
+            renderProgressModalContent();
+
+            // Применяем анимацию входа
+            content.classList.add(enterAnimation);
+
+            // Ждем завершения анимации входа (300 мс)
+            setTimeout(() => {
+                // Убираем все анимационные классы
+                content.classList.remove('anim-carousel', enterAnimation);
+            }, 300);
+        }, 300);
     }
 
     let deferredPrompt;
@@ -1257,7 +1282,7 @@
     function generateDistinctColor(existingColors) { let newColor; let isDistinct = false; let attempts = 0; while (!isDistinct && attempts < 50) { const h = Math.floor(Math.random() * 360); const s = Math.floor(Math.random() * 30 + 70); const l = isDarkMode ? Math.floor(Math.random() * 15 + 65) : Math.floor(Math.random() * 15 + 75); newColor = hslToHex(h, s, l); isDistinct = true; for (let existing of existingColors) if (existing === newColor) { isDistinct = false; break; } attempts++; } return newColor; }
 
     function exportData() { const fullData = { calendarData, regularEvents }; const dataStr = JSON.stringify(fullData, null, 2); const blob = new Blob([dataStr], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = "calendar_data.json"; a.click(); URL.revokeObjectURL(url); }
-    function importData(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const imported = JSON.parse(e.target.result); if (imported.calendarData) { calendarData = imported.calendarData; regularEvents = imported.regularEvents || []; } else { calendarData = imported; regularEvents = []; } saveToLocalStorage(); renderCalendar(); alert("Импорт успешен!"); } catch (err) { alert("Ошибка JSON!"); } }; reader.readAsText(file); }
+    function importData(event) { const file = event.target.files[ File ]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const imported = JSON.parse(e.target.result); if (imported.calendarData) { calendarData = imported.calendarData; regularEvents = imported.regularEvents || []; } else { calendarData = imported; regularEvents = []; } saveToLocalStorage(); renderCalendar(); alert("Импорт успешен!"); } catch (err) { alert("Ошибка JSON!"); } }; reader.readAsText(file); }
 
     window.onclick = function(event) {
         if (event.target === document.getElementById('progress-modal')) closeProgressModal();
