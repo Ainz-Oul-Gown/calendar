@@ -83,7 +83,7 @@
         .day-notes-preview { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding-right: 2px; font-size: 0.75em; margin-top: 2px; pointer-events: none; }
         .day-notes-preview::-webkit-scrollbar { width: 3px; }
         .day-notes-preview::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 4px; }
-        .note-badge { display: flex; align-items: center; padding: 2px 3px; border-radius: 3px; color: #000; overflow: hidden; flex-shrink: 0; line-height: 1.2; } /* Убрали моргание */
+        .note-badge { display: flex; align-items: center; padding: 2px 3px; border-radius: 3px; overflow: hidden; flex-shrink: 0; line-height: 1.2; }
 
         .badge-time-desktop { font-weight: bold; margin-right: 4px; font-size: 0.9em; letter-spacing: -0.5px; flex-shrink: 0; }
         .badge-time-mobile { display: none; font-weight: bold; margin-right: 4px; font-size: 1.05em; letter-spacing: -0.5px; }
@@ -118,8 +118,7 @@
 
         .modal {
             background: var(--modal-bg); padding: 15px 20px; border-radius: 12px; width: 95%; max-width: 550px;
-            /* Динамическая высота для мобилок и ПК */
-            max-height: 90vh; max-height: 90dvh; height: auto;
+            max-height: 90vh; height: auto;
             display: flex; flex-direction: column; overflow-y: auto;
             box-sizing: border-box; border: 1px solid var(--border-color);
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
@@ -151,12 +150,22 @@
         .add-btn { width: 100%; padding: 12px; background: var(--primary-color); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; margin-top: 5px; font-weight: bold; transition: background-color 0.2s, transform 0.1s; flex-shrink: 0; }
         .add-btn:active { transform: scale(0.98); }
 
-        .prog-list-item { display: flex; align-items: center; gap: 8px; padding: 10px 8px; border-bottom: 1px solid var(--border-color); position: relative; } /* Убрали моргание */
+        .prog-list-item { display: flex; align-items: center; gap: 8px; padding: 10px 8px; border-bottom: 1px solid var(--border-color); position: relative; }
         .prog-list-item:last-child { border-bottom: none; }
         .prog-list-item.edit-mode { background-color: var(--cell-hover-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 10px; flex-wrap: wrap; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .prog-num { font-weight: bold; opacity: 0.5; width: 20px; text-align: center; flex-shrink: 0; }
         .prog-time { font-size: 0.9em; font-weight: bold; white-space: nowrap; flex-shrink: 0; }
         .prog-color { width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.2s; }
+        
+        .ui-elem-container { display: flex; align-items: center; justify-content: center; width: 30px; flex-shrink: 0; }
+
+        /* Мини-свитч (Тогл) */
+        .mini-switch { position: relative; display: inline-block; width: 28px; height: 16px; margin: 0; }
+        .mini-switch input { opacity: 0; width: 0; height: 0; }
+        .mini-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 16px; }
+        .mini-slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; }
+        .mini-switch input:checked + .mini-slider { background-color: var(--primary-color); }
+        .mini-switch input:checked + .mini-slider:before { transform: translateX(12px); }
 
         .prog-menu-wrap { position: relative; }
         .prog-menu-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; padding: 0 5px; color: var(--text-color); opacity: 0.7; line-height: 1; transition: color 0.2s; }
@@ -174,12 +183,19 @@
         .prog-menu-dropdown div { padding: 12px; cursor: pointer; font-size: 0.9em; border-bottom: 1px solid var(--border-color); transition: background 0.2s; }
         .prog-menu-dropdown div:last-child { border-bottom: none; }
         .prog-menu-dropdown div:hover { background-color: var(--menu-hover); padding-left: 15px; }
+        
+        /* Появление меню сверху (для нижних элементов) */
+        .prog-menu-dropdown.drop-up { top: auto; bottom: 100%; transform: translateY(10px) scale(0.95); margin-bottom: 5px; }
+        .prog-menu-dropdown.drop-up.show { transform: translateY(0) scale(1); }
 
         .prog-edit-inputs { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex-grow: 1; }
         .prog-edit-inputs input[type="time"] { width: 66px; padding: 6px; border-radius: 4px;}
         .prog-edit-inputs input[type="text"] { flex-grow: 1; padding: 6px; min-width: 100px; border-radius: 4px;}
         .prog-edit-inputs select { padding: 6px; border-radius: 4px; font-size: 0.9em;}
-        .prog-edit-inputs input[type="color"] { width: 32px; height: 32px; border: none; padding: 0; border-radius: 4px; cursor: pointer;}
+        .color-ui-group { display: flex; gap: 6px; align-items: center; }
+        .color-ui-group input[type="color"] { width: 32px; height: 32px; border: none; padding: 0; border-radius: 4px; cursor: pointer;}
+        .color-ui-group select.ui-selector { height: 32px; width: 60px; padding: 0 4px; border-radius: 4px; font-size: 0.9em; }
+        
         .prog-edit-actions { display: flex; gap: 6px; margin-top: 5px; width: 100%; justify-content: flex-end;}
         .save-btn, .cancel-btn { border: none; border-radius: 6px; cursor: pointer; padding: 8px 15px; color: white; font-weight: bold; transition: background-color 0.2s, transform 0.1s;}
         .save-btn { background-color: var(--primary-color); }
@@ -227,11 +243,15 @@
             .time-group { width: 100%; justify-content: space-between; }
             .time-group input[type="time"] { flex: 1; padding: 8px; font-size: 1em; }
             .note-row input[type="text"].note-text, .note-row select.note-reminder { width: 100%; box-sizing: border-box; margin: 0; padding: 10px; font-size: 1em; }
-            .note-row input[type="color"].note-color { width: 36px; height: 36px; }
+            
             .prog-edit-inputs { width: 100%; }
             .prog-edit-inputs input[type="time"] { flex: 1; }
             .prog-edit-inputs input[type="text"] { width: 100%; }
             .prog-edit-inputs select { width: 100%; }
+            
+            .color-ui-group input[type="color"] { width: 36px; height: 36px; }
+            .color-ui-group select.ui-selector { height: 36px; width: 75px; flex-shrink: 0; }
+
             #move-action-bar.show { padding-top: 10px; height: 42px; }
             #move-action-bar button { padding: 10px 15px; font-size: 0.9em; }
         }
@@ -438,6 +458,25 @@
         }
     }, {passive: true});
 
+    // --- ЦВЕТОВАЯ ИНВЕРСИЯ И КОНТРАСТ ---
+    function getThemeAdjustedColor(hex) {
+        if(!hex) return '#4CAF50';
+        const c = hex.toLowerCase();
+        if (isDarkMode && (c === '#ffffff' || c === '#fff')) return '#000000';
+        if (!isDarkMode && (c === '#000000' || c === '#000')) return '#ffffff';
+        return hex;
+    }
+
+    function getContrastTextColor(hexColor) {
+        let hex = hexColor.replace('#', '');
+        if (hex.length === 3) hex = hex.split('').map(c => c+c).join('');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+        return (yiq >= 128) ? '#000000' : '#ffffff';
+    }
+
     // --- PWA LOGIC ---
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -470,7 +509,16 @@
     }
 
     function toggleTimeDisplay() { showTimeOnMainScreen = document.getElementById('time-toggle').checked; localStorage.setItem('showTimeOnMainScreen', showTimeOnMainScreen); renderCalendar(); }
-    function toggleTheme() { isDarkMode = document.getElementById('theme-toggle').checked; localStorage.setItem('isDarkMode', isDarkMode); if (isDarkMode) document.body.classList.add('dark-theme'); else document.body.classList.remove('dark-theme'); }
+    function toggleTheme() { 
+        isDarkMode = document.getElementById('theme-toggle').checked; 
+        localStorage.setItem('isDarkMode', isDarkMode); 
+        if (isDarkMode) document.body.classList.add('dark-theme'); else document.body.classList.remove('dark-theme'); 
+        renderCalendar(); // Перерисовка для инверсии цветов
+        if (document.getElementById('progress-modal').classList.contains('show')) {
+            renderProgressModalContent();
+        }
+    }
+    
     function parseTimeMins(timeStr) { if (!timeStr) return Infinity; const match = timeStr.match(/(\d{1,2}):(\d{2})/); if (!match) return Infinity; return parseInt(match[1], 10) * 60 + parseInt(match[2], 10); }
     function formatMin(m) { const h = Math.floor(m / 60); const mins = m % 60; return `${h}:${mins < 10 ? '0' : ''}${mins}`; }
 
@@ -504,7 +552,7 @@
         regularEvents.forEach(re => {
             if (deletedRules.includes(re.id)) return;
             if (events.some(e => e.ruleId === re.id)) return;
-            if (checkRuleActive(re, dateObj)) events.push({ time: re.time, text: re.text, color: re.color, ruleId: re.id, reminder: re.reminder });
+            if (checkRuleActive(re, dateObj)) events.push({ time: re.time, text: re.text, color: re.color, ruleId: re.id, reminder: re.reminder, uiElement: 'none', uiState: false });
         });
 
         events.sort((a, b) => parseTimeMins(a.time) - parseTimeMins(b.time));
@@ -560,7 +608,8 @@
                         period.active = true;
                         const clampStart = Math.max(period.start, startMin); const clampEnd = Math.min(period.end, endMin);
                         const safeText = note.text ? note.text.replace(/"/g, '&quot;') : 'Без описания'; const safeTime = note.time ? note.time.replace(/"/g, '&quot;') : '';
-                        const item = { start: clampStart, end: clampEnd, color: note.color, text: safeText, time: safeTime };
+                        const adjustedColor = getThemeAdjustedColor(note.color);
+                        const item = { start: clampStart, end: clampEnd, color: adjustedColor, text: safeText, time: safeTime };
                         if (isPoint) period.points.push(item); else period.ranges.push(item);
                     }
                 });
@@ -624,7 +673,13 @@
             const notesPreview = document.createElement('div'); notesPreview.className = 'day-notes-preview';
             if (todayEvents.length > 0) {
                 todayEvents.forEach(note => {
-                    const badge = document.createElement('div'); badge.className = 'note-badge'; badge.style.backgroundColor = note.color;
+                    const adjustedColor = getThemeAdjustedColor(note.color);
+                    const contrastTextColor = getContrastTextColor(adjustedColor);
+                    
+                    const badge = document.createElement('div'); badge.className = 'note-badge'; 
+                    badge.style.backgroundColor = adjustedColor;
+                    badge.style.color = contrastTextColor;
+
                     if (note.time && showTimeOnMainScreen) {
                         const desktopTime = document.createElement('span'); desktopTime.className = 'badge-time-desktop'; desktopTime.innerText = note.time; badge.appendChild(desktopTime);
                     }
@@ -657,15 +712,14 @@
     }
 
     window.addEventListener('resize', updateMarquees);
-    
+
     function changeMonth(direction) {
         currentDate.setMonth(currentDate.getMonth() + direction);
         renderCalendar();
 
-        // Анимация сетки
         const grid = document.getElementById('calendar-grid');
         grid.classList.remove('anim-slide-from-right', 'anim-slide-from-left');
-        void grid.offsetWidth; // Трюк для перезапуска анимации
+        void grid.offsetWidth;
         grid.classList.add(direction > 0 ? 'anim-slide-from-right' : 'anim-slide-from-left');
     }
 
@@ -686,6 +740,21 @@
         document.getElementById('custom-tooltip').classList.remove('show');
         renderCalendar();
     }
+
+    window.toggleNoteUIState = function(index, event) {
+        event.stopPropagation();
+        const note = currentDayEvents[index];
+        if (!note || !note.uiElement || note.uiElement === 'none') return;
+
+        if (note.uiElement === 'radio') {
+            currentDayEvents.forEach((n, i) => { if (n.uiElement === 'radio') n.uiState = (i === index); });
+        } else {
+            note.uiState = event.target.checked;
+        }
+
+        saveDayEvents(progressModalDate, currentDayEvents);
+        renderProgressModalContent(); // Перерисовка для обновления состояния UI
+    };
 
     function renderProgressModalContent() {
         document.getElementById('big-progress-container').innerHTML = getProgressBarHTML(progressModalDate, true);
@@ -710,7 +779,15 @@
                                 <option value="30" ${note.reminder == '30' ? 'selected' : ''}>За 30 мин</option>
                                 <option value="60" ${note.reminder == '60' ? 'selected' : ''}>За 1 час</option>
                             </select>
-                            <input type="color" id="prog-edit-color-${index}" value="${note.color}">
+                            <div class="color-ui-group">
+                                <input type="color" id="prog-edit-color-${index}" value="${note.color}">
+                                <select id="prog-edit-ui-${index}" class="ui-selector">
+                                    <option value="none" ${(!note.uiElement || note.uiElement === 'none') ? 'selected' : ''}>—</option>
+                                    <option value="checkbox" ${note.uiElement === 'checkbox' ? 'selected' : ''}>☑</option>
+                                    <option value="radio" ${note.uiElement === 'radio' ? 'selected' : ''}>🔘</option>
+                                    <option value="toggle" ${note.uiElement === 'toggle' ? 'selected' : ''}>Свитч</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="prog-edit-actions">
                             <button class="cancel-btn" onclick="cancelProgEdit()">Отмена</button>
@@ -720,12 +797,19 @@
                 `;
             } else {
                 let remIcon = note.reminder ? ' 🔔' : '';
+                const adjustedColor = getThemeAdjustedColor(note.color);
+                
+                let uiHtml = `<span style="width:20px; display:inline-block;"></span>`;
+                if (note.uiElement === 'checkbox') uiHtml = `<input type="checkbox" ${note.uiState ? 'checked' : ''} onchange="toggleNoteUIState(${index}, event)" style="width:18px;height:18px;cursor:pointer;">`;
+                if (note.uiElement === 'radio') uiHtml = `<input type="radio" ${note.uiState ? 'checked' : ''} onchange="toggleNoteUIState(${index}, event)" style="width:18px;height:18px;cursor:pointer;">`;
+                if (note.uiElement === 'toggle') uiHtml = `<label class="mini-switch" onclick="event.stopPropagation()"><input type="checkbox" ${note.uiState ? 'checked' : ''} onchange="toggleNoteUIState(${index}, event)"><span class="mini-slider"></span></label>`;
+
                 listContainer.innerHTML += `
                     <div class="prog-list-item">
-                        <div class="prog-num">${index + 1}</div>
+                        <div class="ui-elem-container">${uiHtml}</div>
                         <div class="prog-time">${note.time || '—'}</div>
                         <div class="badge-text-container"><span class="badge-text">${note.text}${remIcon} ${note.ruleId ? '<small style="opacity:0.5;">(рег)</small>' : ''}</span></div>
-                        <div class="prog-color" style="background-color: ${note.color};"></div>
+                        <div class="prog-color" style="background-color: ${adjustedColor};"></div>
                         <div class="prog-menu-wrap">
                             <button class="prog-menu-btn" onclick="toggleProgMenu(${index}, event)">⋮</button>
                             <div class="prog-menu-dropdown" id="prog-menu-${index}">
@@ -749,7 +833,21 @@
         for (let i = 0; i < menus.length; i++) {
             if (menus[i].id !== `prog-menu-${index}`) menus[i].classList.remove('show');
         }
+        
         const menu = document.getElementById(`prog-menu-${index}`);
+        menu.classList.remove('drop-up');
+        
+        // Временно показываем, чтобы узнать размеры
+        menu.style.display = 'block'; 
+        const rect = menu.getBoundingClientRect();
+        const modalRect = menu.closest('.modal').getBoundingClientRect();
+        menu.style.display = ''; 
+
+        // Если меню упирается в нижнюю часть модального окна или экрана, открываем его вверх
+        if (rect.bottom > modalRect.bottom - 10 || rect.bottom > window.innerHeight - 10) {
+            menu.classList.add('drop-up');
+        }
+
         menu.classList.toggle('show');
     }
 
@@ -763,11 +861,18 @@
         const text = document.getElementById(`prog-edit-text-${index}`).value;
         const reminder = document.getElementById(`prog-edit-remind-${index}`).value;
         const color = document.getElementById(`prog-edit-color-${index}`).value;
+        const uiElement = document.getElementById(`prog-edit-ui-${index}`).value;
         const ruleId = currentDayEvents[index].ruleId;
+        const uiState = currentDayEvents[index].uiState || false; // Сохраняем состояние если было
 
         if (time || text) {
-            currentDayEvents[index] = { time, text, color, reminder };
+            currentDayEvents[index] = { time, text, color, reminder, uiElement, uiState };
             if (ruleId) currentDayEvents[index].ruleId = ruleId;
+            
+            // Если поменяли на радио, сбрасываем остальные радио, если это нажато
+            if (uiElement === 'radio' && uiState) {
+                currentDayEvents.forEach((n, i) => { if (n.uiElement === 'radio' && i !== index) n.uiState = false; });
+            }
         } else { currentDayEvents.splice(index, 1); }
 
         editingNoteIndex = -1; saveDayEvents(progressModalDate, currentDayEvents); renderCalendar(); renderProgressModalContent();
@@ -779,7 +884,7 @@
 
     function addProgNote() {
         const existingColors = currentDayEvents.map(n => n.color);
-        currentDayEvents.push({ time: "", text: "", color: generateDistinctColor(existingColors), reminder: "" });
+        currentDayEvents.push({ time: "", text: "", color: generateDistinctColor(existingColors), reminder: "", uiElement: "none", uiState: false });
         editingNoteIndex = currentDayEvents.length - 1; renderProgressModalContent();
     }
 
@@ -875,10 +980,12 @@
         regularEvents.forEach((ev, index) => {
             let ruleText = ev.type === 'weekly' ? `Дни: ${ev.days.map(d => ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"][d]).join(', ')}` : `График ${ev.workDays}/${ev.restDays} (с ${ev.startDate.split('-').reverse().join('.')})`;
             let remIcon = ev.reminder ? `🔔 (-${ev.reminder}м)` : '';
+            const adjustedColor = getThemeAdjustedColor(ev.color);
+
             list.innerHTML += `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color); background: var(--cell-bg); border-radius: 4px; margin-bottom: 4px;">
                     <div style="flex:1;">
-                        <div style="font-weight: bold; color: ${ev.color}; font-size: 1.05em;">${ev.time ? ev.time + ' ' : ''}${ev.text} <span style="font-size: 0.8em; color:var(--text-color); opacity: 0.7;">${remIcon}</span></div>
+                        <div style="font-weight: bold; color: ${adjustedColor}; font-size: 1.05em;">${ev.time ? ev.time + ' ' : ''}${ev.text} <span style="font-size: 0.8em; color:var(--text-color); opacity: 0.7;">${remIcon}</span></div>
                         <div style="font-size: 0.85em; opacity: 0.7; margin-top: 2px;">${ruleText}</div>
                     </div>
                     <div style="display:flex; gap: 5px;">
@@ -986,7 +1093,10 @@
     window.onclick = function(event) {
         if (event.target === document.getElementById('progress-modal')) closeProgressModal();
         if (event.target === document.getElementById('regular-events-modal')) closeRegularEventsModal();
-        if (!event.target.matches('.prog-menu-btn')) { const dropdowns = document.getElementsByClassName("prog-menu-dropdown"); for (let i = 0; i < dropdowns.length; i++) dropdowns[i].classList.remove('show'); }
+        if (!event.target.matches('.prog-menu-btn') && !event.target.matches('.mini-slider')) { 
+            const dropdowns = document.getElementsByClassName("prog-menu-dropdown"); 
+            for (let i = 0; i < dropdowns.length; i++) dropdowns[i].classList.remove('show'); 
+        }
     }
     document.addEventListener('keydown', function(event) {
         if (event.key === "Escape") {
