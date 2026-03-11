@@ -28,16 +28,14 @@
             --menu-bg: #333333; --menu-hover: #444444;
         }
 
-        * { -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 15px 20px 20px; display: flex; flex-direction: column; align-items: center; height: 100vh; height: 100dvh; box-sizing: border-box; overflow: hidden; transition: background-color var(--transition-speed), color var(--transition-speed); }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 15px 20px 20px; display: flex; flex-direction: column; align-items: center; height: 100vh; height: 100dvh; overflow: hidden; transition: background-color var(--transition-speed), color var(--transition-speed); }
 
         .header { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 1400px; margin-bottom: 15px; flex-shrink: 0; }
         .header-row { display: flex; align-items: center; width: 100%; }
         .top-row { justify-content: space-between; }
-        .top-row h2 { margin: 0; transition: transform 0.2s; }
         .bottom-row { justify-content: center; gap: 10px; align-items: stretch; flex-wrap: wrap; }
         .header-row button { padding: 8px 15px; cursor: pointer; background-color: var(--primary-color); color: #fff; border: none; border-radius: 4px; font-size: 0.9em; font-weight: bold; transition: background-color 0.2s, transform 0.1s; }
-        .header-row button:active { opacity: 0.8; transform: scale(0.96); }
 
         .toggles-wrapper { display: flex; flex-direction: column; gap: 8px; justify-content: center; }
         .toggle-container { display: flex; align-items: center; gap: 8px; font-size: 0.9em; font-weight: bold; color: var(--text-color); opacity: 0.9; }
@@ -48,227 +46,68 @@
         input:checked + .slider { background-color: var(--primary-color); }
         input:checked + .slider:before { transform: translateX(16px); }
 
-        #install-pwa { display: none; background-color: #2196F3; margin-right: 10px; }
-
-        /* Календарь */
-        .calendar-container { width: 100%; max-width: 1400px; background: var(--cell-bg); box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; flex: 1; display: flex; flex-direction: column; min-height: 0; border: 1px solid var(--border-color); transition: background-color var(--transition-speed); }
-        .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); background-color: var(--weekdays-bg); text-align: center; font-weight: bold; border-bottom: 1px solid var(--border-color); flex-shrink: 0; transition: background-color var(--transition-speed); }
+        .calendar-container { width: 100%; max-width: 1400px; background: var(--cell-bg); box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; flex: 1; display: flex; flex-direction: column; min-height: 0; border: 1px solid var(--border-color); }
+        .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); background-color: var(--weekdays-bg); text-align: center; font-weight: bold; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
         .weekdays div { padding: 10px 0; border-right: 1px solid var(--border-color); }
-        .weekdays div:last-child { border-right: none; }
         .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); flex: 1; overflow-y: auto; grid-auto-rows: minmax(80px, 1fr); }
 
-        .day-cell { box-sizing: border-box; border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 4px; cursor: pointer; position: relative; transition: background-color 0.25s ease, box-shadow 0.25s ease; display: flex; flex-direction: column; overflow: hidden; background-color: var(--cell-bg); }
-        .day-cell:hover { background-color: var(--cell-hover-bg); }
-        .day-cell:nth-child(7n) { border-right: none; }
+        .day-cell { border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 4px; cursor: pointer; position: relative; display: flex; flex-direction: column; overflow: hidden; background-color: var(--cell-bg); }
+        .day-cell.today { box-shadow: inset 0 0 0 2px var(--primary-color); z-index: 1; }
         .day-cell.empty { background-color: var(--cell-empty-bg); cursor: default; }
-        .day-cell.today { box-shadow: inset 0 0 0 2px var(--primary-color); background-color: var(--today-bg); z-index: 1; }
 
-        .day-cell.selected-move { box-shadow: inset 0 0 0 3px #2196F3 !important; background-color: #e3f2fd !important; z-index: 2; transform: scale(0.98); border-radius: 4px; }
-        .dark-theme .day-cell.selected-move { background-color: rgba(33, 150, 243, 0.2) !important; }
+        .day-header { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+        .day-number { font-weight: bold; font-size: 1em; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-        .day-header { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; padding: 2px 2px 0 2px; }
-        .day-number { font-weight: bold; font-size: 1em; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; flex-shrink: 0; transition: background-color 0.2s, color 0.2s; }
-        .day-cell.today .day-number { background-color: var(--primary-color); color: #fff; }
-
-        .day-progress-bar { flex-grow: 1; display: flex; align-items: stretch; gap: 3px; height: 8px; cursor: pointer; transition: opacity 0.2s; }
-        .day-progress-bar:hover { opacity: 0.8; }
-        .progress-period { position: relative; overflow: visible; transition: flex-grow 0.4s ease; }
-        .progress-period.active { flex-grow: 1; border-radius: 4px; background-color: var(--prog-active-bg); overflow: hidden; }
+        /* Прогресс-бар */
+        .day-progress-bar { flex-grow: 1; display: flex; align-items: stretch; gap: 3px; height: 8px; transition: opacity 0.2s; }
+        .progress-period { position: relative; transition: flex-grow 0.4s ease; display: flex; align-items: center; }
+        .progress-period.active { flex-grow: 1; border-radius: 4px; background-color: var(--prog-active-bg); }
         .progress-period.inactive { aspect-ratio: 1 / 1; height: 100%; border-radius: 50%; background-color: var(--prog-inactive-bg); flex-shrink: 0; }
-        .progress-segment { position: absolute; top: 0; height: 100%; border-radius: 4px; min-width: 4px; transition: left 0.3s ease, width 0.3s ease; }
-        .point-segment::before { content: ''; position: absolute; top: -10px; bottom: -10px; left: -10px; right: -10px; z-index: 10; cursor: pointer; }
-        .big-progress { height: 28px !important; gap: 4px !important; cursor: pointer; margin-bottom: 20px; }
+        .progress-segment { position: absolute; height: 100%; border-radius: 3px; min-width: 3px; transition: left 0.3s, width 0.3s, height 0.2s; }
+        .progress-segment.inner-task { height: 60%; top: 20%; box-shadow: 0 0 0 1px rgba(0,0,0,0.1); }
+        .big-progress { height: 28px !important; gap: 4px !important; margin-bottom: 20px; }
         .big-progress .progress-period.active { border-radius: 14px; }
 
-        .day-notes-preview { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding-right: 2px; font-size: 0.75em; margin-top: 2px; pointer-events: none; }
-        .day-notes-preview::-webkit-scrollbar { width: 3px; }
-        .day-notes-preview::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 4px; }
-        .note-badge { display: flex; align-items: center; padding: 2px 3px; border-radius: 3px; overflow: hidden; flex-shrink: 0; line-height: 1.2; }
-
-        .badge-time-desktop { font-weight: bold; margin-right: 4px; font-size: 0.9em; letter-spacing: -0.5px; flex-shrink: 0; }
-        .badge-time-mobile { display: none; font-weight: bold; margin-right: 4px; font-size: 1.05em; letter-spacing: -0.5px; }
-        .badge-text-container { flex-grow: 1; overflow: hidden; white-space: nowrap; position: relative; }
+        /* Заметки */
+        .day-notes-preview { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; font-size: 0.75em; pointer-events: none; }
+        .note-badge { display: flex; align-items: center; padding: 2px 3px; border-radius: 3px; overflow: hidden; white-space: nowrap; }
+        .badge-text-container { flex-grow: 1; overflow: hidden; position: relative; }
         .badge-text { display: inline-block; white-space: nowrap; }
-        .badge-text.scrolling { animation-name: scrollText; animation-timing-function: linear; animation-iteration-count: infinite; }
-        @keyframes scrollText { 0%, 15% { transform: translateX(0); } 85%, 100% { transform: translateX(calc(var(--scroll-amount) - 4px)); } }
 
-        /* Всплывающие подсказки */
-        .custom-tooltip { position: fixed; z-index: 99999; background: #222; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85em; pointer-events: none; opacity: 0; visibility: hidden; transform: translate(-50%, 15px) scale(0.9); transition: opacity 0.25s ease, visibility 0.25s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.15s ease-out, top 0.15s ease-out; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); white-space: nowrap; border: 1px solid rgba(255,255,255,0.15); }
+        /* Модалки */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; backdrop-filter: blur(3px); transition: 0.3s; }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal { background: var(--modal-bg); padding: 15px 20px; border-radius: 12px; width: 95%; max-width: 550px; max-height: 90vh; overflow-y: auto; transform: translateY(30px); transition: 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; }
+        .modal-overlay.show .modal { transform: translateY(0); }
+        .close-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; color: var(--text-color); }
+
+        .prog-list-item { display: flex; align-items: center; gap: 8px; padding: 10px 8px; border-bottom: 1px solid var(--border-color); cursor: pointer; border-radius: 8px; transition: background 0.2s; }
+        .prog-list-item:hover { background: var(--cell-hover-bg); }
+        .prog-time { font-weight: bold; min-width: 65px; }
+
+        /* Тултипы */
+        .custom-tooltip { position: fixed; z-index: 99999; background: #222; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85em; pointer-events: none; opacity: 0; visibility: hidden; transform: translate(-50%, 15px); transition: opacity 0.2s, visibility 0.2s, transform 0.2s, left 0.1s, top 0.1s; border: 1px solid rgba(255,255,255,0.15); }
         .custom-tooltip.show { opacity: 1; visibility: visible; transform: translate(-50%, -100%) scale(1); margin-top: -12px; }
-        .custom-tooltip::before { content: ''; position: absolute; top: 100%; left: var(--tail-pos, 50%); transform: translateX(-50%); border-width: 8px; border-style: solid; border-color: rgba(255,255,255,0.15) transparent transparent transparent; transition: left 0.15s ease; }
-        .custom-tooltip::after { content: ''; position: absolute; top: calc(100% - 1px); left: var(--tail-pos, 50%); transform: translateX(-50%); border-width: 8px; border-style: solid; border-color: #222 transparent transparent transparent; transition: left 0.15s ease; }
-        .tooltip-color-box { width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2); transition: background-color 0.2s ease; }
-        .tooltip-content-wrap { display: flex; flex-direction: column; gap: 2px; }
-        .tooltip-content-wrap.flip { animation: ttFlip 0.2s ease-in-out; }
-        @keyframes ttFlip { 0% { opacity: 1; transform: translateY(0); } 50% { opacity: 0; transform: translateY(-4px) scale(0.95); } 51% { opacity: 0; transform: translateY(4px) scale(0.95); } 100% { opacity: 1; transform: translateY(0); } }
-        .tooltip-time { font-weight: bold; color: #a1d0ff; font-size: 0.9em; letter-spacing: 0.5px; }
-        .tooltip-text { font-size: 1em; }
+        .custom-tooltip::after { content: ''; position: absolute; top: 100%; left: var(--tail-pos, 50%); transform: translateX(-50%); border: 8px solid transparent; border-top-color: #222; }
 
-        /* --- АНИМАЦИИ И АДАПТИВНОСТЬ МОДАЛЬНЫХ ОКОН --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
-            display: flex; justify-content: center; align-items: center; z-index: 1000;
-            opacity: 0; visibility: hidden; pointer-events: none;
-            backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        .modal-overlay.show {
-            opacity: 1; visibility: visible; pointer-events: auto;
-        }
+        /* UI Элементы */
+        .mini-switch { position: relative; display: inline-block; width: 28px; height: 16px; pointer-events: auto; }
+        .mini-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; border-radius: 16px; transition: .3s; }
+        .mini-slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 2px; bottom: 2px; background-color: white; border-radius: 50%; transition: .3s; }
+        input:checked + .mini-slider { background-color: var(--primary-color); }
+        input:checked + .mini-slider:before { transform: translateX(12px); }
 
-        .modal {
-            background: var(--modal-bg); padding: 15px 20px; border-radius: 12px; width: 95%; max-width: 550px;
-            max-height: 90vh; height: auto;
-            display: flex; flex-direction: column; overflow-y: auto;
-            box-sizing: border-box; border: 1px solid var(--border-color);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transform: translateY(30px) scale(0.95); opacity: 0;
-            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
-        }
-        .modal-overlay.show .modal {
-            transform: translateY(0) scale(1); opacity: 1;
-        }
-
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
-        .close-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; padding: 0 5px; color: var(--text-color); transition: transform 0.2s, color 0.2s; }
-        .close-btn:hover { color: #ff4d4d; transform: scale(1.1); }
-
-        input[type="time"], input[type="text"], input[type="date"], input[type="number"], select { background-color: var(--input-bg); color: var(--text-color); border: 1px solid var(--input-border); font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s; }
-        input[type="text"]:focus, select:focus, input[type="time"]:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2); }
-
-        .note-row { display: flex; gap: 4px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
-        .time-group { display: flex; align-items: center; flex-shrink: 0; }
-        .time-group input[type="time"] { padding: 4px 2px; border-radius: 4px; width: 66px; font-size: 0.85em; letter-spacing: -0.5px; }
-        .time-separator { margin: 0 2px; font-weight: bold; opacity: 0.7; }
-        .note-row input[type="text"].note-text { flex: 1; padding: 6px; border-radius: 4px; min-width: 80px; font-size: 0.9em; }
-        .note-row select.note-reminder { padding: 6px; border-radius: 4px; font-size: 0.9em; }
-        .note-row input[type="color"].note-color { width: 30px; height: 30px; padding: 0; border: none; border-radius: 4px; cursor: pointer; flex-shrink: 0; }
-
-        .del-btn, .edit-btn { cursor: pointer; border: none; background: none; font-size: 1.3em; padding: 0 5px; color: var(--text-color); opacity: 0.7; transition: transform 0.2s, opacity 0.2s; }
-        .del-btn { color: #ff4d4d; opacity: 1;}
-        .edit-btn:hover, .del-btn:hover { opacity: 1; transform: scale(1.15); }
-        .add-btn { width: 100%; padding: 12px; background: var(--primary-color); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; margin-top: 5px; font-weight: bold; transition: background-color 0.2s, transform 0.1s; flex-shrink: 0; }
-        .add-btn:active { transform: scale(0.98); }
-
-        .prog-list-item { display: flex; align-items: center; gap: 8px; padding: 10px 8px; border-bottom: 1px solid var(--border-color); position: relative; }
-        .prog-list-item:last-child { border-bottom: none; }
-        .prog-list-item.edit-mode { background-color: var(--cell-hover-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 10px; flex-wrap: wrap; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .prog-num { font-weight: bold; opacity: 0.5; width: 20px; text-align: center; flex-shrink: 0; }
-        .prog-time { font-size: 0.9em; font-weight: bold; white-space: nowrap; flex-shrink: 0; }
-        .prog-color { width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.2s; }
-        
-        .ui-elem-container { display: flex; align-items: center; justify-content: center; width: 30px; flex-shrink: 0; }
-
-        /* Мини-свитч (Тогл) */
-        .mini-switch { position: relative; display: inline-block; width: 28px; height: 16px; margin: 0; }
-        .mini-switch input { opacity: 0; width: 0; height: 0; }
-        .mini-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 16px; }
-        .mini-slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; }
-        .mini-switch input:checked + .mini-slider { background-color: var(--primary-color); }
-        .mini-switch input:checked + .mini-slider:before { transform: translateX(12px); }
-
-        .prog-menu-wrap { position: relative; }
-        .prog-menu-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; padding: 0 5px; color: var(--text-color); opacity: 0.7; line-height: 1; transition: color 0.2s; }
-        .prog-menu-btn:hover { color: var(--primary-color); opacity: 1; }
-
-        /* Выпадающее меню с анимацией */
-        .prog-menu-dropdown {
-            position: absolute; right: 0; top: 100%; background: var(--menu-bg);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2); border-radius: 8px; z-index: 10;
-            min-width: 170px; overflow: hidden; border: 1px solid var(--border-color);
-            opacity: 0; visibility: hidden; transform: translateY(-10px) scale(0.95);
-            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
-        }
-        .prog-menu-dropdown.show { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
-        .prog-menu-dropdown div { padding: 12px; cursor: pointer; font-size: 0.9em; border-bottom: 1px solid var(--border-color); transition: background 0.2s; }
-        .prog-menu-dropdown div:last-child { border-bottom: none; }
-        .prog-menu-dropdown div:hover { background-color: var(--menu-hover); padding-left: 15px; }
-        
-        /* Появление меню сверху (для нижних элементов) */
-        .prog-menu-dropdown.drop-up { top: auto; bottom: 100%; transform: translateY(10px) scale(0.95); margin-bottom: 5px; }
-        .prog-menu-dropdown.drop-up.show { transform: translateY(0) scale(1); }
-
-        .prog-edit-inputs { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex-grow: 1; }
-        .prog-edit-inputs input[type="time"] { width: 66px; padding: 6px; border-radius: 4px;}
-        .prog-edit-inputs input[type="text"] { flex-grow: 1; padding: 6px; min-width: 100px; border-radius: 4px;}
-        .prog-edit-inputs select { padding: 6px; border-radius: 4px; font-size: 0.9em;}
-        .color-ui-group { display: flex; gap: 6px; align-items: center; }
-        .color-ui-group input[type="color"] { width: 32px; height: 32px; border: none; padding: 0; border-radius: 4px; cursor: pointer;}
-        .color-ui-group select.ui-selector { height: 32px; width: 60px; padding: 0 4px; border-radius: 4px; font-size: 0.9em; }
-        
-        .prog-edit-actions { display: flex; gap: 6px; margin-top: 5px; width: 100%; justify-content: flex-end;}
-        .save-btn, .cancel-btn { border: none; border-radius: 6px; cursor: pointer; padding: 8px 15px; color: white; font-weight: bold; transition: background-color 0.2s, transform 0.1s;}
-        .save-btn { background-color: var(--primary-color); }
-        .cancel-btn { background-color: #777; }
-        .save-btn:active, .cancel-btn:active { transform: scale(0.95); }
-
-        /* --- АНИМАЦИЯ ПАНЕЛИ ПЕРЕМЕЩЕНИЯ --- */
-        #move-action-bar {
-            display: flex; gap: 10px; justify-content: center; width: 100%; max-width: 1400px; flex-shrink: 0;
-            height: 0; padding: 0; opacity: 0; overflow: hidden;
-            transition: height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), padding 0.4s ease, opacity 0.3s ease;
-        }
-        #move-action-bar.show {
-            height: 48px;
-            padding-top: 15px;
-            opacity: 1;
-        }
-
-        #move-action-bar button { padding: 12px 24px; font-size: 1em; border-radius: 8px; border: none; font-weight: bold; flex: 1; max-width: 200px; transform: translateY(10px); transition: all 0.3s; }
-        #move-action-bar.show button { transform: translateY(0); }
-
-        .move-btn-cancel { background: #777; color: white; cursor: pointer; }
-        .move-btn-cancel:active { opacity: 0.8; transform: scale(0.95) !important; }
-        .move-btn-confirm { background: #ccc; color: #888; cursor: not-allowed; }
-        .dark-theme .move-btn-confirm { background: #444; color: #777; }
-        .move-btn-confirm.active { background: var(--primary-color); color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3); }
-        .move-btn-confirm.active:active { opacity: 0.8; transform: scale(0.95) !important; }
+        /* Адаптив меню */
+        .prog-menu-dropdown { position: absolute; right: 0; background: var(--menu-bg); box-shadow: 0 8px 24px rgba(0,0,0,0.2); border-radius: 8px; z-index: 10; min-width: 170px; border: 1px solid var(--border-color); display: none; }
+        .prog-menu-dropdown.show { display: block; }
 
         @media (max-width: 768px) {
-            body { padding: 10px; }
-            .header { gap: 10px; margin-bottom: 10px; }
-            .top-row h2 { font-size: 1.3em; }
-            .bottom-row { justify-content: space-between; gap: 8px; }
-            .bottom-row button { flex: 1; padding: 10px 5px; font-size: 0.85em; height: 100%; }
-            .toggles-wrapper { flex-shrink: 0; }
-            .weekdays div { font-size: 0.75em; padding: 5px 0; white-space: nowrap; overflow: hidden; }
-            .day-cell { padding: 2px; }
-            .day-header { gap: 1px; padding: 0; margin-bottom: 2px; }
-            .day-number { font-size: 0.72em; width: 15px; height: 15px; }
-            .day-progress-bar { justify-content: center; gap: 1px; height: 8px; }
-            .day-notes-preview { font-size: 0.65em; margin-top: 0; }
-            .badge-time-desktop { display: none; }
-            .badge-time-mobile { display: inline; }
-            .note-row { background: var(--cell-hover-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); gap: 8px; flex-direction: column; align-items: stretch; }
-            .time-group { width: 100%; justify-content: space-between; }
-            .time-group input[type="time"] { flex: 1; padding: 8px; font-size: 1em; }
-            .note-row input[type="text"].note-text, .note-row select.note-reminder { width: 100%; box-sizing: border-box; margin: 0; padding: 10px; font-size: 1em; }
-            
-            .prog-edit-inputs { width: 100%; }
-            .prog-edit-inputs input[type="time"] { flex: 1; }
-            .prog-edit-inputs input[type="text"] { width: 100%; }
-            .prog-edit-inputs select { width: 100%; }
-            
-            .color-ui-group input[type="color"] { width: 36px; height: 36px; }
-            .color-ui-group select.ui-selector { height: 36px; width: 75px; flex-shrink: 0; }
-
-            #move-action-bar.show { padding-top: 10px; height: 42px; }
-            #move-action-bar button { padding: 10px 15px; font-size: 0.9em; }
+            .modal { max-height: 85vh; overflow-y: scroll; -webkit-overflow-scrolling: touch; }
+            .day-number { font-size: 0.8em; }
         }
-        /* Анимации перелистывания месяцев */
-        @keyframes slideFromRight {
-            0% { transform: translateX(30px); opacity: 0; }
-            100% { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideFromLeft {
-            0% { transform: translateX(-30px); opacity: 0; }
-            100% { transform: translateX(0); opacity: 1; }
-        }
-        .anim-slide-from-right { animation: slideFromRight 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
-        .anim-slide-from-left { animation: slideFromLeft 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
     </style>
 </head>
-<body>
+<body class="light-theme">
 
 <div class="header">
     <div class="header-row top-row">
@@ -276,23 +115,15 @@
         <h2 id="month-year-display">Месяц Год</h2>
         <button onclick="changeMonth(1)">&#9654;</button>
     </div>
-
     <div class="header-row bottom-row">
         <div class="toggles-wrapper">
-            <button id="btn-install" onclick="installPWA()">📲 Установить</button>
             <div class="toggle-container">
-                <span title="Показывать время на главном экране">🕐</span>
-                <label class="switch">
-                    <input type="checkbox" id="time-toggle" checked onchange="toggleTimeDisplay()">
-                    <span class="slider"></span>
-                </label>
+                <span>🕐</span>
+                <label class="switch"><input type="checkbox" id="time-toggle" checked onchange="toggleTimeDisplay()"><span class="slider"></span></label>
             </div>
             <div class="toggle-container">
-                <span title="Темная тема">🌙</span>
-                <label class="switch">
-                    <input type="checkbox" id="theme-toggle" onchange="toggleTheme()">
-                    <span class="slider"></span>
-                </label>
+                <span>🌙</span>
+                <label class="switch"><input type="checkbox" id="theme-toggle" onchange="toggleTheme()"><span class="slider"></span></label>
             </div>
         </div>
         <button onclick="openRegularEventsModal()" style="background-color: #2196F3;">🔁 Регулярные</button>
@@ -303,64 +134,38 @@
 </div>
 
 <div class="calendar-container">
-    <div class="weekdays">
-        <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
-    </div>
-    <div class="days-grid" id="calendar-grid"></div>
-</div>
-
-<div id="move-action-bar">
-    <button class="move-btn-cancel" onclick="cancelMove()">Отменить</button>
-    <button id="move-confirm-btn" class="move-btn-confirm" disabled onclick="confirmMove()">Подтвердить</button>
+    <div class="weekdays"><div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div></div>
+    <div id="calendar-grid" class="days-grid"></div>
 </div>
 
 <div class="modal-overlay" id="progress-modal">
     <div class="modal">
-        <div class="modal-header">
-            <h3 id="progress-modal-title" style="margin: 0;">Детали дня</h3>
+        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 id="progress-modal-title" style="margin:0;">Детали дня</h3>
             <button class="close-btn" onclick="closeProgressModal()">&times;</button>
         </div>
         <div id="big-progress-container"></div>
-        <div id="progress-notes-list"></div>
+        <div id="progress-notes-list" style="overflow-y:auto; flex:1;"></div>
     </div>
 </div>
 
 <div class="modal-overlay" id="regular-events-modal">
     <div class="modal">
-        <div class="modal-header">
-            <h3 style="margin: 0;">Регулярные события</h3>
-            <button class="close-btn" onclick="closeRegularEventsModal()">&times;</button>
-        </div>
-
-        <div id="regular-events-list" style="margin-bottom: 15px; flex-shrink: 0;"></div>
-        <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 15px 0; flex-shrink: 0;">
-
-        <h4 id="reg-form-title" style="margin-top: 0; flex-shrink: 0;">Добавить новое</h4>
-        <div class="reg-form-row" style="display: flex; flex-direction: column; align-items: stretch; flex-shrink: 0;">
-            <input type="text" id="reg-text" class="note-text" placeholder="Название (например: Автошкола, Смена)" style="width: 100%; margin-bottom: 8px;">
-
-            <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
-                <input type="time" id="reg-start">
-                <span style="align-self: center;">-</span>
-                <input type="time" id="reg-end">
-
-                <select id="reg-reminder" class="note-reminder">
-                    <option value="">Без увд.</option>
-                    <option value="5">За 5 мин</option>
-                    <option value="15">За 15 мин</option>
-                    <option value="30">За 30 мин</option>
-                    <option value="60">За 1 час</option>
-                </select>
-
-                <input type="color" id="reg-color" value="#4CAF50" style="width: 36px; height: 36px; padding: 0; border: none; border-radius: 4px;">
+        <div class="modal-header"><h3>Регулярные события</h3><button class="close-btn" onclick="closeRegularEventsModal()">&times;</button></div>
+        <div id="regular-events-list"></div>
+        <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0;">
+        <div class="reg-form" style="display:flex; flex-direction:column; gap:10px;">
+            <input type="text" id="reg-text" placeholder="Название" style="padding:10px; border-radius:6px; border:1px solid var(--input-border); background:var(--input-bg); color:var(--text-color);">
+            <div style="display:flex; gap:10px;">
+                <input type="time" id="reg-start" style="flex:1; padding:8px;">
+                <input type="time" id="reg-end" style="flex:1; padding:8px;">
+                <input type="color" id="reg-color" value="#4CAF50" style="width:40px; height:40px; border:none; padding:0;">
             </div>
-
-            <div style="margin-bottom: 10px;">
-                <label><input type="radio" name="reg-type" value="weekly" checked onchange="toggleRegType()"> По дням недели</label>
-                <label style="margin-left: 10px;"><input type="radio" name="reg-type" value="schedule" onchange="toggleRegType()"> По графику (2/2)</label>
+            <div style="display:flex; gap:10px;">
+                <label><input type="radio" name="reg-type" value="weekly" checked onchange="toggleRegType()"> По дням</label>
+                <label><input type="radio" name="reg-type" value="schedule" onchange="toggleRegType()"> График 2/2</label>
             </div>
-
-            <div id="reg-weekly-settings" style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px;">
+            <div id="reg-weekly-settings" style="display:flex; gap:5px; flex-wrap:wrap;">
                 <label><input type="checkbox" class="reg-day" value="1"> Пн</label>
                 <label><input type="checkbox" class="reg-day" value="2"> Вт</label>
                 <label><input type="checkbox" class="reg-day" value="3"> Ср</label>
@@ -369,745 +174,323 @@
                 <label><input type="checkbox" class="reg-day" value="6"> Сб</label>
                 <label><input type="checkbox" class="reg-day" value="0"> Вс</label>
             </div>
-
-            <div id="reg-schedule-settings" style="display: none; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-                <div style="flex: 1; min-width: 120px;">
-                    <label style="font-size: 0.8em;">Начало (первый рабочий):</label>
-                    <input type="date" id="reg-start-date" style="width: 100%; padding: 5px; box-sizing: border-box;">
-                </div>
-                <div style="display: flex; gap: 10px; align-items: flex-end;">
-                    <div>
-                        <label style="font-size: 0.8em;">Рабочих:</label>
-                        <input type="number" id="reg-work-days" value="2" min="1" style="width: 50px; padding: 5px; text-align: center;">
-                    </div>
-                    <div>
-                        <label style="font-size: 0.8em;">Выходных:</label>
-                        <input type="number" id="reg-rest-days" value="2" min="1" style="width: 50px; padding: 5px; text-align: center;">
-                    </div>
-                </div>
-            </div>
-
-            <div style="display: flex; gap: 10px;">
-                <button id="reg-cancel-btn" class="cancel-btn" style="display: none; flex: 1;" onclick="cancelRegEdit()">Отмена</button>
-                <button id="reg-save-btn" class="add-btn" style="flex: 2; margin-top: 0;" onclick="saveRegularEvent()">Сохранить событие</button>
-            </div>
+            <button class="add-btn" style="padding:12px; background:var(--primary-color); color:#fff; border:none; border-radius:8px; font-weight:bold;" onclick="saveRegularEvent()">Сохранить</button>
         </div>
     </div>
 </div>
 
 <div id="custom-tooltip" class="custom-tooltip">
-    <div id="tt-color" class="tooltip-color-box"></div>
-    <div id="tt-content-wrap" class="tooltip-content-wrap">
-        <div id="tt-time" class="tooltip-time"></div>
-        <div id="tt-text" class="tooltip-text"></div>
+    <div style="display:flex; align-items:center; gap:8px;">
+        <div id="tt-color" style="width:12px; height:12px; border-radius:2px;"></div>
+        <div id="tt-content">
+            <b id="tt-time"></b><br><span id="tt-text"></span>
+        </div>
     </div>
 </div>
 
 <script>
-    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
     let currentDate = new Date();
     const realToday = new Date();
     let calendarData = {};
     let regularEvents = [];
-    let showTimeOnMainScreen = true;
     let isDarkMode = false;
-
     let progressModalDate = "";
-    let editingNoteIndex = -1;
-    let currentDayEvents = [];
-    let editingRegEventId = null;
-    let notifiedSet = new Set();
+    let editingIndex = -1;
 
-    let isMoveMode = false;
-    let moveNoteData = null;
-    let moveNoteIndex = -1;
-    let moveSourceDate = "";
-    let moveTargetDate = "";
-
-    document.body.addEventListener('click', requestNotificationPermission, { once: true });
-
-    function requestNotificationPermission() {
-        if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-            Notification.requestPermission();
-        }
-    }
-
-    // --- ЛОГИКА СВАЙПОВ ---
-    let touchStartX = 0;
-    let touchStartY = 0;
-
-    document.addEventListener('touchstart', e => {
-        if(e.target.closest('#calendar-grid')) {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
-        }
-    }, {passive: true});
-
-    document.addEventListener('touchend', e => {
-        if(e.target.closest('#calendar-grid')) {
-            let touchEndX = e.changedTouches[0].screenX;
-            let touchEndY = e.changedTouches[0].screenY;
-
-            let diffX = touchEndX - touchStartX;
-            let diffY = Math.abs(touchEndY - touchStartY);
-
-            if (Math.abs(diffX) > 50 && Math.abs(diffX) > diffY) {
-                if (diffX < 0) changeMonth(1);
-                else changeMonth(-1);
-            }
-        }
-    }, {passive: true});
-
-    // --- ЦВЕТОВАЯ ИНВЕРСИЯ И КОНТРАСТ ---
     function getThemeAdjustedColor(hex) {
-        if(!hex) return '#4CAF50';
-        const c = hex.toLowerCase();
-        if (isDarkMode && (c === '#ffffff' || c === '#fff')) return '#000000';
-        if (!isDarkMode && (c === '#000000' || c === '#000')) return '#ffffff';
+        if (!hex) return '#4CAF50';
+        const h = hex.toLowerCase();
+        // В темной теме: черное -> белое
+        if (isDarkMode && (h === '#000000' || h === '#000')) return '#ffffff';
+        // В светлой теме: белое -> черное
+        if (!isDarkMode && (h === '#ffffff' || h === '#fff')) return '#000000';
         return hex;
     }
 
-    function getContrastTextColor(hexColor) {
-        let hex = hexColor.replace('#', '');
-        if (hex.length === 3) hex = hex.split('').map(c => c+c).join('');
-        const r = parseInt(hex.substr(0, 2), 16);
-        const g = parseInt(hex.substr(2, 2), 16);
-        const b = parseInt(hex.substr(4, 2), 16);
-        const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-        return (yiq >= 128) ? '#000000' : '#ffffff';
+    function getContrastColor(hex) {
+        const h = hex.replace('#', '');
+        const r = parseInt(h.substr(0,2),16);
+        const g = parseInt(h.substr(2,2),16);
+        const b = parseInt(h.substr(4,2),16);
+        return ((r*299)+(g*587)+(b*114))/1000 >= 128 ? '#000' : '#fff';
     }
 
-    // --- PWA LOGIC ---
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault(); deferredPrompt = e; document.getElementById('btn-install').style.display = 'block';
-    });
-    async function installPWA() {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') document.getElementById('btn-install').style.display = 'none';
-            deferredPrompt = null;
-        }
+    function toggleTheme() {
+        isDarkMode = document.getElementById('theme-toggle').checked;
+        document.body.className = isDarkMode ? 'dark-theme' : 'light-theme';
+        localStorage.setItem('isDarkMode', isDarkMode);
+        renderCalendar();
+        if(progressModalDate) renderProgressModalContent();
     }
 
-    function loadFromLocalStorage() {
-        const savedData = localStorage.getItem('myCalendarData');
-        if (savedData) { try { calendarData = JSON.parse(savedData); } catch (e) { console.error(e); } }
-        const savedRegEvents = localStorage.getItem('myCalendarRegularEvents');
-        if (savedRegEvents) { try { regularEvents = JSON.parse(savedRegEvents); } catch (e) { console.error(e); } }
-
-        const savedTimeToggle = localStorage.getItem('showTimeOnMainScreen');
-        if (savedTimeToggle !== null) { showTimeOnMainScreen = savedTimeToggle === 'true'; document.getElementById('time-toggle').checked = showTimeOnMainScreen; }
-        const savedTheme = localStorage.getItem('isDarkMode');
-        if (savedTheme !== null) { isDarkMode = savedTheme === 'true'; document.getElementById('theme-toggle').checked = isDarkMode; if (isDarkMode) document.body.classList.add('dark-theme'); }
+    function loadData() {
+        calendarData = JSON.parse(localStorage.getItem('myCalendarData') || '{}');
+        regularEvents = JSON.parse(localStorage.getItem('myCalendarRegularEvents') || '[]');
+        isDarkMode = localStorage.getItem('isDarkMode') === 'true';
+        document.getElementById('theme-toggle').checked = isDarkMode;
+        document.body.className = isDarkMode ? 'dark-theme' : 'light-theme';
     }
 
-    function saveToLocalStorage() {
+    function saveData() {
         localStorage.setItem('myCalendarData', JSON.stringify(calendarData));
         localStorage.setItem('myCalendarRegularEvents', JSON.stringify(regularEvents));
     }
 
-    function toggleTimeDisplay() { showTimeOnMainScreen = document.getElementById('time-toggle').checked; localStorage.setItem('showTimeOnMainScreen', showTimeOnMainScreen); renderCalendar(); }
-    function toggleTheme() { 
-        isDarkMode = document.getElementById('theme-toggle').checked; 
-        localStorage.setItem('isDarkMode', isDarkMode); 
-        if (isDarkMode) document.body.classList.add('dark-theme'); else document.body.classList.remove('dark-theme'); 
-        renderCalendar(); // Перерисовка для инверсии цветов
-        if (document.getElementById('progress-modal').classList.contains('show')) {
-            renderProgressModalContent();
-        }
-    }
-    
-    function parseTimeMins(timeStr) { if (!timeStr) return Infinity; const match = timeStr.match(/(\d{1,2}):(\d{2})/); if (!match) return Infinity; return parseInt(match[1], 10) * 60 + parseInt(match[2], 10); }
-    function formatMin(m) { const h = Math.floor(m / 60); const mins = m % 60; return `${h}:${mins < 10 ? '0' : ''}${mins}`; }
-
-    function checkRuleActive(re, dateObj) {
-        if (re.type === 'weekly' && re.days) {
-            return re.days.includes(dateObj.getDay().toString());
-        } else if (re.type === 'schedule' && re.startDate) {
-            const start = new Date(re.startDate); start.setHours(0,0,0,0);
-            const current = new Date(dateObj); current.setHours(0,0,0,0);
-            const diffTime = current.getTime() - start.getTime();
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            if (diffDays >= 0) {
-                const cycle = parseInt(re.workDays) + parseInt(re.restDays);
-                const dayInCycle = diffDays % cycle;
-                return dayInCycle < parseInt(re.workDays);
-            }
-        }
-        return false;
-    }
-
     function getEventsForDate(dateKey) {
-        let events = []; let deletedRules = [];
-        const [y, m, d] = dateKey.split('-'); const dateObj = new Date(y, m - 1, d); dateObj.setHours(0,0,0,0);
+        const events = calendarData[dateKey] || [];
+        const [y, m, d] = dateKey.split('-').map(Number);
+        const dateObj = new Date(y, m-1, d);
+        
+        let allEvents = [...events.filter(e => !e.deleted)];
+        let deletedRules = events.filter(e => e.deleted).map(e => e.ruleId);
 
-        if (calendarData[dateKey]) {
-            calendarData[dateKey].forEach(note => {
-                if (note.deleted) deletedRules.push(note.ruleId);
-                else events.push({...note});
-            });
-        }
         regularEvents.forEach(re => {
             if (deletedRules.includes(re.id)) return;
-            if (events.some(e => e.ruleId === re.id)) return;
-            if (checkRuleActive(re, dateObj)) events.push({ time: re.time, text: re.text, color: re.color, ruleId: re.id, reminder: re.reminder, uiElement: 'none', uiState: false });
+            let active = false;
+            if (re.type === 'weekly') active = re.days.includes(dateObj.getDay().toString());
+            else if (re.type === 'schedule') {
+                const start = new Date(re.startDate);
+                const diff = Math.floor((dateObj - start) / 86400000);
+                if (diff >= 0) active = (diff % (re.workDays + re.restDays)) < re.workDays;
+            }
+            if (active && !allEvents.some(e => e.ruleId === re.id)) {
+                allEvents.push({...re, ruleId: re.id});
+            }
         });
-
-        events.sort((a, b) => parseTimeMins(a.time) - parseTimeMins(b.time));
-        return events;
+        return allEvents.sort((a,b) => (a.time || '').localeCompare(b.time || ''));
     }
 
-    function saveDayEvents(dateKey, eventsArray) {
-        let newCalendarData = []; let survivingRules = [];
-        eventsArray.forEach(ev => { newCalendarData.push(ev); if (ev.ruleId) survivingRules.push(ev.ruleId); });
-        const [y, m, d] = dateKey.split('-'); const dateObj = new Date(y, m - 1, d); dateObj.setHours(0,0,0,0);
+    function renderCalendar() {
+        const grid = document.getElementById('calendar-grid');
+        grid.innerHTML = '';
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        document.getElementById('month-year-display').innerText = `${new Intl.DateTimeFormat('ru-RU', {month: 'long', year: 'numeric'}).format(currentDate)}`;
 
-        regularEvents.forEach(re => {
-            if (checkRuleActive(re, dateObj) && !survivingRules.includes(re.id)) newCalendarData.push({ ruleId: re.id, deleted: true });
-        });
+        const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-        if (calendarData[dateKey]) {
-            calendarData[dateKey].forEach(n => { if (n.deleted && !survivingRules.includes(n.ruleId)) newCalendarData.push(n); });
+        for (let i = 0; i < firstDay; i++) grid.innerHTML += '<div class="day-cell empty"></div>';
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const isToday = year === realToday.getFullYear() && month === realToday.getMonth() && d === realToday.getDate();
+            const events = getEventsForDate(dateKey);
+
+            const cell = document.createElement('div');
+            cell.className = `day-cell ${isToday ? 'today' : ''}`;
+            cell.onclick = () => openProgressModal(dateKey);
+
+            cell.innerHTML = `
+                <div class="day-header">
+                    <div class="day-number">${d}</div>
+                    ${getProgressBarHTML(events)}
+                </div>
+                <div class="day-notes-preview">
+                    ${events.slice(0,3).map(e => `
+                        <div class="note-badge" style="background:${getThemeAdjustedColor(e.color)}; color:${getContrastColor(getThemeAdjustedColor(e.color))}">
+                            ${e.text}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            grid.appendChild(cell);
         }
-
-        let finalData = []; let seenDeleted = new Set();
-        newCalendarData.forEach(n => {
-            if (n.deleted) { if (!seenDeleted.has(n.ruleId)) { seenDeleted.add(n.ruleId); finalData.push(n); } }
-            else finalData.push(n);
-        });
-
-        if (finalData.length > 0) calendarData[dateKey] = finalData; else delete calendarData[dateKey];
-        saveToLocalStorage();
     }
 
-    function getProgressBarHTML(dateKey, isBig) {
-        const bigClass = isBig ? ' big-progress' : '';
-        let html = `<div class="day-progress-bar${bigClass}">`;
-        const dayPeriods = [
-            { name: 'morning', start: 300, end: 720, duration: 420, active: false, ranges: [], points: [] },
-            { name: 'day', start: 720, end: 1080, duration: 360, active: false, ranges: [], points: [] },
-            { name: 'evening', start: 1080, end: 1390, duration: 310, active: false, ranges: [], points: [] }
+    function getProgressBarHTML(events, isBig = false) {
+        const periods = [
+            {n: 'утр', s: 300, e: 720}, {n: 'день', s: 720, e: 1080}, {n: 'веч', s: 1080, e: 1390}
         ];
-
-        const todayEvents = getEventsForDate(dateKey);
-
-        if (todayEvents.length > 0) {
-            todayEvents.forEach(note => {
-                if (!note.time) return;
-                const times = [...note.time.matchAll(/(\d{1,2}):(\d{2})/g)];
-                if (times.length === 0) return;
-
-                let startMin = parseInt(times[0][1], 10) * 60 + parseInt(times[0][2], 10); let endMin = startMin; let isPoint = true;
-                if (times.length > 1) { endMin = parseInt(times[1][1], 10) * 60 + parseInt(times[1][2], 10); isPoint = false; }
-                else endMin = startMin + 10;
-
-                dayPeriods.forEach(period => {
-                    if (startMin < period.end && endMin > period.start) {
-                        period.active = true;
-                        const clampStart = Math.max(period.start, startMin); const clampEnd = Math.min(period.end, endMin);
-                        const safeText = note.text ? note.text.replace(/"/g, '&quot;') : 'Без описания'; const safeTime = note.time ? note.time.replace(/"/g, '&quot;') : '';
-                        const adjustedColor = getThemeAdjustedColor(note.color);
-                        const item = { start: clampStart, end: clampEnd, color: adjustedColor, text: safeText, time: safeTime };
-                        if (isPoint) period.points.push(item); else period.ranges.push(item);
-                    }
+        
+        let html = `<div class="day-progress-bar ${isBig ? 'big-progress' : ''}">`;
+        
+        periods.forEach(p => {
+            const duration = p.e - p.s;
+            const dayEvents = events.filter(e => {
+                const [start] = (e.time || '0:0').split('-').map(t => {
+                    const [h, m] = t.split(':').map(Number);
+                    return h * 60 + m;
                 });
+                return start >= p.s && start < p.e;
             });
-        }
 
-        dayPeriods.forEach(period => {
-            if (period.active) {
-                html += `<div class="progress-period active" style="flex-grow: ${period.duration}">`;
-                let allTasks = [...period.ranges, ...period.points].sort((a,b) => a.start - b.start);
-                let currentMin = period.start; let emptySegments = [];
+            if (dayEvents.length > 0) {
+                html += `<div class="progress-period active" style="flex-grow:${duration}">`;
+                dayEvents.forEach(e => {
+                    const times = (e.time || '').split('-').map(t => {
+                        const [h, m] = t.split(':').map(Number);
+                        return h * 60 + m;
+                    });
+                    const start = times[0];
+                    const end = times[1] || start + 15;
+                    
+                    const left = ((start - p.s) / duration) * 100;
+                    const width = ((end - start) / duration) * 100;
+                    
+                    // Проверка вложенности
+                    const isInner = dayEvents.some(other => {
+                        const ot = (other.time || '').split('-').map(t => {
+                            const [h, m] = t.split(':').map(Number);
+                            return h * 60 + m;
+                        });
+                        return other !== e && ot[0] <= start && (ot[1] || ot[0]+15) >= end && ((ot[1]||ot[0]+15)-ot[0] > end-start);
+                    });
 
-                allTasks.forEach(task => {
-                    if (task.start > currentMin) emptySegments.push({ start: currentMin, end: task.start, isEmpty: true, time: `${formatMin(currentMin)}-${formatMin(task.start)}` });
-                    currentMin = Math.max(currentMin, task.end);
+                    html += `<div class="progress-segment ${isInner ? 'inner-task' : ''}" 
+                        style="left:${left}%; width:${width}%; background:${getThemeAdjustedColor(e.color)}"
+                        data-text="${e.text}" data-time="${e.time}" data-color="${getThemeAdjustedColor(e.color)}"></div>`;
                 });
-                if (currentMin < period.end) emptySegments.push({ start: currentMin, end: period.end, isEmpty: true, time: `${formatMin(currentMin)}-${formatMin(period.end)}` });
-
-                const renderSeg = (item, isPt) => {
-                    const left = ((item.start - period.start) / period.duration) * 100; const width = ((item.end - item.start) / period.duration) * 100;
-                    const bg = item.isEmpty ? 'transparent' : item.color; const ttColor = item.isEmpty ? 'var(--empty-color)' : item.color; const ttText = item.isEmpty ? 'Пусто' : item.text;
-                    const ptClass = isPt ? ' point-segment' : '';
-                    html += `<div class="progress-segment${ptClass}" style="left: ${left}%; width: ${width}%; background-color: ${bg};" data-color="${ttColor}" data-time="${item.time}" data-text="${ttText}"></div>`;
-                };
-
-                emptySegments.forEach(s => renderSeg(s, false)); period.ranges.forEach(s => renderSeg(s, false)); period.points.forEach(s => renderSeg(s, true));
                 html += `</div>`;
             } else {
-                const emptyTime = `${formatMin(period.start)}-${formatMin(period.end)}`;
-                html += `<div class="progress-period inactive" data-color="var(--empty-color)" data-time="${emptyTime}" data-text="Пусто"></div>`;
+                html += `<div class="progress-period inactive"></div>`;
             }
         });
         return html + `</div>`;
     }
 
-    function renderCalendar() {
-        const year = currentDate.getFullYear(); const month = currentDate.getMonth();
-        document.getElementById('month-year-display').innerText = `${monthNames[month]} ${year}`;
-
-        const grid = document.getElementById('calendar-grid'); grid.innerHTML = "";
-        const firstDay = new Date(year, month, 1).getDay(); const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-        for (let i = 0; i < startOffset; i++) {
-            const emptyCell = document.createElement('div'); emptyCell.className = 'day-cell empty'; grid.appendChild(emptyCell);
-        }
-
-        for (let i = 1; i <= daysInMonth; i++) {
-            const cell = document.createElement('div'); cell.className = 'day-cell';
-            if (year === realToday.getFullYear() && month === realToday.getMonth() && i === realToday.getDate()) cell.classList.add('today');
-
-            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-            const todayEvents = getEventsForDate(dateKey);
-
-            if (isMoveMode && dateKey === moveTargetDate) cell.classList.add('selected-move');
-
-            const headerDiv = document.createElement('div'); headerDiv.className = 'day-header';
-            headerDiv.innerHTML = `<div class="day-number">${i}</div>` + getProgressBarHTML(dateKey, false);
-            cell.appendChild(headerDiv);
-
-            const notesPreview = document.createElement('div'); notesPreview.className = 'day-notes-preview';
-            if (todayEvents.length > 0) {
-                todayEvents.forEach(note => {
-                    const adjustedColor = getThemeAdjustedColor(note.color);
-                    const contrastTextColor = getContrastTextColor(adjustedColor);
-                    
-                    const badge = document.createElement('div'); badge.className = 'note-badge'; 
-                    badge.style.backgroundColor = adjustedColor;
-                    badge.style.color = contrastTextColor;
-
-                    if (note.time && showTimeOnMainScreen) {
-                        const desktopTime = document.createElement('span'); desktopTime.className = 'badge-time-desktop'; desktopTime.innerText = note.time; badge.appendChild(desktopTime);
-                    }
-                    const textContainer = document.createElement('div'); textContainer.className = 'badge-text-container';
-                    const textSpan = document.createElement('span'); textSpan.className = 'badge-text';
-                    let innerHTML = "";
-                    if (note.time && showTimeOnMainScreen) innerHTML += `<span class="badge-time-mobile">${note.time}</span>`;
-                    innerHTML += note.text;
-                    textSpan.innerHTML = innerHTML; textContainer.appendChild(textSpan); badge.appendChild(textContainer); notesPreview.appendChild(badge);
-                });
-            }
-            cell.appendChild(notesPreview);
-
-            cell.onclick = (e) => {
-                if (isMoveMode) selectMoveTarget(dateKey);
-                else openProgressModal(e, dateKey);
-            };
-            grid.appendChild(cell);
-        }
-        setTimeout(updateMarquees, 0);
-    }
-
-    function updateMarquees() {
-        const containers = document.querySelectorAll('.badge-text-container');
-        containers.forEach(container => {
-            const textEl = container.querySelector('.badge-text'); textEl.classList.remove('scrolling'); textEl.style.transform = 'none';
-            const overflow = textEl.scrollWidth - container.clientWidth;
-            if (overflow > 0) { textEl.style.setProperty('--scroll-amount', `-${overflow}px`); const duration = Math.max(3, overflow / 30); textEl.style.animationDuration = `${duration}s`; textEl.classList.add('scrolling'); }
-        });
-    }
-
-    window.addEventListener('resize', updateMarquees);
-
-    function changeMonth(direction) {
-        currentDate.setMonth(currentDate.getMonth() + direction);
-        renderCalendar();
-
-        const grid = document.getElementById('calendar-grid');
-        grid.classList.remove('anim-slide-from-right', 'anim-slide-from-left');
-        void grid.offsetWidth;
-        grid.classList.add(direction > 0 ? 'anim-slide-from-right' : 'anim-slide-from-left');
-    }
-
-    function openProgressModal(e, dateKey) {
-        if (isMoveMode) return;
-        if (e) e.stopPropagation();
-        progressModalDate = dateKey; editingNoteIndex = -1;
-        const [y, m, d] = dateKey.split('-'); const dateObj = new Date(y, m - 1, d);
-        document.getElementById('progress-modal-title').innerText = `${parseInt(d)} ${monthNames[dateObj.getMonth()]} ${y}`;
-        currentDayEvents = getEventsForDate(progressModalDate);
+    function openProgressModal(dateKey) {
+        progressModalDate = dateKey;
+        const [y, m, d] = dateKey.split('-');
+        document.getElementById('progress-modal-title').innerText = `${d} ${new Intl.DateTimeFormat('ru-RU', {month: 'long'}).format(new Date(y, m-1, d))} ${y}`;
         renderProgressModalContent();
-
         document.getElementById('progress-modal').classList.add('show');
+    }
+
+    function renderProgressModalContent() {
+        const events = getEventsForDate(progressModalDate);
+        document.getElementById('big-progress-container').innerHTML = getProgressBarHTML(events, true);
+        const list = document.getElementById('progress-notes-list');
+        list.innerHTML = events.map((e, i) => {
+            if (editingIndex === i) {
+                return `
+                    <div class="prog-list-item" style="flex-direction:column; align-items:stretch; gap:10px; background:var(--cell-hover-bg);">
+                        <input type="text" id="edit-text" value="${e.text}" style="padding:8px;">
+                        <div style="display:flex; gap:5px;">
+                            <input type="time" id="edit-start" value="${(e.time||'').split('-')[0]}" style="flex:1;">
+                            <input type="time" id="edit-end" value="${(e.time||'').split('-')[1] || ''}" style="flex:1;">
+                            <select id="edit-ui" style="flex:1;">
+                                <option value="none" ${e.uiElement==='none'?'selected':''}>— Нет</option>
+                                <option value="checkbox" ${e.uiElement==='checkbox'?'selected':''}>☑ Чекбокс</option>
+                                <option value="toggle" ${e.uiElement==='toggle'?'selected':''}>⚖ Свитч</option>
+                            </select>
+                            <input type="color" id="edit-color" value="${e.color}">
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="saveEdit(${i})" style="flex:1; padding:8px; background:var(--primary-color); color:#fff; border:none; border-radius:4px;">ОК</button>
+                            <button onclick="editingIndex=-1;renderProgressModalContent()" style="flex:1; padding:8px;">Отмена</button>
+                        </div>
+                    </div>
+                `;
+            }
+            return `
+                <div class="prog-list-item" onclick="highlightTask('${e.text}')">
+                    <div style="width:30px; display:flex; justify-content:center;">
+                        ${e.uiElement === 'checkbox' ? '<input type="checkbox">' : e.uiElement === 'toggle' ? '<label class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></label>' : ''}
+                    </div>
+                    <div class="prog-time">${e.time || '--:--'}</div>
+                    <div style="flex:1;">${e.text}</div>
+                    <div style="width:15px; height:15px; border-radius:3px; background:${getThemeAdjustedColor(e.color)}"></div>
+                    <button onclick="event.stopPropagation(); editingIndex=${i}; renderProgressModalContent()">✏️</button>
+                    <button onclick="event.stopPropagation(); deleteTask(${i})" style="color:red;">✖</button>
+                </div>
+            `;
+        }).join('') + `<button class="add-btn" style="width:100%; margin-top:15px; padding:10px;" onclick="addNewNote()">+ Добавить заметку</button>`;
+    }
+
+    function highlightTask(text) {
+        const segments = document.querySelectorAll(`.big-progress .progress-segment[data-text="${text}"]`);
+        if (segments.length === 0) return;
+        
+        let bestSeg = segments[0];
+        let maxW = 0;
+        segments.forEach(s => {
+            const w = parseFloat(s.style.width);
+            if(w > maxW) { maxW = w; bestSeg = s; }
+        });
+
+        const rect = bestSeg.getBoundingClientRect();
+        showTooltipAt(rect.left + rect.width/2, rect.top, bestSeg.dataset.time, bestSeg.dataset.text, bestSeg.dataset.color);
+    }
+
+    function showTooltipAt(x, y, time, text, color) {
+        const tt = document.getElementById('custom-tooltip');
+        document.getElementById('tt-time').innerText = time;
+        document.getElementById('tt-text').innerText = text;
+        document.getElementById('tt-color').style.background = color;
+        tt.style.left = x + 'px';
+        tt.style.top = y + 'px';
+        tt.classList.add('show');
+        setTimeout(() => tt.classList.remove('show'), 3000);
+    }
+
+    function addNewNote() {
+        if (!calendarData[progressModalDate]) calendarData[progressModalDate] = [];
+        calendarData[progressModalDate].push({text: 'Новая заметка', time: '12:00-13:00', color: '#4CAF50', uiElement: 'none'});
+        editingIndex = calendarData[progressModalDate].length - 1;
+        renderProgressModalContent();
+    }
+
+    function saveEdit(index) {
+        const events = getEventsForDate(progressModalDate);
+        const e = events[index];
+        const newText = document.getElementById('edit-text').value;
+        const start = document.getElementById('edit-start').value;
+        const end = document.getElementById('edit-end').value;
+        const color = document.getElementById('edit-color').value;
+        const ui = document.getElementById('edit-ui').value;
+
+        const updated = { ...e, text: newText, time: end ? `${start}-${end}` : start, color, uiElement: ui };
+        
+        if (!calendarData[progressModalDate]) calendarData[progressModalDate] = [];
+        
+        if (e.ruleId) {
+            calendarData[progressModalDate].push({...updated, ruleId: e.ruleId});
+        } else {
+            calendarData[progressModalDate][calendarData[progressModalDate].indexOf(e)] = updated;
+        }
+        
+        editingIndex = -1;
+        saveData();
+        renderCalendar();
+        renderProgressModalContent();
+    }
+
+    function deleteTask(index) {
+        const events = getEventsForDate(progressModalDate);
+        const e = events[index];
+        if (e.ruleId) {
+            if (!calendarData[progressModalDate]) calendarData[progressModalDate] = [];
+            calendarData[progressModalDate].push({ruleId: e.ruleId, deleted: true});
+        } else {
+            calendarData[progressModalDate].splice(calendarData[progressModalDate].indexOf(e), 1);
+        }
+        saveData();
+        renderCalendar();
+        renderProgressModalContent();
+    }
+
+    function changeMonth(dir) {
+        currentDate.setMonth(currentDate.getMonth() + dir);
+        renderCalendar();
     }
 
     function closeProgressModal() {
         document.getElementById('progress-modal').classList.remove('show');
-        document.getElementById('custom-tooltip').classList.remove('show');
-        renderCalendar();
+        progressModalDate = "";
     }
 
-    window.toggleNoteUIState = function(index, event) {
-        event.stopPropagation();
-        const note = currentDayEvents[index];
-        if (!note || !note.uiElement || note.uiElement === 'none') return;
-
-        if (note.uiElement === 'radio') {
-            currentDayEvents.forEach((n, i) => { if (n.uiElement === 'radio') n.uiState = (i === index); });
-        } else {
-            note.uiState = event.target.checked;
-        }
-
-        saveDayEvents(progressModalDate, currentDayEvents);
-        renderProgressModalContent(); // Перерисовка для обновления состояния UI
-    };
-
-    function renderProgressModalContent() {
-        document.getElementById('big-progress-container').innerHTML = getProgressBarHTML(progressModalDate, true);
-        const listContainer = document.getElementById('progress-notes-list'); listContainer.innerHTML = "";
-
-        currentDayEvents.forEach((note, index) => {
-            if (editingNoteIndex === index) {
-                let startVal = "", endVal = "";
-                if (note.time) { const parts = note.time.split(note.time.includes(" - ") ? " - " : "-"); startVal = parts[0] ? parts[0].trim() : ""; endVal = parts[1] ? parts[1].trim() : ""; }
-                listContainer.innerHTML += `
-                    <div class="prog-list-item edit-mode">
-                        <div class="prog-num">${index + 1}</div>
-                        <div class="prog-edit-inputs">
-                            <input type="time" id="prog-edit-start-${index}" value="${startVal}">
-                            <span style="font-weight:bold; color:var(--text-color); opacity:0.7;">-</span>
-                            <input type="time" id="prog-edit-end-${index}" value="${endVal}">
-                            <input type="text" id="prog-edit-text-${index}" value="${note.text}">
-                            <select id="prog-edit-remind-${index}">
-                                <option value="" ${!note.reminder ? 'selected' : ''}>Без увд.</option>
-                                <option value="5" ${note.reminder == '5' ? 'selected' : ''}>За 5 мин</option>
-                                <option value="15" ${note.reminder == '15' ? 'selected' : ''}>За 15 мин</option>
-                                <option value="30" ${note.reminder == '30' ? 'selected' : ''}>За 30 мин</option>
-                                <option value="60" ${note.reminder == '60' ? 'selected' : ''}>За 1 час</option>
-                            </select>
-                            <div class="color-ui-group">
-                                <input type="color" id="prog-edit-color-${index}" value="${note.color}">
-                                <select id="prog-edit-ui-${index}" class="ui-selector">
-                                    <option value="none" ${(!note.uiElement || note.uiElement === 'none') ? 'selected' : ''}>—</option>
-                                    <option value="checkbox" ${note.uiElement === 'checkbox' ? 'selected' : ''}>☑</option>
-                                    <option value="radio" ${note.uiElement === 'radio' ? 'selected' : ''}>🔘</option>
-                                    <option value="toggle" ${note.uiElement === 'toggle' ? 'selected' : ''}>Свитч</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="prog-edit-actions">
-                            <button class="cancel-btn" onclick="cancelProgEdit()">Отмена</button>
-                            <button class="save-btn" onclick="saveProgEdit(${index})">Сохранить</button>
-                        </div>
-                    </div>
-                `;
-            } else {
-                let remIcon = note.reminder ? ' 🔔' : '';
-                const adjustedColor = getThemeAdjustedColor(note.color);
-                
-                let uiHtml = `<span style="width:20px; display:inline-block;"></span>`;
-                if (note.uiElement === 'checkbox') uiHtml = `<input type="checkbox" ${note.uiState ? 'checked' : ''} onchange="toggleNoteUIState(${index}, event)" style="width:18px;height:18px;cursor:pointer;">`;
-                if (note.uiElement === 'radio') uiHtml = `<input type="radio" ${note.uiState ? 'checked' : ''} onchange="toggleNoteUIState(${index}, event)" style="width:18px;height:18px;cursor:pointer;">`;
-                if (note.uiElement === 'toggle') uiHtml = `<label class="mini-switch" onclick="event.stopPropagation()"><input type="checkbox" ${note.uiState ? 'checked' : ''} onchange="toggleNoteUIState(${index}, event)"><span class="mini-slider"></span></label>`;
-
-                listContainer.innerHTML += `
-                    <div class="prog-list-item">
-                        <div class="ui-elem-container">${uiHtml}</div>
-                        <div class="prog-time">${note.time || '—'}</div>
-                        <div class="badge-text-container"><span class="badge-text">${note.text}${remIcon} ${note.ruleId ? '<small style="opacity:0.5;">(рег)</small>' : ''}</span></div>
-                        <div class="prog-color" style="background-color: ${adjustedColor};"></div>
-                        <div class="prog-menu-wrap">
-                            <button class="prog-menu-btn" onclick="toggleProgMenu(${index}, event)">⋮</button>
-                            <div class="prog-menu-dropdown" id="prog-menu-${index}">
-                                <div onclick="enterProgEdit(${index})">✏️ Редактировать</div>
-                                <div onclick="startMoveProgNote(${index})">➡️ Переместить</div>
-                                <div onclick="deleteProgNote(${index})" style="color: #ff4d4d;">🗑️ Удалить</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        });
-
-        listContainer.innerHTML += `<button class="add-btn" style="margin-top: 15px;" onclick="addProgNote()">+ Добавить заметку</button>`;
-        setTimeout(updateMarquees, 0);
-    }
-
-    function toggleProgMenu(index, e) {
-        e.stopPropagation();
-        const menus = document.getElementsByClassName("prog-menu-dropdown");
-        for (let i = 0; i < menus.length; i++) {
-            if (menus[i].id !== `prog-menu-${index}`) menus[i].classList.remove('show');
-        }
-        
-        const menu = document.getElementById(`prog-menu-${index}`);
-        menu.classList.remove('drop-up');
-        
-        // Временно показываем, чтобы узнать размеры
-        menu.style.display = 'block'; 
-        const rect = menu.getBoundingClientRect();
-        const modalRect = menu.closest('.modal').getBoundingClientRect();
-        menu.style.display = ''; 
-
-        // Если меню упирается в нижнюю часть модального окна или экрана, открываем его вверх
-        if (rect.bottom > modalRect.bottom - 10 || rect.bottom > window.innerHeight - 10) {
-            menu.classList.add('drop-up');
-        }
-
-        menu.classList.toggle('show');
-    }
-
-    function enterProgEdit(index) { editingNoteIndex = index; renderProgressModalContent(); }
-    function cancelProgEdit() { editingNoteIndex = -1; renderProgressModalContent(); }
-
-    function saveProgEdit(index) {
-        const start = document.getElementById(`prog-edit-start-${index}`).value; const end = document.getElementById(`prog-edit-end-${index}`).value;
-        let time = ""; if (start && end) time = `${start}-${end}`; else if (start) time = start; else if (end) time = end;
-
-        const text = document.getElementById(`prog-edit-text-${index}`).value;
-        const reminder = document.getElementById(`prog-edit-remind-${index}`).value;
-        const color = document.getElementById(`prog-edit-color-${index}`).value;
-        const uiElement = document.getElementById(`prog-edit-ui-${index}`).value;
-        const ruleId = currentDayEvents[index].ruleId;
-        const uiState = currentDayEvents[index].uiState || false; // Сохраняем состояние если было
-
-        if (time || text) {
-            currentDayEvents[index] = { time, text, color, reminder, uiElement, uiState };
-            if (ruleId) currentDayEvents[index].ruleId = ruleId;
-            
-            // Если поменяли на радио, сбрасываем остальные радио, если это нажато
-            if (uiElement === 'radio' && uiState) {
-                currentDayEvents.forEach((n, i) => { if (n.uiElement === 'radio' && i !== index) n.uiState = false; });
-            }
-        } else { currentDayEvents.splice(index, 1); }
-
-        editingNoteIndex = -1; saveDayEvents(progressModalDate, currentDayEvents); renderCalendar(); renderProgressModalContent();
-    }
-
-    function deleteProgNote(index) {
-        if (confirm("Точно удалить?")) { currentDayEvents.splice(index, 1); saveDayEvents(progressModalDate, currentDayEvents); renderCalendar(); renderProgressModalContent(); }
-    }
-
-    function addProgNote() {
-        const existingColors = currentDayEvents.map(n => n.color);
-        currentDayEvents.push({ time: "", text: "", color: generateDistinctColor(existingColors), reminder: "", uiElement: "none", uiState: false });
-        editingNoteIndex = currentDayEvents.length - 1; renderProgressModalContent();
-    }
-
-    // --- РЕЖИМ ПЕРЕМЕЩЕНИЯ ЗАМЕТКИ ---
-    function startMoveProgNote(index) {
-        moveNoteIndex = index;
-        moveNoteData = JSON.parse(JSON.stringify(currentDayEvents[index]));
-        moveSourceDate = progressModalDate;
-
-        closeProgressModal();
-
-        isMoveMode = true; moveTargetDate = "";
-
-        document.getElementById('move-action-bar').classList.add('show');
-        updateMoveBar(); renderCalendar();
-    }
-
-    function selectMoveTarget(dateKey) {
-        moveTargetDate = dateKey; updateMoveBar(); renderCalendar();
-    }
-
-    function updateMoveBar() {
-        const confirmBtn = document.getElementById('move-confirm-btn');
-        if (moveTargetDate) { confirmBtn.classList.add('active'); confirmBtn.disabled = false; }
-        else { confirmBtn.classList.remove('active'); confirmBtn.disabled = true; }
-    }
-
-    function cancelMove() {
-        isMoveMode = false; document.getElementById('move-action-bar').classList.remove('show');
-        moveTargetDate = ""; moveNoteData = null; renderCalendar(); openProgressModal(null, moveSourceDate);
-    }
-
-    function confirmMove() {
-        if (!moveTargetDate) return;
-        currentDayEvents.splice(moveNoteIndex, 1);
-        saveDayEvents(moveSourceDate, currentDayEvents);
-
-        delete moveNoteData.ruleId;
-        if (!calendarData[moveTargetDate]) calendarData[moveTargetDate] = [];
-        calendarData[moveTargetDate].push(moveNoteData);
-        saveToLocalStorage();
-
-        isMoveMode = false; document.getElementById('move-action-bar').classList.remove('show');
-        moveTargetDate = ""; moveNoteData = null;
-        renderCalendar(); openProgressModal(null, moveSourceDate);
-    }
-
-    // --- ЛОГИКА РЕГУЛЯРНЫХ СОБЫТИЙ ---
-    function openRegularEventsModal() { editingRegEventId = null; resetRegForm(); document.getElementById('regular-events-modal').classList.add('show'); renderRegularEventsList(); }
-    function closeRegularEventsModal() { document.getElementById('regular-events-modal').classList.remove('show'); renderCalendar(); }
-    function resetRegForm() {
-        editingRegEventId = null; document.getElementById('reg-form-title').innerText = "Добавить новое"; document.getElementById('reg-save-btn').innerText = "Сохранить событие"; document.getElementById('reg-cancel-btn').style.display = "none";
-        document.getElementById('reg-text').value = ''; document.getElementById('reg-start').value = ''; document.getElementById('reg-end').value = ''; document.getElementById('reg-reminder').value = ''; document.getElementById('reg-color').value = '#4CAF50';
-    }
-    function toggleRegType() {
-        const type = document.querySelector('input[name="reg-type"]:checked').value;
-        document.getElementById('reg-weekly-settings').style.display = type === 'weekly' ? 'flex' : 'none'; document.getElementById('reg-schedule-settings').style.display = type === 'schedule' ? 'flex' : 'none';
-    }
-
-    function editRegularEvent(id) {
-        const ev = regularEvents.find(r => r.id === id); if (!ev) return;
-        editingRegEventId = id; document.getElementById('reg-form-title').innerText = "Редактировать событие"; document.getElementById('reg-save-btn').innerText = "Обновить"; document.getElementById('reg-cancel-btn').style.display = "block";
-        document.getElementById('reg-text').value = ev.text || ""; document.getElementById('reg-reminder').value = ev.reminder || ""; document.getElementById('reg-color').value = ev.color || "#4CAF50";
-        if (ev.time) { const parts = ev.time.split('-'); document.getElementById('reg-start').value = parts[0] ? parts[0].trim() : ""; document.getElementById('reg-end').value = parts[1] ? parts[1].trim() : ""; }
-        else { document.getElementById('reg-start').value = ""; document.getElementById('reg-end').value = ""; }
-        document.querySelector(`input[name="reg-type"][value="${ev.type}"]`).checked = true; toggleRegType();
-        if (ev.type === 'weekly') { document.querySelectorAll('.reg-day').forEach(cb => { cb.checked = ev.days.includes(cb.value); }); }
-        else { document.getElementById('reg-start-date').value = ev.startDate; document.getElementById('reg-work-days').value = ev.workDays; document.getElementById('reg-rest-days').value = ev.restDays; }
-        document.getElementById('reg-form-title').scrollIntoView({behavior: "smooth"});
-    }
-
-    function cancelRegEdit() { resetRegForm(); }
-
-    function saveRegularEvent() {
-        const text = document.getElementById('reg-text').value; const start = document.getElementById('reg-start').value; const end = document.getElementById('reg-end').value; const color = document.getElementById('reg-color').value; const reminder = document.getElementById('reg-reminder').value; const type = document.querySelector('input[name="reg-type"]:checked').value;
-        if (!text) return alert("Введите название события!");
-        let time = ""; if (start && end) time = `${start}-${end}`; else if (start) time = start; else if (end) time = end;
-        const newEvent = { id: editingRegEventId || Date.now(), text, time, color, reminder, type };
-        if (type === 'weekly') {
-            const checkedDays = Array.from(document.querySelectorAll('.reg-day:checked')).map(cb => cb.value);
-            if (checkedDays.length === 0) return alert("Выберите дни недели!"); newEvent.days = checkedDays;
-        } else {
-            const startDate = document.getElementById('reg-start-date').value; const workDays = document.getElementById('reg-work-days').value; const restDays = document.getElementById('reg-rest-days').value;
-            if (!startDate) return alert("Выберите дату начала графика!"); newEvent.startDate = startDate; newEvent.workDays = parseInt(workDays); newEvent.restDays = parseInt(restDays);
-        }
-        if (editingRegEventId) { const idx = regularEvents.findIndex(r => r.id === editingRegEventId); if (idx !== -1) regularEvents[idx] = newEvent; }
-        else regularEvents.push(newEvent);
-        saveToLocalStorage(); resetRegForm(); renderRegularEventsList(); renderCalendar();
-    }
-
-    function renderRegularEventsList() {
-        const list = document.getElementById('regular-events-list'); list.innerHTML = "";
-        regularEvents.forEach((ev, index) => {
-            let ruleText = ev.type === 'weekly' ? `Дни: ${ev.days.map(d => ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"][d]).join(', ')}` : `График ${ev.workDays}/${ev.restDays} (с ${ev.startDate.split('-').reverse().join('.')})`;
-            let remIcon = ev.reminder ? `🔔 (-${ev.reminder}м)` : '';
-            const adjustedColor = getThemeAdjustedColor(ev.color);
-
-            list.innerHTML += `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color); background: var(--cell-bg); border-radius: 4px; margin-bottom: 4px;">
-                    <div style="flex:1;">
-                        <div style="font-weight: bold; color: ${adjustedColor}; font-size: 1.05em;">${ev.time ? ev.time + ' ' : ''}${ev.text} <span style="font-size: 0.8em; color:var(--text-color); opacity: 0.7;">${remIcon}</span></div>
-                        <div style="font-size: 0.85em; opacity: 0.7; margin-top: 2px;">${ruleText}</div>
-                    </div>
-                    <div style="display:flex; gap: 5px;">
-                        <button class="edit-btn" onclick="editRegularEvent(${ev.id})">✏️</button>
-                        <button class="del-btn" onclick="deleteRegularEvent(${index})">✖</button>
-                    </div>
-                </div>
-            `;
-        });
-        if (regularEvents.length === 0) list.innerHTML = `<div style="text-align: center; opacity: 0.5; padding: 10px;">Нет добавленных регулярных событий</div>`;
-    }
-
-    function deleteRegularEvent(index) {
-        if(confirm("Удалить это регулярное событие? Оно исчезнет из всех дней (кроме тех, где вы его отредактировали вручную).")) {
-            const ruleId = regularEvents[index].id; regularEvents.splice(index, 1);
-            for (let dateKey in calendarData) { calendarData[dateKey] = calendarData[dateKey].filter(note => note.ruleId !== ruleId); if (calendarData[dateKey].length === 0) delete calendarData[dateKey]; }
-            saveToLocalStorage(); renderRegularEventsList(); renderCalendar();
-        }
-    }
-
-    // --- ФОНОВЫЕ ПУШ-УВЕДОМЛЕНИЯ ---
-    setInterval(() => {
-        if (Notification.permission !== "granted") return;
-        const now = new Date(); const currentMins = now.getHours() * 60 + now.getMinutes();
-        const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-        const todayEvents = getEventsForDate(dateKey);
-
-        if (currentMins === 0) notifiedSet.clear();
-
-        todayEvents.forEach(ev => {
-            if (ev.time && ev.reminder) {
-                const startStr = ev.time.split('-')[0].trim(); const startMins = parseTimeMins(startStr);
-                if (startMins !== Infinity) {
-                    const targetMins = startMins - parseInt(ev.reminder);
-                    const notifyKey = `${dateKey}-${ev.text}-${startStr}`;
-                    if (currentMins === targetMins && !notifiedSet.has(notifyKey)) {
-                        new Notification("Скоро: " + ev.text, { body: "Событие начнется в " + startStr, icon: "https://cdn-icons-png.flaticon.com/512/847/847329.png" });
-                        notifiedSet.add(notifyKey);
-                    }
-                }
-            }
-        });
-    }, 30000);
-
-    // --- ВСПЛЫВАЮЩИЕ ПОДСКАЗКИ ---
-    const tooltipEl = document.getElementById('custom-tooltip'); let hideTooltipTimeout;
-    function updateTooltipContentAnimated(target) {
-        const ttColor = document.getElementById('tt-color'); const ttTime = document.getElementById('tt-time'); const ttText = document.getElementById('tt-text'); const ttContentWrap = document.getElementById('tt-content-wrap');
-        const newColor = target.getAttribute('data-color'); const newTime = target.getAttribute('data-time'); const newText = target.getAttribute('data-text');
-        if (ttTime.textContent !== newTime || ttText.textContent !== newText) {
-            ttContentWrap.classList.remove('flip'); void ttContentWrap.offsetWidth; ttContentWrap.classList.add('flip');
-            setTimeout(() => { ttColor.style.backgroundColor = newColor; ttTime.textContent = newTime; ttText.textContent = newText; }, 100);
-        }
-    }
-    function showTooltip(e, target) {
-        clearTimeout(hideTooltipTimeout); updateTooltipContentAnimated(target);
-        const bar = target.closest('.day-progress-bar'); if (!bar) return;
-        const barRect = bar.getBoundingClientRect(); tooltipEl.classList.add('show');
-        const ttWidth = tooltipEl.offsetWidth; let x = e.clientX; let y = barRect.top - 8;
-        if (target.classList.contains('point-segment')) { const segRect = target.getBoundingClientRect(); x = segRect.left + segRect.width / 2; }
-        let leftPos = x; let tailOffset = 50;
-        if (x - ttWidth / 2 < 10) { leftPos = ttWidth / 2 + 10; tailOffset = (x - 10) / ttWidth * 100; }
-        else if (x + ttWidth / 2 > window.innerWidth - 10) { leftPos = window.innerWidth - ttWidth / 2 - 10; tailOffset = (x - (window.innerWidth - ttWidth - 10)) / ttWidth * 100; }
-        tailOffset = Math.max(10, Math.min(90, tailOffset));
-        tooltipEl.style.left = leftPos + 'px'; tooltipEl.style.top = y + 'px'; tooltipEl.style.setProperty('--tail-pos', tailOffset + '%');
-    }
-    document.body.addEventListener('mouseover', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color') && target.closest('.day-progress-bar')) showTooltip(e, target); });
-    document.body.addEventListener('mousemove', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color') && target.closest('.day-progress-bar')) showTooltip(e, target); });
-    document.body.addEventListener('mouseout', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color')) tooltipEl.classList.remove('show'); });
-    document.body.addEventListener('click', function(e) {
-        if (window.innerWidth > 768) return;
-        const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive');
-        if (target && target.closest('.big-progress')) {
-            e.stopPropagation(); const fauxEvent = { clientX: e.clientX };
-            if (fauxEvent.clientX === undefined && e.changedTouches) fauxEvent.clientX = e.changedTouches[0].clientX;
-            if (!fauxEvent.clientX) { const r = target.getBoundingClientRect(); fauxEvent.clientX = r.left + r.width / 2; }
-            showTooltip(fauxEvent, target); hideTooltipTimeout = setTimeout(() => tooltipEl.classList.remove('show'), 3000);
-        } else if (!e.target.closest('.custom-tooltip')) tooltipEl.classList.remove('show');
-    });
-
-    function hslToHex(h, s, l) { l /= 100; const a = s * Math.min(l, 1 - l) / 100; const f = n => { const k = (n + h / 30) % 12; const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1); return Math.round(255 * color).toString(16).padStart(2, '0'); }; return `#${f(0)}${f(8)}${f(4)}`; }
-    function generateDistinctColor(existingColors) {
-        let newColor; let isDistinct = false; let attempts = 0;
-        while (!isDistinct && attempts < 50) {
-            const h = Math.floor(Math.random() * 360); const s = Math.floor(Math.random() * 30 + 70); const l = isDarkMode ? Math.floor(Math.random() * 15 + 65) : Math.floor(Math.random() * 15 + 75);
-            newColor = hslToHex(h, s, l); isDistinct = true;
-            for (let existing of existingColors) if (existing === newColor) { isDistinct = false; break; }
-            attempts++;
-        }
-        return newColor;
-    }
-
-    function exportData() { const fullData = { calendarData, regularEvents }; const dataStr = JSON.stringify(fullData, null, 2); const blob = new Blob([dataStr], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = "calendar_data.json"; a.click(); URL.revokeObjectURL(url); }
-    function importData(event) {
-        const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const imported = JSON.parse(e.target.result);
-                if (imported.calendarData) { calendarData = imported.calendarData; regularEvents = imported.regularEvents || []; } else { calendarData = imported; regularEvents = []; }
-                saveToLocalStorage(); renderCalendar(); alert("Импорт успешен!");
-            } catch (err) { alert("Ошибка JSON!"); }
-        }; reader.readAsText(file);
-    }
-
-    window.onclick = function(event) {
-        if (event.target === document.getElementById('progress-modal')) closeProgressModal();
-        if (event.target === document.getElementById('regular-events-modal')) closeRegularEventsModal();
-        if (!event.target.matches('.prog-menu-btn') && !event.target.matches('.mini-slider')) { 
-            const dropdowns = document.getElementsByClassName("prog-menu-dropdown"); 
-            for (let i = 0; i < dropdowns.length; i++) dropdowns[i].classList.remove('show'); 
-        }
-    }
-    document.addEventListener('keydown', function(event) {
-        if (event.key === "Escape") {
-            if (document.getElementById('progress-modal').classList.contains('show')) closeProgressModal();
-            if (document.getElementById('regular-events-modal').classList.contains('show')) closeRegularEventsModal();
-        }
-    });
-
-    loadFromLocalStorage();
-
+    // Инициализация
+    loadData();
     renderCalendar();
+
+    // Закрытие по клику вне
+    window.onclick = (e) => {
+        if (e.target.classList.contains('modal-overlay')) {
+            closeProgressModal();
+            document.getElementById('regular-events-modal').classList.remove('show');
+        }
+    };
 </script>
 </body>
 </html>
