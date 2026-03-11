@@ -9,7 +9,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <style>
+       <style>
         :root {
             --bg-color: #f4f4f9; --cell-bg: #ffffff; --border-color: #ddd; --text-color: #333;
             --primary-color: #4CAF50; --cell-hover-bg: #f9f9f9; --cell-empty-bg: #fafafa;
@@ -116,15 +116,22 @@
 
         .modal {
             background: var(--modal-bg); padding: 15px 20px; border-radius: 12px; width: 95%; max-width: 550px;
+            min-height: 65vh; min-height: 65dvh; /* Гарантированный минимальный размер 65% экрана */
             max-height: 90vh; max-height: 90dvh; height: auto;
-            display: flex; flex-direction: column; overflow: hidden; /* Адаптивный размер, скролл только внутри списков */
+            display: flex; flex-direction: column; 
+            overflow-y: auto; overflow-x: hidden; /* Скроллится всё окно целиком (убрана внутренняя прокрутка) */
             box-sizing: border-box; border: 1px solid var(--border-color);
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             transform: translateY(30px) scale(0.95); opacity: 0;
             transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
         }
         .modal-overlay.show .modal { transform: translateY(0) scale(1); opacity: 1; }
-        #progress-notes-list, #regular-events-list { overflow-y: auto; flex: 1 1 auto; min-height: 0; padding-right: 5px; margin-right: -5px; }
+        
+        #progress-notes-list, #regular-events-list { 
+            overflow: visible; /* Убран внутренний скролл, чтобы меню не обрезались */
+            flex: 1 1 auto; min-height: 0; 
+            padding-bottom: 20px; /* Небольшой запас снизу */
+        }
 
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
         .close-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; padding: 0 5px; color: var(--text-color); transition: transform 0.2s, color 0.2s; }
@@ -150,10 +157,9 @@
         .prog-menu-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; padding: 0 5px; color: var(--text-color); opacity: 0.7; line-height: 1; transition: color 0.2s; }
         .prog-menu-btn:hover { color: var(--primary-color); opacity: 1; }
 
-        /* Выпадающее меню с авто-позиционированием */
         .prog-menu-dropdown {
             position: absolute; right: 0; top: 100%; background: var(--menu-bg);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2); border-radius: 8px; z-index: 10;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2); border-radius: 8px; z-index: 100;
             min-width: 170px; overflow: hidden; border: 1px solid var(--border-color);
             opacity: 0; visibility: hidden; transform: translateY(-10px) scale(0.95);
             transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
@@ -175,7 +181,15 @@
         /* ЦВЕТА И UI ЭЛЕМЕНТЫ */
         .color-ui-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
         .color-ui-wrap input[type="color"] { width: 32px; height: 32px; border: none; padding: 0; border-radius: 4px; cursor: pointer; flex-shrink: 0; }
-        .color-ui-wrap select { height: 32px; width: 85px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.9em; flex-shrink: 0; padding-left: 4px; }
+        
+        /* КАСТОМНЫЙ СЕЛЕКТОР UI */
+        .custom-ui-select { position: relative; width: 85px; height: 32px; flex-shrink: 0; user-select: none; }
+        .custom-ui-trigger { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); cursor: pointer; }
+        .custom-ui-options { position: absolute; bottom: 100%; right: 0; margin-bottom: 5px; background: var(--menu-bg); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 100; overflow: hidden; min-width: 120px;}
+        .custom-ui-options.open { display: flex; }
+        .custom-ui-option { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 8px 12px; cursor: pointer; transition: background 0.2s; min-height: 32px; font-size: 0.9em; }
+        .custom-ui-option:hover { background: var(--menu-hover); }
+        .ui-mock-wrap { display: flex; align-items: center; justify-content: center; pointer-events: none; }
 
         .ui-checkbox, .ui-radio { width: 18px; height: 18px; cursor: pointer; margin: 0; accent-color: var(--primary-color); flex-shrink: 0;}
         .ui-switch { position: relative; display: inline-block; width: 34px; height: 20px; margin: 0; flex-shrink: 0;}
@@ -190,18 +204,6 @@
         .save-btn { background-color: var(--primary-color); }
         .cancel-btn { background-color: #777; }
         .save-btn:active, .cancel-btn:active { transform: scale(0.95); }
-
-
-        /* КАСТОМНЫЙ СЕЛЕКТОР UI */
-        .custom-ui-select { position: relative; width: 85px; height: 32px; flex-shrink: 0; user-select: none; }
-        .custom-ui-trigger { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); cursor: pointer; }
-        .custom-ui-options { position: absolute; bottom: 100%; right: 0; margin-bottom: 5px; background: var(--menu-bg); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 100; overflow: hidden; min-width: 120px;}
-        .custom-ui-options.open { display: flex; }
-        .custom-ui-option { display: flex; align-items: center; justify-content: flex-start; gap: 10px; padding: 8px 15px; cursor: pointer; transition: background 0.2s; min-height: 36px; }
-        .custom-ui-option:hover { background: var(--menu-hover); }
-        .ui-mock-wrap { display: flex; align-items: center; justify-content: center; pointer-events: none; }
-
-
 
         #move-action-bar {
             display: flex; gap: 10px; justify-content: center; width: 100%; max-width: 1400px; flex-shrink: 0;
@@ -236,6 +238,15 @@
             .prog-edit-inputs input[type="text"] { width: 100%; }
             .prog-edit-inputs select { width: 100%; }
             .color-ui-wrap { width: 100%; justify-content: flex-end; margin-top: 4px; }
+            
+            /* Адаптив для селектора и меню действий на мобилках */
+            .custom-ui-select { width: 75px; height: 32px; }
+            .custom-ui-options { min-width: 105px; }
+            .custom-ui-option { font-size: 0.8em; padding: 6px 10px; min-height: 28px; }
+            
+            .prog-menu-dropdown { min-width: 140px; }
+            .prog-menu-dropdown div { padding: 10px; font-size: 0.85em; }
+
             #move-action-bar.show { padding-top: 10px; height: 42px; }
             #move-action-bar button { padding: 10px 15px; font-size: 0.9em; }
         }
@@ -244,6 +255,7 @@
         .anim-slide-from-right { animation: slideFromRight 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
         .anim-slide-from-left { animation: slideFromLeft 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
     </style>
+
 </head>
 <body>
 
