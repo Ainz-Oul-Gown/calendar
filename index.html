@@ -788,12 +788,12 @@
         let fakeEvent = { clientX: rect.left + rect.width / 2 };
 
         // Визуально "мигаем" найденным отрезком (добавляем свечение)
-        longestSeg.style.transition = 'filter 0.2s';
+        longestSeg.style.transition = 'filter 0.25s';
         longestSeg.style.filter = 'brightness(1.5) drop-shadow(0 0 6px rgba(255,255,255,0.6))';
         
         setTimeout(() => { 
             longestSeg.style.filter = 'none';
-        }, 2500);
+        }, 3000);
 
         // Показываем тултип строго над вычисленным центром
         showTooltip(fakeEvent, longestSeg);
