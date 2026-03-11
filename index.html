@@ -462,7 +462,7 @@
 </div>
 
 <script>
-        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+         const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
     let currentDate = new Date();
     const realToday = new Date();
     let calendarData = {};
@@ -745,7 +745,64 @@
         document.getElementById(optionsId).classList.remove('open');
     }
 
-        function renderProgressModalContent() {
+    // --- НОВАЯ ФУНКЦИЯ ПОДСВЕТКИ СЕГМЕНТА ---
+    function highlightSegment(index, e) {
+        // Игнорируем клики, если нажали на элементы управления
+        if (e.target.closest('.prog-menu-wrap') || e.target.closest('.ui-checkbox') || e.target.closest('.ui-switch') || e.target.closest('.ui-radio') || e.target.closest('.custom-ui-select')) {
+            return;
+        }
+
+        let note = currentDayEvents[index];
+        if (!note) return;
+
+        let segments = document.querySelectorAll('#big-progress-container .progress-segment');
+        let matchedSegments = [];
+
+        // Безопасное получение текста и времени для поиска в DOM
+        let targetText = note.text ? note.text.replace(/"/g, '&quot;') : 'Без описания';
+        let targetTime = note.time ? note.time.replace(/"/g, '&quot;') : '';
+
+        // Ищем сегменты, относящиеся к этой заметке
+        segments.forEach(seg => {
+            if (seg.getAttribute('data-text') === targetText && seg.getAttribute('data-time') === targetTime) {
+                matchedSegments.push(seg);
+            }
+        });
+
+        if (matchedSegments.length === 0) return;
+
+        // Находим самый длинный сегмент
+        let longestSeg = matchedSegments[0];
+        let maxW = longestSeg.getBoundingClientRect().width;
+
+        for (let i = 1; i < matchedSegments.length; i++) {
+            let w = matchedSegments[i].getBoundingClientRect().width;
+            if (w > maxW) {
+                maxW = w;
+                longestSeg = matchedSegments[i];
+            }
+        }
+
+        // Вычисляем центр длинного сегмента для фейкового клика
+        let rect = longestSeg.getBoundingClientRect();
+        let fauxEvent = { clientX: rect.left + rect.width / 2 };
+        
+        // Добавляем кратковременный визуальный эффект "пульсации"
+        longestSeg.style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        longestSeg.style.transform = 'scaleY(1.8)';
+        setTimeout(() => { longestSeg.style.transform = 'none'; }, 300);
+
+        // Показываем тултип над этим сегментом
+        showTooltip(fauxEvent, longestSeg);
+
+        // Автоматически скрываем через 3 секунды
+        clearTimeout(hideTooltipTimeout);
+        hideTooltipTimeout = setTimeout(() => {
+            document.getElementById('custom-tooltip').classList.remove('show');
+        }, 3000);
+    }
+
+    function renderProgressModalContent() {
         document.getElementById('big-progress-container').innerHTML = getProgressBarHTML(progressModalDate, true);
         const listContainer = document.getElementById('progress-notes-list'); listContainer.innerHTML = "";
 
@@ -816,12 +873,11 @@
                 }
 
                 listContainer.innerHTML += `
-                                        <div class="prog-list-item">
+                    <div class="prog-list-item" style="cursor: pointer;" onclick="highlightSegment(${index}, event)">
                         <div class="prog-num">${index + 1}</div>
                         ${uiHtml}
                         <div class="prog-time">${note.time || '—'}</div>
                         <div class="badge-text-container"><span class="badge-text">${note.text}${remIcon} ${note.ruleId ? '<small style="opacity:0.5;">(рег)</small>' : ''}</span></div>
-
                         <div class="prog-color" style="background-color: ${themeColor};"></div>
                         <div class="prog-menu-wrap">
                             <button class="prog-menu-btn" onclick="toggleProgMenu(${index}, event)">⋮</button>
@@ -838,7 +894,6 @@
 
         setTimeout(updateMarquees, 0);
     }
-
 
     function toggleProgMenu(index, e) {
         e.stopPropagation();
@@ -999,7 +1054,7 @@
     }
     function showTooltip(e, target) {
         clearTimeout(hideTooltipTimeout); updateTooltipContentAnimated(target);
-        const bar = target.closest('.day-progress-bar'); if (!bar) return; const barRect = bar.getBoundingClientRect(); tooltipEl.classList.add('show');
+        const bar = target.closest('.day-progress-bar') || target.closest('.big-progress'); if (!bar) return; const barRect = bar.getBoundingClientRect(); tooltipEl.classList.add('show');
         const ttWidth = tooltipEl.offsetWidth; let x = e.clientX; let y = barRect.top - 8;
         if (target.classList.contains('point-segment')) { const segRect = target.getBoundingClientRect(); x = segRect.left + segRect.width / 2; }
         let leftPos = x; let tailOffset = 50;
