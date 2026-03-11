@@ -114,12 +114,12 @@
         }
         .modal-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
 
+        /* Обновленное модальное окно: динамическая высота до 90% экрана */
         .modal {
             background: var(--modal-bg); padding: 15px 20px; border-radius: 12px; width: 95%; max-width: 550px;
-            min-height: 65vh; min-height: 65dvh; /* Гарантированный минимальный размер 65% экрана */
             max-height: 90vh; max-height: 90dvh; height: auto;
             display: flex; flex-direction: column; 
-            overflow-y: auto; overflow-x: hidden; /* Скроллится всё окно целиком (убрана внутренняя прокрутка) */
+            overflow: hidden; /* Скрываем внешний скролл */
             box-sizing: border-box; border: 1px solid var(--border-color);
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             transform: translateY(30px) scale(0.95); opacity: 0;
@@ -127,10 +127,11 @@
         }
         .modal-overlay.show .modal { transform: translateY(0) scale(1); opacity: 1; }
         
+        /* Скроллится только список, оставляя кнопку "Добавить" внизу */
         #progress-notes-list, #regular-events-list { 
-            overflow: visible; /* Убран внутренний скролл, чтобы меню не обрезались */
+            overflow-y: auto; overflow-x: visible;
             flex: 1 1 auto; min-height: 0; 
-            padding-bottom: 20px; /* Небольшой запас снизу */
+            padding-bottom: 5px; padding-right: 5px;
         }
 
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
@@ -143,12 +144,28 @@
         .del-btn, .edit-btn { cursor: pointer; border: none; background: none; font-size: 1.3em; padding: 0 5px; color: var(--text-color); opacity: 0.7; transition: transform 0.2s, opacity 0.2s; }
         .del-btn { color: #ff4d4d; opacity: 1;}
         .edit-btn:hover, .del-btn:hover { opacity: 1; transform: scale(1.15); }
-        .add-btn { width: 100%; padding: 12px; background: var(--primary-color); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; margin-top: 5px; margin-bottom: 5px; font-weight: bold; transition: background-color 0.2s, transform 0.1s; flex-shrink: 0; }
+        
+        /* Кнопка добавления заметки (прижата к низу) */
+        .add-btn { width: 100%; padding: 12px; background: var(--primary-color); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.2s, transform 0.1s; flex-shrink: 0; }
         .add-btn:active { transform: scale(0.98); }
+        .sticky-add-btn { margin-top: 15px; margin-bottom: 0; flex-shrink: 0; }
 
         .prog-list-item { display: flex; align-items: center; gap: 8px; padding: 10px 8px; border-bottom: 1px solid var(--border-color); position: relative; } 
         .prog-list-item:last-child { border-bottom: none; }
-        .prog-list-item.edit-mode { background-color: var(--cell-hover-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 10px; flex-wrap: wrap; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        
+        /* Режим редактирования с анимацией */
+        .prog-list-item.edit-mode { 
+            background-color: var(--cell-hover-bg); border-radius: 8px; border: 1px solid var(--border-color); 
+            padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; gap: 10px;
+            animation: editModeOpen 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            transform-origin: top;
+        }
+        @keyframes editModeOpen {
+            from { opacity: 0; transform: scaleY(0.9) translateY(-10px); }
+            to { opacity: 1; transform: scaleY(1) translateY(0); }
+        }
+
         .prog-num { font-weight: bold; opacity: 0.5; width: 20px; text-align: center; flex-shrink: 0; }
         .prog-time { font-size: 0.9em; font-weight: bold; white-space: nowrap; flex-shrink: 0; }
         .prog-color { width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.2s; border: 1px solid rgba(150,150,150,0.2); }
@@ -179,14 +196,25 @@
         .prog-edit-inputs select { padding: 6px; border-radius: 4px; font-size: 0.9em;}
         
         /* ЦВЕТА И UI ЭЛЕМЕНТЫ */
-        .color-ui-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .prog-edit-bottom-row { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; }
+        .color-ui-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-top: 0; }
         .color-ui-wrap input[type="color"] { width: 32px; height: 32px; border: none; padding: 0; border-radius: 4px; cursor: pointer; flex-shrink: 0; }
         
         /* КАСТОМНЫЙ СЕЛЕКТОР UI */
         .custom-ui-select { position: relative; width: 85px; height: 32px; flex-shrink: 0; user-select: none; }
         .custom-ui-trigger { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); cursor: pointer; }
-        .custom-ui-options { position: absolute; bottom: 100%; right: 0; margin-bottom: 5px; background: var(--menu-bg); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 100; overflow: hidden; min-width: 120px;}
-        .custom-ui-options.open { display: flex; }
+        
+        /* Плавное появление меню UI */
+        .custom-ui-options { 
+            position: absolute; bottom: 100%; right: 0; margin-bottom: 5px; background: var(--menu-bg); 
+            border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            display: flex; flex-direction: column; z-index: 100; min-width: 120px;
+            opacity: 0; visibility: hidden; transform: translateY(10px) scale(0.95);
+            transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.1), visibility 0.2s ease;
+            transform-origin: bottom right;
+        }
+        .custom-ui-options.open { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+        
         .custom-ui-option { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 8px 12px; cursor: pointer; transition: background 0.2s; min-height: 32px; font-size: 0.9em; }
         .custom-ui-option:hover { background: var(--menu-hover); }
         .ui-mock-wrap { display: flex; align-items: center; justify-content: center; pointer-events: none; }
@@ -199,7 +227,7 @@
         .ui-switch input:checked + .ui-slider { background-color: var(--primary-color); }
         .ui-switch input:checked + .ui-slider:before { transform: translateX(14px); }
 
-        .prog-edit-actions { display: flex; gap: 6px; margin-top: 5px; width: 100%; justify-content: flex-end;}
+        .prog-edit-actions { display: flex; gap: 6px; margin-top: 0; width: auto;}
         .save-btn, .cancel-btn { border: none; border-radius: 6px; cursor: pointer; padding: 8px 15px; color: white; font-weight: bold; transition: background-color 0.2s, transform 0.1s;}
         .save-btn { background-color: var(--primary-color); }
         .cancel-btn { background-color: #777; }
@@ -237,7 +265,12 @@
             .prog-edit-inputs input[type="time"] { flex: 1; }
             .prog-edit-inputs input[type="text"] { width: 100%; }
             .prog-edit-inputs select { width: 100%; }
-            .color-ui-wrap { width: 100%; justify-content: flex-end; margin-top: 4px; }
+            
+            /* Выравнивание нижнего ряда в модалке на мобильных */
+            .prog-edit-bottom-row { flex-wrap: wrap; justify-content: space-between; }
+            .color-ui-wrap { width: auto; justify-content: flex-start; }
+            .prog-edit-actions { width: auto; justify-content: flex-end; }
+            .sticky-add-btn { margin-top: 10px; }
             
             /* Адаптив для селектора и меню действий на мобилках */
             .custom-ui-select { width: 75px; height: 32px; }
@@ -255,6 +288,7 @@
         .anim-slide-from-right { animation: slideFromRight 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
         .anim-slide-from-left { animation: slideFromLeft 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
     </style>
+
 
 </head>
 <body>
@@ -310,9 +344,13 @@
             <button class="close-btn" onclick="closeProgressModal()">&times;</button>
         </div>
         <div id="big-progress-container" style="flex-shrink: 0;"></div>
+        
         <div id="progress-notes-list"></div>
+        
+        <button class="add-btn sticky-add-btn" onclick="addProgNote()">+ Добавить заметку</button>
     </div>
 </div>
+
 
 <div class="modal-overlay" id="regular-events-modal">
     <div class="modal">
@@ -691,7 +729,7 @@
         document.getElementById(optionsId).classList.remove('open');
     }
 
-    function renderProgressModalContent() {
+        function renderProgressModalContent() {
         document.getElementById('big-progress-container').innerHTML = getProgressBarHTML(progressModalDate, true);
         const listContainer = document.getElementById('progress-notes-list'); listContainer.innerHTML = "";
 
@@ -708,19 +746,24 @@
 
                 listContainer.innerHTML += `
                     <div class="prog-list-item edit-mode">
-                        <div class="prog-num">${index + 1}</div>
-                        <div class="prog-edit-inputs">
-                            <input type="time" id="prog-edit-start-${index}" value="${startVal}">
-                            <span style="font-weight:bold; color:var(--text-color); opacity:0.7;">-</span>
-                            <input type="time" id="prog-edit-end-${index}" value="${endVal}">
-                            <input type="text" id="prog-edit-text-${index}" value="${note.text}">
-                            <select id="prog-edit-remind-${index}">
-                                <option value="" ${!note.reminder ? 'selected' : ''}>Без увд.</option>
-                                <option value="5" ${note.reminder == '5' ? 'selected' : ''}>За 5 мин</option>
-                                <option value="15" ${note.reminder == '15' ? 'selected' : ''}>За 15 мин</option>
-                                <option value="30" ${note.reminder == '30' ? 'selected' : ''}>За 30 мин</option>
-                                <option value="60" ${note.reminder == '60' ? 'selected' : ''}>За 1 час</option>
-                            </select>
+                        <div style="display: flex; align-items: center; width: 100%; gap: 6px; flex-wrap: wrap;">
+                            <div class="prog-num">${index + 1}</div>
+                            <div class="prog-edit-inputs">
+                                <input type="time" id="prog-edit-start-${index}" value="${startVal}">
+                                <span style="font-weight:bold; color:var(--text-color); opacity:0.7;">-</span>
+                                <input type="time" id="prog-edit-end-${index}" value="${endVal}">
+                                <input type="text" id="prog-edit-text-${index}" value="${note.text}">
+                                <select id="prog-edit-remind-${index}">
+                                    <option value="" ${!note.reminder ? 'selected' : ''}>Без увд.</option>
+                                    <option value="5" ${note.reminder == '5' ? 'selected' : ''}>За 5 мин</option>
+                                    <option value="15" ${note.reminder == '15' ? 'selected' : ''}>За 15 мин</option>
+                                    <option value="30" ${note.reminder == '30' ? 'selected' : ''}>За 30 мин</option>
+                                    <option value="60" ${note.reminder == '60' ? 'selected' : ''}>За 1 час</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="prog-edit-bottom-row">
                             <div class="color-ui-wrap">
                                 <input type="color" id="prog-edit-color-${index}" value="${note.color}">
                                 <div class="custom-ui-select">
@@ -736,10 +779,11 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="prog-edit-actions">
-                            <button class="cancel-btn" onclick="cancelProgEdit()">Отмена</button>
-                            <button class="save-btn" onclick="saveProgEdit(${index})">Сохранить</button>
+                            
+                            <div class="prog-edit-actions">
+                                <button class="cancel-btn" onclick="cancelProgEdit()">Отмена</button>
+                                <button class="save-btn" onclick="saveProgEdit(${index})">Сохранить</button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -775,9 +819,9 @@
             }
         });
 
-        listContainer.innerHTML += `<button class="add-btn" onclick="addProgNote()">+ Добавить заметку</button>`;
         setTimeout(updateMarquees, 0);
     }
+
 
     function toggleProgMenu(index, e) {
         e.stopPropagation();
