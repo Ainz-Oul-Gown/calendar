@@ -1070,11 +1070,26 @@
     document.body.addEventListener('mouseover', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color') && target.closest('.day-progress-bar')) showTooltip(e, target); });
     document.body.addEventListener('mousemove', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color') && target.closest('.day-progress-bar')) showTooltip(e, target); });
     document.body.addEventListener('mouseout', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color')) tooltipEl.classList.remove('show'); });
-    document.body.addEventListener('click', function(e) {
+        document.body.addEventListener('click', function(e) {
         if (window.innerWidth > 768) return;
+        
+        // ИСПРАВЛЕНИЕ: Если мы кликнули по строке заметки, прерываем этот код,
+        // чтобы он моментально не скрыл облачко, которое только что вызвала функция highlightSegment
+        if (e.target.closest('.prog-list-item')) return;
+
         const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive');
-        if (target && target.closest('.big-progress')) { e.stopPropagation(); const fauxEvent = { clientX: e.clientX }; if (fauxEvent.clientX === undefined && e.changedTouches) fauxEvent.clientX = e.changedTouches[0].clientX; if (!fauxEvent.clientX) { const r = target.getBoundingClientRect(); fauxEvent.clientX = r.left + r.width / 2; } showTooltip(fauxEvent, target); hideTooltipTimeout = setTimeout(() => tooltipEl.classList.remove('show'), 3000); } else if (!e.target.closest('.custom-tooltip')) tooltipEl.classList.remove('show');
+        if (target && target.closest('.big-progress')) { 
+            e.stopPropagation(); 
+            const fauxEvent = { clientX: e.clientX }; 
+            if (fauxEvent.clientX === undefined && e.changedTouches) fauxEvent.clientX = e.changedTouches[0].clientX; 
+            if (!fauxEvent.clientX) { const r = target.getBoundingClientRect(); fauxEvent.clientX = r.left + r.width / 2; } 
+            showTooltip(fauxEvent, target); 
+            hideTooltipTimeout = setTimeout(() => tooltipEl.classList.remove('show'), 3000); 
+        } else if (!e.target.closest('.custom-tooltip')) {
+            tooltipEl.classList.remove('show');
+        }
     });
+
 
     function hslToHex(h, s, l) { l /= 100; const a = s * Math.min(l, 1 - l) / 100; const f = n => { const k = (n + h / 30) % 12; const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1); return Math.round(255 * color).toString(16).padStart(2, '0'); }; return `#${f(0)}${f(8)}${f(4)}`; }
     function generateDistinctColor(existingColors) { let newColor; let isDistinct = false; let attempts = 0; while (!isDistinct && attempts < 50) { const h = Math.floor(Math.random() * 360); const s = Math.floor(Math.random() * 30 + 70); const l = isDarkMode ? Math.floor(Math.random() * 15 + 65) : Math.floor(Math.random() * 15 + 75); newColor = hslToHex(h, s, l); isDistinct = true; for (let existing of existingColors) if (existing === newColor) { isDistinct = false; break; } attempts++; } return newColor; }
