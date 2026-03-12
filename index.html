@@ -42,7 +42,17 @@
 
         .toggles-wrapper { display: flex; flex-direction: column; gap: 8px; justify-content: center; }
         .toggle-container { display: flex; align-items: center; gap: 8px; font-size: 0.9em; font-weight: bold; color: var(--text-color); opacity: 0.9; }
-        .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+.switch { 
+    position: relative; display: inline-block; 
+    width: 36px; height: 20px; 
+    flex-shrink: 0; /* ЗАПРЕЩАЕМ браузеру сплющивать кнопку */
+    min-width: 36px;
+}
+.timer-toggle-label { 
+    display: flex; align-items: center; gap: 6px; 
+    font-size: 0.9em; font-weight: bold; cursor: pointer; 
+    white-space: nowrap; /* Запрещаем перенос текста */
+}
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #777; transition: .3s; border-radius: 20px; }
         .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
@@ -123,20 +133,23 @@
         #progress-notes-list { flex: 1 1 auto; padding-bottom: 10px; }
         .prog-list-item { display: flex; align-items: center; padding: 10px 8px; border-bottom: 1px solid var(--border-color); }
         .prog-list-item:last-child { border-bottom: none; }
-        
-        .prog-item-main { 
-            display: flex; align-items: center; gap: 8px; flex-grow: 1; flex-shrink: 0; width: 100%; 
-            position: relative; padding-left: 28px; /* Место под кнопку Play */
-        }
-        
-        .task-start-btn { 
-            position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-            background: none; border: none; padding: 0; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; color: var(--primary-color); transition: transform 0.2s;
-        }
+
+/* --- 1. Отступы кнопки старта и текста --- */
+.prog-item-main { 
+    display: flex; align-items: center; gap: 4px; /* Уменьшили зазор между элементами */
+    flex-grow: 1; flex-shrink: 0; width: 100%; 
+    position: relative; padding-left: 24px; /* Уменьшили левый отступ под кнопку */
+}
+
+.task-start-btn { 
+    position: absolute; left: 2px; /* Прижали кнопку ближе к краю */
+    top: 50%; transform: translateY(-50%);
+    background: none; border: none; padding: 0; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--primary-color); transition: transform 0.2s;
+}
         .task-start-btn svg { width: 20px; height: 20px; fill: currentColor; }
         .task-start-btn:hover { transform: translateY(-50%) scale(1.15); }
-        
+
         .prog-num { font-weight: bold; opacity: 0.5; width: 20px; text-align: center; flex-shrink: 0; }
         .prog-time { font-size: 0.9em; font-weight: bold; white-space: nowrap; flex-shrink: 0; }
         .prog-color { width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
@@ -158,7 +171,7 @@
         .remind-select-wrap { display: flex; align-items: center; gap: 8px; }
         .remind-select-wrap select { min-width: 90px; }
         .timer-toggle-label { display: flex; align-items: center; gap: 6px; font-size: 0.9em; font-weight: bold; cursor: pointer; }
-        
+
         .prog-edit-bottom-row { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; }
         .color-ui-wrap { display: flex; align-items: center; gap: 6px; }
         .color-ui-wrap input[type="color"] { width: 32px; height: 32px; border: none; padding: 0; border-radius: 4px; cursor: pointer; }
@@ -187,18 +200,20 @@
         }
         #active-timer-container.show { display: flex; }
         .timer-title { font-weight: bold; font-size: 1.1em; color: var(--text-color); margin-bottom: 5px; text-align: center; }
-        
-        .timer-circle-wrap { position: relative; width: 130px; height: 130px; }
-        .timer-circle-wrap .tp-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
-        .timer-circle-wrap .tp-ring-bg { fill: none; stroke: var(--prog-inactive-bg); stroke-width: 4; }
-        .dark-theme .timer-circle-wrap .tp-ring-bg { stroke: #444; }
-        .timer-circle-wrap .tp-ring-fill { fill: none; stroke: var(--primary-color); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease; }
-        
-        .timer-circle-wrap .timer-text {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 1.6em; font-weight: bold; font-variant-numeric: tabular-nums;
-            color: var(--text-color);
-        }
+
+/* --- 3. Уменьшаем таймер в модалке и цифры внутри --- */
+.timer-circle-wrap { position: relative; width: 90px; height: 90px; } /* Было 130px */
+.timer-circle-wrap .tp-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.timer-circle-wrap .tp-ring-bg { fill: none; stroke: var(--prog-inactive-bg); stroke-width: 4; }
+.dark-theme .timer-circle-wrap .tp-ring-bg { stroke: #444; }
+.timer-circle-wrap .tp-ring-fill { fill: none; stroke: var(--primary-color); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease; }
+
+.timer-circle-wrap .timer-text {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 1.2em; /* Было 1.6em */
+    font-weight: bold; font-variant-numeric: tabular-nums;
+    color: var(--text-color);
+}
 
         .timer-controls-row { display: flex; gap: 20px; margin-top: 10px; }
         .btn-svg {
@@ -209,31 +224,32 @@
         .dark-theme .btn-svg { background: #333; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
         .btn-svg:active { transform: scale(0.9); }
         .btn-svg svg { width: 22px; height: 22px; fill: currentColor; }
-        
+
         .btn-close { color: #f44336; }
         .btn-pause { color: #ff9800; }
         .btn-stop { color: var(--primary-color); }
 
-        /* --- ГЛОБАЛЬНЫЙ ПЕРЕТАЩИВАЕМЫЙ ТАЙМЕР --- */
-        .global-timer {
-            position: fixed; z-index: 100; cursor: grab;
-            width: 60px; height: 60px; border-radius: 50%;
-            background: var(--cell-bg); box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; visibility: hidden; transition: opacity 0.3s ease, transform 0.1s linear;
-        }
+/* --- 4. Фикс начальной позиции глобального таймера (чтобы не телепортировался) --- */
+.global-timer {
+    position: fixed; z-index: 100; cursor: grab;
+    top: 0; left: 0; margin: 0; /* КРИТИЧНО: Привязываем к левому верхнему углу */
+    width: 60px; height: 60px; border-radius: 50%;
+    background: var(--cell-bg); box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; transition: opacity 0.3s ease, transform 0.1s linear;
+}
         .dark-theme .global-timer { background: #222; box-shadow: 0 4px 15px rgba(0,0,0,0.6); }
         .global-timer.visible { opacity: 1; visibility: visible; }
         .global-timer.dragging {
             cursor: grabbing; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
             transform: scale(1.1) !important; /* Увеличиваем под пальцем */
         }
-        
+
         .global-timer .tp-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
         .global-timer .tp-ring-bg { fill: none; stroke: var(--prog-inactive-bg); stroke-width: 4; }
         .dark-theme .global-timer .tp-ring-bg { stroke: #444; }
         .global-timer .tp-ring-fill { fill: none; stroke: var(--primary-color); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease; }
-        
+
         .global-timer .time-display { position: relative; z-index: 2; font-size: 0.9em; font-weight: bold; font-variant-numeric: tabular-nums; color: var(--text-color); }
 
         /* --- ПРОЧЕЕ --- */
@@ -256,13 +272,13 @@
             .day-notes-preview { font-size: 0.65em; }
             .badge-time-desktop { display: none; }
             .badge-time-mobile { display: inline; }
-            
+
             .prog-edit-row input[type="text"] { width: 100%; }
             .remind-select-wrap select { flex: 1; }
             .prog-edit-bottom-row { flex-wrap: nowrap !important; }
-            
-            .timer-circle-wrap { width: 110px; height: 110px; }
-            .timer-circle-wrap .timer-text { font-size: 1.4em; }
+
+ .timer-circle-wrap { width: 80px; height: 80px; } /* Ещё меньше для мобилок */
+    .timer-circle-wrap .timer-text { font-size: 1.1em; }
             .btn-svg { width: 44px; height: 44px; }
             .global-timer { width: 50px; height: 50px; }
             .global-timer .time-display { font-size: 0.8em; }
@@ -325,7 +341,7 @@
         <div id="big-progress-container" style="flex-shrink: 0;"></div>
 
         <div id="progress-notes-list"></div>
-        
+
         <div id="active-timer-container">
             <div class="timer-title" id="active-timer-title">Название задачи</div>
             <div class="timer-circle-wrap">
@@ -461,7 +477,7 @@ function loadFromLocalStorage() {
     showTimeOnMainScreen = localStorage.getItem('showTimeOnMainScreen') !== 'false';
     const timeTgl = document.getElementById('time-toggle');
     if(timeTgl) timeTgl.checked = showTimeOnMainScreen;
-    
+
     isDarkMode = localStorage.getItem('isDarkMode') === 'true';
     const themeTgl = document.getElementById('theme-toggle');
     if(themeTgl) themeTgl.checked = isDarkMode;
@@ -529,17 +545,17 @@ function getProgressBarHTML(dateKey, isBig) {
     const bigClass = isBig ? ' big-progress' : ''; let html = `<div class="day-progress-bar${bigClass}">`;
     const dayPeriods = [ { name: 'morning', start: 300, end: 720, duration: 420, active: false, items: [] }, { name: 'day', start: 720, end: 1080, duration: 360, active: false, items: [] }, { name: 'evening', start: 1080, end: 1390, duration: 310, active: false, items: [] } ];
     const todayEvents = getEventsForDate(dateKey);
-    
+
     if (todayEvents.length > 0) {
         todayEvents.forEach(note => {
             if (!note.time) return; 
             const timeStr = (note.time && note.time.startsWith('-')) ? `00:00 ${note.time}` : (note.time || "");
             const times = [...timeStr.matchAll(/(\d{1,2}):(\d{2})/g)]; 
             if (times.length === 0) return;
-            
+
             let startMin = parseInt(times[0][1], 10) * 60 + parseInt(times[0][2], 10); let endMin = startMin; let isPoint = true;
             if (times.length > 1) { endMin = parseInt(times[1][1], 10) * 60 + parseInt(times[1][2], 10); isPoint = false; } else endMin = startMin + 10;
-            
+
             const themeColor = getThemeColor(note.color);
             dayPeriods.forEach(period => {
                 if (startMin < period.end && endMin > period.start) {
@@ -551,7 +567,7 @@ function getProgressBarHTML(dateKey, isBig) {
             });
         });
     }
-    
+
     dayPeriods.forEach(period => {
         if (period.active) {
             html += `<div class="progress-period active" style="flex-grow: ${period.duration}">`;
@@ -562,7 +578,7 @@ function getProgressBarHTML(dateKey, isBig) {
             let itemsForLeveling = [...period.items].sort((a, b) => { let durA = a.end - a.start; let durB = b.end - b.start; if (durB !== durA) return durB - durA; return a.start - b.start; });
             itemsForLeveling.forEach((task, index) => { let overlaps = 0; for (let i = 0; i < index; i++) { let prev = itemsForLeveling[i]; if (Math.max(task.start, prev.start) < Math.min(task.end, prev.end)) overlaps++; } task.level = overlaps; });
             itemsForLeveling.sort((a, b) => a.level - b.level);
-            
+
             const renderSeg = (item) => {
                 const left = ((item.start - period.start) / period.duration) * 100; const width = ((item.end - item.start) / period.duration) * 100;
                 const bg = item.isEmpty ? 'transparent' : item.color; const ttColor = item.isEmpty ? 'var(--empty-color)' : item.color; const ttText = item.isEmpty ? 'Пусто' : item.text;
@@ -586,30 +602,30 @@ function renderCalendar() {
     const year = currentDate.getFullYear(); const month = currentDate.getMonth();
     const displayEl = document.getElementById('month-year-display');
     if (displayEl) displayEl.innerText = `${monthNames[month]} ${year}`;
-    
+
     const grid = document.getElementById('calendar-grid'); 
     if(!grid) return;
     grid.innerHTML = "";
-    
+
     const firstDay = new Date(year, month, 1).getDay(); const startOffset = firstDay === 0 ? 6 : firstDay - 1;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
+
     for (let i = 0; i < startOffset; i++) { 
         const emptyCell = document.createElement('div'); emptyCell.className = 'day-cell empty'; grid.appendChild(emptyCell); 
     }
-    
+
     for (let i = 1; i <= daysInMonth; i++) {
         const cell = document.createElement('div'); cell.className = 'day-cell';
         if (year === realToday.getFullYear() && month === realToday.getMonth() && i === realToday.getDate()) cell.classList.add('today');
         const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
         const todayEvents = getEventsForDate(dateKey);
-        
+
         if (isMoveMode && dateKey === moveTargetDate) cell.classList.add('selected-move');
-        
+
         const headerDiv = document.createElement('div'); headerDiv.className = 'day-header';
         headerDiv.innerHTML = `<div class="day-number">${i}</div>` + getProgressBarHTML(dateKey, false);
         cell.appendChild(headerDiv);
-        
+
         const notesPreview = document.createElement('div'); notesPreview.className = 'day-notes-preview';
         if (todayEvents.length > 0) {
             todayEvents.forEach(note => {
@@ -627,7 +643,7 @@ function renderCalendar() {
         cell.onclick = (e) => { if (isMoveMode) selectMoveTarget(dateKey); else openProgressModal(e, dateKey); };
         grid.appendChild(cell);
     }
-    
+
     setTimeout(() => {
         updateMarquees();
         autoPlaceGlobalTimer(); // Пересчитываем позицию таймера
@@ -662,10 +678,10 @@ function openProgressModal(e, dateKey) {
     const [y, m, d] = dateKey.split('-'); const dateObj = new Date(y, m - 1, d);
     document.getElementById('progress-modal-title').innerText = `${parseInt(d)} ${monthNames[dateObj.getMonth()]} ${y}`;
     currentDayEvents = getEventsForDate(progressModalDate); 
-    
+
     const gTimer = document.getElementById('global-timer');
     if(gTimer) gTimer.classList.remove('visible'); // Прячем виджет
-    
+
     renderProgressModalContent();
     document.getElementById('progress-modal').classList.add('show');
 }
@@ -684,7 +700,7 @@ function closeProgressModal() {
 function renderProgressModalContent() {
     document.getElementById('big-progress-container').innerHTML = getProgressBarHTML(progressModalDate, true);
     const listContainer = document.getElementById('progress-notes-list'); listContainer.innerHTML = "";
-    
+
     const activeTimerContainer = document.getElementById('active-timer-container');
     if (activeTask.interval && activeTask.dateKey === progressModalDate && activeTimerContainer) {
         activeTimerContainer.classList.add('show');
@@ -696,7 +712,7 @@ function renderProgressModalContent() {
         }
         const timeEl = document.getElementById('active-timer-time');
         if(timeEl) timeEl.innerText = formatSeconds(activeTask.elapsedSec);
-        
+
         let pauseIconHtml = activeTask.isPaused ? `<path d="M8 5v14l11-7z"/>` : `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
         const iconPause = document.getElementById('icon-pause');
         if(iconPause) iconPause.innerHTML = pauseIconHtml;
@@ -712,7 +728,7 @@ function renderProgressModalContent() {
             if(uiVal === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>';
             if(uiVal === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>';
             if(uiVal === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>';
-            
+
             listContainer.innerHTML += `
             <div class="prog-list-item edit-mode">
                 <div class="prog-edit-row">
@@ -766,7 +782,7 @@ function renderProgressModalContent() {
                 else if (note.uiType === 'toggle') uiHtml = `<label class="ui-switch" onclick="event.stopPropagation()"><input type="checkbox" onchange="handleUiAction(event, ${index})" ${checked}><span class="ui-slider"></span></label>`; 
                 else if (note.uiType === 'radio') uiHtml = `<input type="radio" class="ui-radio" onclick="handleUiAction(event, ${index})" ${checked}>`; 
             }
-            
+
             let isTaskActiveNow = (activeTask.interval && activeTask.dateKey === progressModalDate && activeTask.noteIndex === index);
             let playBtnHtml = note.hasTimer && !isTaskActiveNow ? 
                 `<button class="task-start-btn" onclick="startTaskTimer(${index}, '${progressModalDate}', event)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>` 
@@ -820,16 +836,16 @@ function saveProgEdit(index) {
     if (start && end) time = `${start}-${end}`; 
     else if (start) time = start; 
     else if (end) time = `-${end}`; 
-    
+
     const text = document.getElementById(`prog-edit-text-${index}`).value; 
     const reminder = document.getElementById(`prog-edit-remind-${index}`).value; 
     const color = document.getElementById(`prog-edit-color-${index}`).value; 
     const uiType = document.getElementById(`prog-edit-ui-${index}`).value; 
     const hasTimer = document.getElementById(`prog-edit-timer-${index}`).checked;
-    
+
     const ruleId = currentDayEvents[index].ruleId; 
     const uiState = currentDayEvents[index].uiState || false; 
-    
+
     if (time || text) { 
         currentDayEvents[index] = { time, text, color, reminder, uiType, uiState, hasTimer }; 
         if (ruleId) currentDayEvents[index].ruleId = ruleId; 
@@ -903,11 +919,11 @@ function editRegularEvent(id) {
     editingRegEventId = id; document.getElementById('reg-form-title').innerText = "Редактировать событие"; document.getElementById('reg-save-btn').innerText = "Обновить"; document.getElementById('reg-cancel-btn').style.display = "block"; 
     document.getElementById('reg-text').value = ev.text || ""; document.getElementById('reg-reminder').value = ev.reminder || ""; document.getElementById('reg-color').value = ev.color || "#2ECC71"; 
     document.getElementById('reg-timer-checkbox').checked = ev.hasTimer || false;
-    
+
     let uiVal = ev.uiType || "none"; if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = uiVal; 
     let uiDisplayHtml = '—'; if(uiVal === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>'; if(uiVal === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>'; if(uiVal === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>'; 
     if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = uiDisplayHtml; 
-    
+
     if (ev.time) { 
         const parts = ev.time.split('-'); 
         document.getElementById('reg-start').value = ev.time.startsWith('-') ? "" : (parts[0] ? parts[0].trim() : ""); 
@@ -947,10 +963,10 @@ function startTaskTimer(index, dateKey, event) {
     activeTask.noteIndex = index;
     activeTask.dateKey = dateKey;
     activeTask.isPaused = false;
-    
+
     let now = new Date();
     let currentMin = now.getHours() * 60 + now.getMinutes();
-    
+
     const globalRingFill = document.getElementById('global-timer-ring-fill');
 
     if (startStr && endStr) {
@@ -968,7 +984,7 @@ function startTaskTimer(index, dateKey, event) {
         startStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
         note.time = `${startStr} - ${endStr}`;
         saveDayEvents(dateKey, currentDayEvents);
-        
+
         let remain = parseTimeMins(endStr) - currentMin;
         if (remain <= 0) { alert("Время дедлайна уже прошло!"); return; }
         activeTask.durationSec = remain * 60;
@@ -1006,7 +1022,7 @@ function tickTask() {
 
     const gtTime = document.getElementById('global-timer-time');
     if(gtTime) gtTime.innerText = displayTime;
-    
+
     const modalDisplay = document.getElementById('active-timer-time');
     if (modalDisplay) modalDisplay.innerText = displayTime;
     updateRingUI(progressPct);
@@ -1059,7 +1075,7 @@ function cancelTaskTimer(e) {
     activeTask.interval = null;
     const gTimer = document.getElementById('global-timer');
     if(gTimer) gTimer.classList.remove('visible');
-    
+
     if(document.getElementById('progress-modal').classList.contains('show')) renderProgressModalContent();
     renderCalendar();
 }
@@ -1085,37 +1101,45 @@ if(globalTimerEl) {
 window.addEventListener('mouseup', dragEnd, {passive: false});
 window.addEventListener('mousemove', drag, {passive: false});
 
+// Заменяем функцию dragStart
 function dragStart(e) {
     if (!activeTask.interval || !globalTimerEl) return;
     timerDrag.wasDragged = false;
-    timerDrag.initialX = e.type === "touchstart" ? e.touches[0].clientX - timerDrag.xOffset : e.clientX - timerDrag.xOffset;
-    timerDrag.initialY = e.type === "touchstart" ? e.touches[0].clientY - timerDrag.yOffset : e.clientY - timerDrag.yOffset;
+    
+    // Получаем реальные координаты клика/тапа
+    let clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
+    let clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+
+    // Считаем начальную точку захвата с учетом текущего смещения таймера
+    timerDrag.initialX = clientX - timerDrag.xOffset;
+    timerDrag.initialY = clientY - timerDrag.yOffset;
     
     if (e.target === globalTimerEl || globalTimerEl.contains(e.target)) {
         timerDrag.longPressTimer = setTimeout(() => {
             timerDrag.active = true;
             globalTimerEl.classList.add('dragging');
-            globalTimerEl.style.transition = 'none'; 
+            globalTimerEl.style.transition = 'none'; // Отключаем CSS transition чтобы не было лагов за пальцем
             if (navigator.vibrate) navigator.vibrate([50]); 
-        }, 300);
+        }, 300); // 300мс зажатия для захвата
     }
 }
 
+
 function drag(e) {
     if (!timerDrag.active || !globalTimerEl) { clearTimeout(timerDrag.longPressTimer); return; }
-    
+
     e.preventDefault();
     timerDrag.wasDragged = true;
     let clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
     let clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
-    
+
     timerDrag.currentX = clientX - timerDrag.initialX;
     timerDrag.currentY = clientY - timerDrag.initialY;
-    
+
     const rect = globalTimerEl.getBoundingClientRect();
     const maxW = window.innerWidth - rect.width;
     const maxH = window.innerHeight - rect.height;
-    
+
     if (timerDrag.currentX < 0) timerDrag.currentX = 0;
     if (timerDrag.currentY < 0) timerDrag.currentY = 0;
     if (timerDrag.currentX > maxW) timerDrag.currentX = maxW;
@@ -1145,6 +1169,7 @@ function autoPlaceGlobalTimer() {
     globalTimerEl.classList.add('visible');
     if (!activeTask.isPaused) globalTimerEl.classList.add('timer-pulse');
 
+    // Оставляем там, куда юзер его перетащил
     if (timerDrag.xOffset !== 0 || timerDrag.yOffset !== 0) {
         globalTimerEl.style.transform = `translate3d(${timerDrag.xOffset}px, ${timerDrag.yOffset}px, 0)`;
         return;
@@ -1175,7 +1200,10 @@ function autoPlaceGlobalTimer() {
     targetX = Math.max(0, Math.min(targetX, window.innerWidth - tWidth));
     targetY = Math.max(0, Math.min(targetY, window.innerHeight - tWidth));
 
-    timerDrag.xOffset = targetX; timerDrag.yOffset = targetY;
+    timerDrag.xOffset = targetX; 
+    timerDrag.yOffset = targetY;
+    
+    // Применяем позицию жестко через translate3d (работает идеально вместе с CSS top:0 left:0)
     globalTimerEl.style.transform = `translate3d(${targetX}px, ${targetY}px, 0)`;
 }
 
@@ -1202,7 +1230,7 @@ function showTooltip(e, target) {
 
     const newColor = target.getAttribute('data-color'); const newTime = target.getAttribute('data-time'); const newText = target.getAttribute('data-text');
     if (ttTime.textContent !== newTime || ttText.textContent !== newText) { ttContentWrap.classList.remove('flip'); void ttContentWrap.offsetWidth; ttContentWrap.classList.add('flip'); setTimeout(() => { ttColor.style.backgroundColor = newColor; ttTime.textContent = newTime; ttText.textContent = newText; }, 100); }
-    
+
     const bar = target.closest('.day-progress-bar') || target.closest('.big-progress'); if (!bar) return; const barRect = bar.getBoundingClientRect(); tooltipEl.classList.add('show');
     const ttWidth = tooltipEl.offsetWidth; let x = e.clientX; let y = barRect.top - 8;
     if (target.classList.contains('point-segment')) { const segRect = target.getBoundingClientRect(); x = segRect.left + segRect.width / 2; }
