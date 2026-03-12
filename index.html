@@ -1092,16 +1092,17 @@ function openTimerDayModal() {
 const globalTimerEl = document.getElementById('global-timer');
 let timerDrag = { 
     active: false, 
-    currentX: 0, currentY: 0,  // Текущая позиция (где таймер сейчас)
-    targetX: 0, targetY: 0,    // Целевая позиция (где палец)
-    grabX: 0, grabY: 0,        // Точка захвата внутри кружка
-    xOffset: 0, yOffset: 0,    // Сохраненная позиция после отпускания
+    currentX: 0, currentY: 0,  
+    targetX: 0, targetY: 0,    
+    grabX: 0, grabY: 0,        
+    xOffset: 0, yOffset: 0,    
     longPressTimer: null, 
     wasDragged: false,
-    animFrame: null            // ID для плавной анимации
+    animFrame: null            
 };
 
 if(globalTimerEl) {
+    // Используем {passive: false} обязательно, чтобы работал e.preventDefault()
     globalTimerEl.addEventListener('touchstart', dragStart, {passive: false});
     globalTimerEl.addEventListener('touchend', dragEnd, {passive: false});
     globalTimerEl.addEventListener('touchmove', drag, {passive: false});
@@ -1117,8 +1118,9 @@ function dragStart(e) {
     let clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
     let clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
 
-    // Идеально точный расчет: за какое место внутри таймера мы схватились
     const rect = globalTimerEl.getBoundingClientRect();
+    
+    // Вычисляем, куда именно мы кликнули внутри кружка
     timerDrag.grabX = clientX - rect.left;
     timerDrag.grabY = clientY - rect.top;
     
@@ -1129,54 +1131,60 @@ function dragStart(e) {
             globalTimerEl.style.transition = 'none'; 
             if (navigator.vibrate) navigator.vibrate([50]); 
             
-            // Задаем стартовые значения для анимации
+            // Текущая позиция виджета (реальная)
             timerDrag.currentX = rect.left;
             timerDrag.currentY = rect.top;
+            
+            // Целевая позиция изначально совпадает с текущей
             timerDrag.targetX = rect.left;
             timerDrag.targetY = rect.top;
             
-            // Запускаем бесконечный цикл "догонялок"
+            cancelAnimationFrame(timerDrag.animFrame);
             updateDragAnimation();
-        }, 300); // 300мс удержания для старта
+        }, 300); // Долгий тап 300мс
     }
 }
 
 function drag(e) {
-    if (!timerDrag.active || !globalTimerEl) { clearTimeout(timerDrag.longPressTimer); return; }
+    if (!timerDrag.active || !globalTimerEl) { 
+        clearTimeout(timerDrag.longPressTimer); 
+        return; 
+    }
     
-    e.preventDefault();
+    e.preventDefault(); // Блокируем скролл страницы
     timerDrag.wasDragged = true;
     
     let clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
     let clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
     
-    // Новая цель сдвигается на точку захвата
-    timerDrag.targetX = clientX - timerDrag.grabX;
-    timerDrag.targetY = clientY - timerDrag.grabY;
+    // Новая цель для LERP анимации: позиция пальца минус точка захвата
+    let newTargetX = clientX - timerDrag.grabX;
+    let newTargetY = clientY - timerDrag.grabY;
     
-    // Ограничиваем вылет за края
     const rect = globalTimerEl.getBoundingClientRect();
     const maxW = window.innerWidth - rect.width;
     const maxH = window.innerHeight - rect.height;
     
-    if (timerDrag.targetX < 0) timerDrag.targetX = 0;
-    if (timerDrag.targetY < 0) timerDrag.targetY = 0;
-    if (timerDrag.targetX > maxW) timerDrag.targetX = maxW;
-    if (timerDrag.targetY > maxH) timerDrag.targetY = maxH;
+    // Ограничиваем вылет за края (сохраняем виджет на экране)
+    if (newTargetX < 0) newTargetX = 0;
+    if (newTargetY < 0) newTargetY = 0;
+    if (newTargetX > maxW) newTargetX = maxW;
+    if (newTargetY > maxH) newTargetY = maxH;
+
+    timerDrag.targetX = newTargetX;
+    timerDrag.targetY = newTargetY;
 }
 
-// LERP Анимация: Таймер всегда стремится к targetX/Y
 function updateDragAnimation() {
     if (!timerDrag.active) return;
 
-    // Коэффициент 0.25 означает, что каждый кадр таймер проходит 25% оставшегося пути до пальца
-    // Если хочешь более "тягучую" задержку, поставь 0.15 или 0.1
-    timerDrag.currentX += (timerDrag.targetX - timerDrag.currentX) * 0.25;
-    timerDrag.currentY += (timerDrag.targetY - timerDrag.currentY) * 0.25;
+    // Плавное приближение (0.2 - скорость доводки, чем меньше - тем больше "резина")
+    timerDrag.currentX += (timerDrag.targetX - timerDrag.currentX) * 0.2;
+    timerDrag.currentY += (timerDrag.targetY - timerDrag.currentY) * 0.2;
 
     globalTimerEl.style.transform = `translate3d(${timerDrag.currentX}px, ${timerDrag.currentY}px, 0)`;
 
-    // Запускаем следующий кадр
+    // Запрашиваем следующий кадр пока палец на экране
     timerDrag.animFrame = requestAnimationFrame(updateDragAnimation);
 }
 
@@ -1184,10 +1192,12 @@ function dragEnd(e) {
     clearTimeout(timerDrag.longPressTimer);
     if (timerDrag.active && globalTimerEl) {
         timerDrag.active = false;
-        cancelAnimationFrame(timerDrag.animFrame); // Останавливаем анимацию
+        cancelAnimationFrame(timerDrag.animFrame); 
         
-        // При отпускании жестко фиксируем таймер на месте
+        // После отпускания пальца фиксируем конечную позицию
         globalTimerEl.style.transform = `translate3d(${timerDrag.targetX}px, ${timerDrag.targetY}px, 0)`;
+        
+        // Сохраняем это смещение для функции autoPlaceGlobalTimer
         timerDrag.xOffset = timerDrag.targetX; 
         timerDrag.yOffset = timerDrag.targetY;
         
@@ -1195,6 +1205,7 @@ function dragEnd(e) {
         globalTimerEl.style.transition = ''; 
     }
 }
+
 
 // --- АВТОМАТИЧЕСКОЕ РАЗМЕЩЕНИЕ ТАЙМЕРА НА ПУСТЫХ ЯЧЕЙКАХ ---
 function autoPlaceGlobalTimer() {
