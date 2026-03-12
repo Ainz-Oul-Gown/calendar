@@ -379,7 +379,7 @@
 </div>
 
 <script>
-    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+   const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 let currentDate = new Date();
 const realToday = new Date();
 let calendarData = {};
@@ -399,7 +399,7 @@ let moveNoteIndex = -1;
 let moveSourceDate = "";
 let moveTargetDate = "";
 
-// --- ОБЪЕКТ ТАЙМЕРА ---
+// --- СОСТОЯНИЕ ТАЙМЕРА ---
 let activeTask = {
     interval: null,
     mode: null, // 'countdown' или 'stopwatch'
@@ -410,75 +410,15 @@ let activeTask = {
     dateKey: null
 };
 
-// --- ИНИЦИАЛИЗАЦИЯ (Включая генерацию скрытой формы) ---
-function initRegularEventsForm() {
-    const modal = document.querySelector('#regular-events-modal .modal');
-    if (!modal) return;
-    const stub = modal.querySelector('div[style*="text-align: center"]');
-    if (stub) stub.remove(); // Удаляем заглушку
-
-    if (!document.getElementById('reg-text')) {
-        const formHtml = `
-        <div class="reg-form-row" style="display: flex; flex-direction: column; align-items: stretch; flex-shrink: 0;">
-            <input type="text" id="reg-text" class="note-text" placeholder="Название (например: Автошкола, Смена)" style="width: 100%; margin-bottom: 8px;">
-
-            <div class="prog-edit-row prog-edit-remind-row" style="margin-bottom: 8px;">
-                <input type="time" id="reg-start">
-                <span style="opacity: 0.7;">-</span>
-                <input type="time" id="reg-end">
-                <div class="remind-select-wrap">
-                    <select id="reg-reminder" class="note-reminder">
-                        <option value="">Без увд.</option><option value="5">За 5 мин</option><option value="15">За 15 мин</option><option value="30">За 30 мин</option><option value="60">За 1 час</option>
-                    </select>
-                    <label class="timer-toggle-label"><input type="checkbox" id="reg-timer-checkbox"> Таймер</label>
-                </div>
-            </div>
-
-            <div class="prog-edit-bottom-row" style="margin-bottom: 8px; justify-content: flex-start; gap: 15px;">
-                <div class="color-ui-wrap">
-                    <input type="color" id="reg-color" value="#2ECC71">
-                    <div class="custom-ui-select" id="reg-ui-container">
-                        <input type="hidden" id="reg-ui" value="none">
-                        <div class="custom-ui-trigger" onclick="toggleCustomSelect('reg-ui-options', event)">
-                            <div class="ui-mock-wrap" id="reg-ui-display">—</div>
-                        </div>
-                        <div class="custom-ui-options" id="reg-ui-options">
-                            <div class="custom-ui-option" onclick="selectUiOption('reg', 'none')"><div class="ui-mock-wrap">—</div> Нет</div>
-                            <div class="custom-ui-option" onclick="selectUiOption('reg', 'checkbox')"><div class="ui-mock-wrap"><input type="checkbox" class="ui-checkbox" checked></div> Чек-бокс</div>
-                            <div class="custom-ui-option" onclick="selectUiOption('reg', 'toggle')"><div class="ui-mock-wrap"><label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label></div> Тогл</div>
-                            <div class="custom-ui-option" onclick="selectUiOption('reg', 'radio')"><div class="ui-mock-wrap"><input type="radio" class="ui-radio" checked></div> Радио</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div style="margin-bottom: 10px;">
-                <label><input type="radio" name="reg-type" value="weekly" checked onchange="toggleRegType()"> По дням недели</label>
-                <label style="margin-left: 10px;"><input type="radio" name="reg-type" value="schedule" onchange="toggleRegType()"> По графику</label>
-            </div>
-            <div id="reg-weekly-settings" style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px;">
-                <label><input type="checkbox" class="reg-day" value="1"> Пн</label><label><input type="checkbox" class="reg-day" value="2"> Вт</label><label><input type="checkbox" class="reg-day" value="3"> Ср</label><label><input type="checkbox" class="reg-day" value="4"> Чт</label><label><input type="checkbox" class="reg-day" value="5"> Пт</label><label><input type="checkbox" class="reg-day" value="6"> Сб</label><label><input type="checkbox" class="reg-day" value="0"> Вс</label>
-            </div>
-            <div id="reg-schedule-settings" style="display: none; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-                <div style="flex: 1; min-width: 120px;"><label style="font-size: 0.8em;">Начало:</label><input type="date" id="reg-start-date" style="width: 100%; padding: 5px; box-sizing: border-box;"></div>
-                <div style="display: flex; gap: 10px; align-items: flex-end;"><div><label style="font-size: 0.8em;">Раб:</label><input type="number" id="reg-work-days" value="2" min="1" style="width: 50px; padding: 5px; text-align: center;"></div><div><label style="font-size: 0.8em;">Вых:</label><input type="number" id="reg-rest-days" value="2" min="1" style="width: 50px; padding: 5px; text-align: center;"></div></div>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button id="reg-cancel-btn" class="cancel-btn" style="display: none; flex: 1;" onclick="cancelRegEdit()">Отмена</button>
-                <button id="reg-save-btn" class="add-btn" style="flex: 2; margin-top: 0;" onclick="saveRegularEvent()">Сохранить событие</button>
-            </div>
-        </div>`;
-        modal.insertAdjacentHTML('beforeend', formHtml);
-    }
-}
-
+// --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 function getContrastYIQ(hexcolor){
     if(!hexcolor) return '#000000';
     hexcolor = hexcolor.replace("#", "");
     if(hexcolor.length === 3) hexcolor = hexcolor.split('').map(c => c+c).join('');
-    let r = parseInt(hexcolor.substr(0,2),16), g = parseInt(hexcolor.substr(2,2),16), b = parseInt(hexcolor.substr(4,2),16);
-    let yiq = ((r*299)+(g*587)+(b*114))/1000;
-    return (yiq >= 128) ? '#000000' : '#ffffff';
+    let r = parseInt(hexcolor.substr(0,2),16);
+    let g = parseInt(hexcolor.substr(2,2),16);
+    let b = parseInt(hexcolor.substr(4,2),16);
+    return (((r*299)+(g*587)+(b*114))/1000 >= 128) ? '#000000' : '#ffffff';
 }
 
 function getThemeColor(color) {
@@ -489,69 +429,83 @@ function getThemeColor(color) {
     return color;
 }
 
-// --- СВАЙПЫ ---
-let touchStartX = 0, touchStartY = 0, modalTouchStartX = 0, modalTouchStartY = 0;
-document.addEventListener('touchstart', e => {
-    if(e.target.closest('#calendar-grid')) { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; } 
-    else if (e.target.closest('#progress-modal .modal')) { modalTouchStartX = e.changedTouches[0].screenX; modalTouchStartY = e.changedTouches[0].screenY; }
-}, {passive: true});
-
-document.addEventListener('touchend', e => {
-    if(e.target.closest('#calendar-grid')) {
-        let diffX = e.changedTouches[0].screenX - touchStartX, diffY = Math.abs(e.changedTouches[0].screenY - touchStartY);
-        if (Math.abs(diffX) > 50 && Math.abs(diffX) > diffY) { if (diffX < 0) changeMonth(1); else changeMonth(-1); }
-    } else if (e.target.closest('#progress-modal .modal')) {
-        let diffX = e.changedTouches[0].screenX - modalTouchStartX, diffY = Math.abs(e.changedTouches[0].screenY - modalTouchStartY);
-        if (editingNoteIndex !== -1) return;
-        if (Math.abs(diffX) > 50 && Math.abs(diffX) > diffY) { if (diffX < 0) changeModalDay(1); else changeModalDay(-1); }
-    }
-}, {passive: true});
-
-function changeModalDay(offset) {
-    let [y, m, d] = progressModalDate.split('-').map(Number);
-    let dateObj = new Date(y, m - 1, d); dateObj.setDate(dateObj.getDate() + offset);
-    let newY = dateObj.getFullYear(), newM = String(dateObj.getMonth() + 1).padStart(2, '0'), newD = String(dateObj.getDate()).padStart(2, '0');
-    progressModalDate = `${newY}-${newM}-${newD}`;
-
-    if (currentDate.getMonth() !== dateObj.getMonth() || currentDate.getFullYear() !== dateObj.getFullYear()) {
-        currentDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1); renderCalendar();
-    }
-    clearHighlights(); document.getElementById('custom-tooltip').classList.remove('show');
-    document.getElementById('progress-modal-title').innerText = `${parseInt(newD)} ${monthNames[dateObj.getMonth()]} ${newY}`;
-    currentDayEvents = getEventsForDate(progressModalDate); renderProgressModalContent();
+function parseTimeMins(timeStr) { 
+    if (!timeStr) return Infinity; 
+    const match = timeStr.match(/(\d{1,2}):(\d{2})/); 
+    if (!match) return Infinity; 
+    return parseInt(match[1], 10) * 60 + parseInt(match[2], 10); 
 }
 
+function formatMin(m) { 
+    const h = Math.floor(m / 60); const mins = m % 60; 
+    return `${h}:${mins < 10 ? '0' : ''}${mins}`; 
+}
+
+function formatSeconds(sec) {
+    let h = Math.floor(sec / 3600);
+    let m = Math.floor((sec % 3600) / 60);
+    let s = sec % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+// --- ХРАНИЛИЩЕ И НАСТРОЙКИ ---
 function loadFromLocalStorage() {
-    const savedData = localStorage.getItem('myCalendarData'); if (savedData) try { calendarData = JSON.parse(savedData); } catch (e) {}
-    const savedRegEvents = localStorage.getItem('myCalendarRegularEvents'); if (savedRegEvents) try { regularEvents = JSON.parse(savedRegEvents); } catch (e) {}
-    const savedTimeToggle = localStorage.getItem('showTimeOnMainScreen'); if (savedTimeToggle !== null) { showTimeOnMainScreen = savedTimeToggle === 'true'; document.getElementById('time-toggle').checked = showTimeOnMainScreen; }
-    const savedTheme = localStorage.getItem('isDarkMode'); if (savedTheme !== null) { isDarkMode = savedTheme === 'true'; document.getElementById('theme-toggle').checked = isDarkMode; if (isDarkMode) document.body.classList.add('dark-theme'); }
+    try {
+        const savedData = localStorage.getItem('myCalendarData');
+        if (savedData) calendarData = JSON.parse(savedData);
+        const savedRegEvents = localStorage.getItem('myCalendarRegularEvents');
+        if (savedRegEvents) regularEvents = JSON.parse(savedRegEvents);
+    } catch (e) { console.error("Ошибка загрузки данных", e); }
+
+    showTimeOnMainScreen = localStorage.getItem('showTimeOnMainScreen') !== 'false';
+    document.getElementById('time-toggle').checked = showTimeOnMainScreen;
+    
+    isDarkMode = localStorage.getItem('isDarkMode') === 'true';
+    document.getElementById('theme-toggle').checked = isDarkMode;
+    if (isDarkMode) document.body.classList.add('dark-theme');
 }
 
-function saveToLocalStorage() { localStorage.setItem('myCalendarData', JSON.stringify(calendarData)); localStorage.setItem('myCalendarRegularEvents', JSON.stringify(regularEvents)); }
-function toggleTimeDisplay() { showTimeOnMainScreen = document.getElementById('time-toggle').checked; localStorage.setItem('showTimeOnMainScreen', showTimeOnMainScreen); renderCalendar(); }
-function toggleTheme() { isDarkMode = document.getElementById('theme-toggle').checked; localStorage.setItem('isDarkMode', isDarkMode); isDarkMode ? document.body.classList.add('dark-theme') : document.body.classList.remove('dark-theme'); renderCalendar(); }
-function parseTimeMins(timeStr) { if (!timeStr) return Infinity; const match = timeStr.match(/(\d{1,2}):(\d{2})/); if (!match) return Infinity; return parseInt(match[1], 10) * 60 + parseInt(match[2], 10); }
-function formatMin(m) { const h = Math.floor(m / 60); const mins = m % 60; return `${h}:${mins < 10 ? '0' : ''}${mins}`; }
+function saveToLocalStorage() { 
+    localStorage.setItem('myCalendarData', JSON.stringify(calendarData)); 
+    localStorage.setItem('myCalendarRegularEvents', JSON.stringify(regularEvents)); 
+}
 
+function toggleTimeDisplay() { 
+    showTimeOnMainScreen = document.getElementById('time-toggle').checked; 
+    localStorage.setItem('showTimeOnMainScreen', showTimeOnMainScreen); 
+    renderCalendar(); 
+}
+
+function toggleTheme() { 
+    isDarkMode = document.getElementById('theme-toggle').checked; 
+    localStorage.setItem('isDarkMode', isDarkMode); 
+    isDarkMode ? document.body.classList.add('dark-theme') : document.body.classList.remove('dark-theme'); 
+    renderCalendar(); 
+}
+
+// --- ДАННЫЕ И ПРАВИЛА ---
 function checkRuleActive(re, dateObj) {
-    if (re.type === 'weekly' && re.days) return re.days.includes(dateObj.getDay().toString());
+    if (re.type === 'weekly' && re.days) { return re.days.includes(dateObj.getDay().toString()); } 
     else if (re.type === 'schedule' && re.startDate) {
-        const start = new Date(re.startDate); start.setHours(0,0,0,0); const current = new Date(dateObj); current.setHours(0,0,0,0);
+        const start = new Date(re.startDate); start.setHours(0,0,0,0);
+        const current = new Date(dateObj); current.setHours(0,0,0,0);
         const diffDays = Math.floor((current.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
         if (diffDays >= 0) { const cycle = parseInt(re.workDays) + parseInt(re.restDays); return (diffDays % cycle) < parseInt(re.workDays); }
-    } return false;
+    }
+    return false;
 }
 
 function getEventsForDate(dateKey) {
     let events = []; let deletedRules = [];
     const [y, m, d] = dateKey.split('-'); const dateObj = new Date(y, m - 1, d); dateObj.setHours(0,0,0,0);
-    if (calendarData[dateKey]) calendarData[dateKey].forEach(note => { if (note.deleted) deletedRules.push(note.ruleId); else events.push({...note}); });
+    if (calendarData[dateKey]) { calendarData[dateKey].forEach(note => { if (note.deleted) deletedRules.push(note.ruleId); else events.push({...note}); }); }
     regularEvents.forEach(re => {
         if (deletedRules.includes(re.id) || events.some(e => e.ruleId === re.id)) return;
         if (checkRuleActive(re, dateObj)) events.push({ time: re.time, text: re.text, color: re.color, ruleId: re.id, reminder: re.reminder, uiType: re.uiType, uiState: false, hasTimer: re.hasTimer || false });
     });
-    return events.sort((a, b) => parseTimeMins(a.time) - parseTimeMins(b.time));
+    events.sort((a, b) => parseTimeMins(a.time) - parseTimeMins(b.time));
+    return events;
 }
 
 function saveDayEvents(dateKey, eventsArray) {
@@ -559,20 +513,22 @@ function saveDayEvents(dateKey, eventsArray) {
     eventsArray.forEach(ev => { newCalendarData.push(ev); if (ev.ruleId) survivingRules.push(ev.ruleId); });
     const [y, m, d] = dateKey.split('-'); const dateObj = new Date(y, m - 1, d); dateObj.setHours(0,0,0,0);
     regularEvents.forEach(re => { if (checkRuleActive(re, dateObj) && !survivingRules.includes(re.id)) newCalendarData.push({ ruleId: re.id, deleted: true }); });
-    if (calendarData[dateKey]) calendarData[dateKey].forEach(n => { if (n.deleted && !survivingRules.includes(n.ruleId)) newCalendarData.push(n); });
+    if (calendarData[dateKey]) { calendarData[dateKey].forEach(n => { if (n.deleted && !survivingRules.includes(n.ruleId)) newCalendarData.push(n); }); }
     let finalData = []; let seenDeleted = new Set();
     newCalendarData.forEach(n => { if (n.deleted) { if (!seenDeleted.has(n.ruleId)) { seenDeleted.add(n.ruleId); finalData.push(n); } } else finalData.push(n); });
     if (finalData.length > 0) calendarData[dateKey] = finalData; else delete calendarData[dateKey];
     saveToLocalStorage();
 }
 
+// --- РЕНДЕР КАЛЕНДАРЯ ---
 function getProgressBarHTML(dateKey, isBig) {
     const bigClass = isBig ? ' big-progress' : ''; let html = `<div class="day-progress-bar${bigClass}">`;
-    const dayPeriods = [ { name: 'm', start: 300, end: 720, duration: 420, active: false, items: [] }, { name: 'd', start: 720, end: 1080, duration: 360, active: false, items: [] }, { name: 'e', start: 1080, end: 1390, duration: 310, active: false, items: [] } ];
+    const dayPeriods = [ { name: 'morning', start: 300, end: 720, duration: 420, active: false, items: [] }, { name: 'day', start: 720, end: 1080, duration: 360, active: false, items: [] }, { name: 'evening', start: 1080, end: 1390, duration: 310, active: false, items: [] } ];
     const todayEvents = getEventsForDate(dateKey);
+    
     if (todayEvents.length > 0) {
         todayEvents.forEach(note => {
-            if (!note.time) return;
+            if (!note.time) return; 
             const timeStr = note.time.startsWith('-') ? `00:00 ${note.time}` : note.time;
             const times = [...timeStr.matchAll(/(\d{1,2}):(\d{2})/g)]; 
             if (times.length === 0) return;
@@ -580,14 +536,18 @@ function getProgressBarHTML(dateKey, isBig) {
             let startMin = parseInt(times[0][1], 10) * 60 + parseInt(times[0][2], 10); let endMin = startMin; let isPoint = true;
             if (times.length > 1) { endMin = parseInt(times[1][1], 10) * 60 + parseInt(times[1][2], 10); isPoint = false; } else endMin = startMin + 10;
             
-            dayPeriods.forEach(p => {
-                if (startMin < p.end && endMin > p.start) {
-                    p.active = true;
-                    p.items.push({ start: Math.max(p.start, startMin), end: Math.min(p.end, endMin), color: getThemeColor(note.color), text: note.text ? note.text.replace(/"/g, '&quot;') : 'Без описания', time: note.time ? note.time.replace(/"/g, '&quot;') : '', isPoint: isPoint });
+            const themeColor = getThemeColor(note.color);
+            dayPeriods.forEach(period => {
+                if (startMin < period.end && endMin > period.start) {
+                    period.active = true;
+                    const clampStart = Math.max(period.start, startMin); const clampEnd = Math.min(period.end, endMin);
+                    const safeText = note.text ? note.text.replace(/"/g, '&quot;') : 'Без описания'; const safeTime = note.time ? note.time.replace(/"/g, '&quot;') : '';
+                    period.items.push({ start: clampStart, end: clampEnd, color: themeColor, text: safeText, time: safeTime, isPoint: isPoint });
                 }
             });
         });
     }
+    
     dayPeriods.forEach(period => {
         if (period.active) {
             html += `<div class="progress-period active" style="flex-grow: ${period.duration}">`;
@@ -598,17 +558,19 @@ function getProgressBarHTML(dateKey, isBig) {
             let itemsForLeveling = [...period.items].sort((a, b) => { let durA = a.end - a.start; let durB = b.end - b.start; if (durB !== durA) return durB - durA; return a.start - b.start; });
             itemsForLeveling.forEach((task, index) => { let overlaps = 0; for (let i = 0; i < index; i++) { let prev = itemsForLeveling[i]; if (Math.max(task.start, prev.start) < Math.min(task.end, prev.end)) overlaps++; } task.level = overlaps; });
             itemsForLeveling.sort((a, b) => a.level - b.level);
+            
             const renderSeg = (item) => {
                 const left = ((item.start - period.start) / period.duration) * 100; const width = ((item.end - item.start) / period.duration) * 100;
                 const bg = item.isEmpty ? 'transparent' : item.color; const ttColor = item.isEmpty ? 'var(--empty-color)' : item.color; const ttText = item.isEmpty ? 'Пусто' : item.text;
+                const ptClass = item.isPoint ? ' point-segment' : '';
                 let styleStr = `left: ${left}%; width: ${width}%; background-color: ${bg};`;
                 if (!item.isEmpty && item.level > 0) {
-                    if (isBig) styleStr += ` height: ${100 - Math.min(item.level, 3) * 18}%; top: ${Math.min(item.level, 3) * 9}%; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25), 0 3px 10px rgba(0,0,0,0.4);`;
-                    else styleStr += ` height: ${100 - Math.min(item.level, 2) * 24}%; top: ${Math.min(item.level, 2) * 12}%; box-shadow: 0 2px 5px rgba(0,0,0,0.5);`;
+                    if (isBig) { let lvl = Math.min(item.level, 3); styleStr += ` height: ${100 - lvl * 18}%; top: ${lvl * 9}%; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25), 0 3px 10px rgba(0,0,0,0.4);`; }
+                    else { let lvl = Math.min(item.level, 2); styleStr += ` height: ${100 - lvl * 24}%; top: ${lvl * 12}%; box-shadow: 0 2px 5px rgba(0,0,0,0.5);`; }
                 }
-                html += `<div class="progress-segment${item.isPoint ? ' point-segment' : ''}" style="${styleStr}" data-color="${ttColor}" data-time="${item.time}" data-text="${ttText}"></div>`;
+                html += `<div class="progress-segment${ptClass}" style="${styleStr}" data-color="${ttColor}" data-time="${item.time}" data-text="${ttText}"></div>`;
             };
-            emptySegments.forEach(renderSeg); itemsForLeveling.forEach(renderSeg); html += `</div>`;
+            emptySegments.forEach(s => renderSeg(s)); itemsForLeveling.forEach(s => renderSeg(s)); html += `</div>`;
         } else {
             html += `<div class="progress-period inactive" data-color="var(--empty-color)" data-time="${formatMin(period.start)}-${formatMin(period.end)}" data-text="Пусто"></div>`;
         }
@@ -620,38 +582,48 @@ function renderCalendar() {
     const year = currentDate.getFullYear(); const month = currentDate.getMonth();
     document.getElementById('month-year-display').innerText = `${monthNames[month]} ${year}`;
     const grid = document.getElementById('calendar-grid'); grid.innerHTML = "";
+    
     const firstDay = new Date(year, month, 1).getDay(); const startOffset = firstDay === 0 ? 6 : firstDay - 1;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     
-    for (let i = 0; i < startOffset; i++) { grid.appendChild(Object.assign(document.createElement('div'), { className: 'day-cell empty' })); }
+    for (let i = 0; i < startOffset; i++) { 
+        const emptyCell = document.createElement('div'); emptyCell.className = 'day-cell empty'; grid.appendChild(emptyCell); 
+    }
     
     for (let i = 1; i <= daysInMonth; i++) {
         const cell = document.createElement('div'); cell.className = 'day-cell';
         if (year === realToday.getFullYear() && month === realToday.getMonth() && i === realToday.getDate()) cell.classList.add('today');
         const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
         const todayEvents = getEventsForDate(dateKey);
+        
         if (isMoveMode && dateKey === moveTargetDate) cell.classList.add('selected-move');
         
-        cell.innerHTML = `<div class="day-header"><div class="day-number">${i}</div>${getProgressBarHTML(dateKey, false)}</div>`;
+        const headerDiv = document.createElement('div'); headerDiv.className = 'day-header';
+        headerDiv.innerHTML = `<div class="day-number">${i}</div>` + getProgressBarHTML(dateKey, false);
+        cell.appendChild(headerDiv);
+        
         const notesPreview = document.createElement('div'); notesPreview.className = 'day-notes-preview';
-        todayEvents.forEach(note => {
-            const themeColor = getThemeColor(note.color); const textColor = getContrastYIQ(themeColor);
-            const badge = document.createElement('div'); badge.className = 'note-badge'; badge.style.backgroundColor = themeColor; badge.style.color = textColor;
-            let innerHTML = "";
-            if (note.time && showTimeOnMainScreen) { 
-                badge.innerHTML += `<span class="badge-time-desktop">${note.time}</span>`; 
-                innerHTML += `<span class="badge-time-mobile">${note.time}</span>`; 
-            }
-            innerHTML += note.text; 
-            badge.innerHTML += `<div class="badge-text-container"><span class="badge-text">${innerHTML}</span></div>`;
-            notesPreview.appendChild(badge);
-        });
+        if (todayEvents.length > 0) {
+            todayEvents.forEach(note => {
+                const themeColor = getThemeColor(note.color); const textColor = getContrastYIQ(themeColor);
+                const badge = document.createElement('div'); badge.className = 'note-badge'; badge.style.backgroundColor = themeColor; badge.style.color = textColor;
+                if (note.time && showTimeOnMainScreen) { const desktopTime = document.createElement('span'); desktopTime.className = 'badge-time-desktop'; desktopTime.innerText = note.time; badge.appendChild(desktopTime); }
+                const textContainer = document.createElement('div'); textContainer.className = 'badge-text-container';
+                const textSpan = document.createElement('span'); textSpan.className = 'badge-text';
+                let innerHTML = "";
+                if (note.time && showTimeOnMainScreen) innerHTML += `<span class="badge-time-mobile">${note.time}</span>`;
+                innerHTML += note.text; textSpan.innerHTML = innerHTML; textContainer.appendChild(textSpan); badge.appendChild(textContainer); notesPreview.appendChild(badge);
+            });
+        }
         cell.appendChild(notesPreview);
         cell.onclick = (e) => { if (isMoveMode) selectMoveTarget(dateKey); else openProgressModal(e, dateKey); };
         grid.appendChild(cell);
     }
     
-    setTimeout(() => { updateMarquees(); autoPlaceGlobalTimer(); }, 0);
+    setTimeout(() => {
+        updateMarquees();
+        autoPlaceGlobalTimer(); // Пересчитываем позицию таймера
+    }, 0);
 }
 
 function updateMarquees() {
@@ -669,61 +641,52 @@ function changeMonth(direction) {
     void grid.offsetWidth; grid.classList.add(direction > 0 ? 'anim-slide-from-right' : 'anim-slide-from-left');
 }
 
+// --- МОДАЛКА ПРОГРЕССА (РЕДАКТИРОВАНИЕ И СПИСОК) ---
 function openProgressModal(e, dateKey) {
-    if (isMoveMode || (e && e.target.closest('#global-timer'))) return; 
-    if (e) e.stopPropagation(); 
+    if (isMoveMode) return; if (e) e.stopPropagation(); 
     progressModalDate = dateKey; editingNoteIndex = -1;
     const [y, m, d] = dateKey.split('-'); const dateObj = new Date(y, m - 1, d);
     document.getElementById('progress-modal-title').innerText = `${parseInt(d)} ${monthNames[dateObj.getMonth()]} ${y}`;
     currentDayEvents = getEventsForDate(progressModalDate); 
+    
+    document.getElementById('global-timer').classList.remove('visible'); // Прячем виджет
     renderProgressModalContent();
     document.getElementById('progress-modal').classList.add('show');
-    document.getElementById('global-timer').classList.remove('visible'); 
 }
 
 function closeProgressModal() { 
     document.getElementById('progress-modal').classList.remove('show'); 
-    document.getElementById('custom-tooltip').classList.remove('show'); 
-    clearHighlights(); renderCalendar(); 
-    if (activeTask.interval) { document.getElementById('global-timer').classList.add('visible'); autoPlaceGlobalTimer(); }
+    clearHighlights(); 
+    renderCalendar(); 
+    if (activeTask.interval) {
+        document.getElementById('global-timer').classList.add('visible');
+        autoPlaceGlobalTimer();
+    }
 }
-
-function handleUiAction(e, index) {
-    e.stopPropagation(); let note = currentDayEvents[index];
-    if (note.uiType === 'radio') { currentDayEvents.forEach((n, i) => { if (n.uiType === 'radio' && i !== index) n.uiState = false; }); note.uiState = true; } 
-    else { note.uiState = !note.uiState; }
-    saveDayEvents(progressModalDate, currentDayEvents); renderProgressModalContent();
-}
-
-function toggleCustomSelect(menuId, event) { event.stopPropagation(); document.querySelectorAll('.custom-ui-options').forEach(el => { if(el.id !== menuId) el.classList.remove('open'); }); document.getElementById(menuId).classList.toggle('open'); }
-function selectUiOption(prefix, value, index = null, event = null) {
-    if(event) event.stopPropagation();
-    let inputId = prefix === 'reg' ? 'reg-ui' : `prog-edit-ui-${index}`, displayId = prefix === 'reg' ? 'reg-ui-display' : `prog-ui-display-${index}`, optionsId = prefix === 'reg' ? 'reg-ui-options' : `prog-ui-options-${index}`;
-    document.getElementById(inputId).value = value;
-    let uiDisplayHtml = '—'; if(value === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>'; if(value === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>'; if(value === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>';
-    document.getElementById(displayId).innerHTML = uiDisplayHtml; document.getElementById(optionsId).classList.remove('open');
-}
-
-function clearHighlights() { document.querySelectorAll('.highlighted-segment').forEach(el => { el.classList.remove('highlighted-segment'); }); }
 
 function renderProgressModalContent() {
     document.getElementById('big-progress-container').innerHTML = getProgressBarHTML(progressModalDate, true);
     const listContainer = document.getElementById('progress-notes-list'); listContainer.innerHTML = "";
     
-    // Показываем/скрываем блок таймера снизу
-    const timerContainer = document.getElementById('active-timer-container');
+    // Обновляем статический контейнер активного таймера под списком
+    const activeTimerContainer = document.getElementById('active-timer-container');
     if (activeTask.interval && activeTask.dateKey === progressModalDate) {
-        let note = currentDayEvents[activeTask.noteIndex];
-        document.getElementById('active-timer-title').innerText = note?.text || 'Задача';
-        document.getElementById('active-timer-title').style.color = getThemeColor(note?.color);
-        timerContainer.classList.add('show');
+        activeTimerContainer.classList.add('show');
+        let activeNote = currentDayEvents[activeTask.noteIndex];
+        document.getElementById('active-timer-title').innerText = activeNote ? activeNote.text : 'Задача';
+        document.getElementById('active-timer-title').style.color = activeNote ? getThemeColor(activeNote.color) : 'var(--text-color)';
+        document.getElementById('active-timer-time').innerText = formatSeconds(activeTask.elapsedSec);
+        
+        let pauseIconHtml = activeTask.isPaused ? `<path d="M8 5v14l11-7z"/>` : `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
+        document.getElementById('icon-pause').innerHTML = pauseIconHtml;
+        updateRingUI();
     } else {
-        timerContainer.classList.remove('show');
+        activeTimerContainer.classList.remove('show');
     }
 
     currentDayEvents.forEach((note, index) => {
         if (editingNoteIndex === index) {
-            let startVal = "", endVal = ""; if (note.time) { const parts = note.time.split(note.time.includes(" - ") ? " - " : "-"); startVal = parts[0] ? parts[0].trim() : ""; endVal = parts[1] ? parts[1].trim() : ""; }
+            let startVal = "", endVal = ""; if (note.time) { const parts = note.time.split(note.time.includes(" - ") ? " - " : "-"); startVal = note.time.startsWith('-') ? "" : (parts[0] ? parts[0].trim() : ""); endVal = note.time.startsWith('-') ? parts[1].trim() : (parts[1] ? parts[1].trim() : ""); }
             let uiVal = note.uiType || 'none'; let uiDisplayHtml = '—';
             if(uiVal === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>';
             if(uiVal === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>';
@@ -731,37 +694,64 @@ function renderProgressModalContent() {
             
             listContainer.innerHTML += `
             <div class="prog-list-item edit-mode">
-                <input type="text" id="prog-edit-text-${index}" value="${note.text}" style="width: 100%; font-weight: bold; margin-bottom: 5px;">
-                <div class="prog-edit-row prog-edit-remind-row" style="margin-bottom: 5px;">
+                <div class="prog-edit-row">
                     <input type="time" id="prog-edit-start-${index}" value="${startVal}">
                     <span style="font-weight:bold; opacity:0.7;">-</span>
                     <input type="time" id="prog-edit-end-${index}" value="${endVal}">
+                    <input type="text" id="prog-edit-text-${index}" value="${note.text}" placeholder="Название">
+                </div>
+                <div class="prog-edit-remind-row">
                     <div class="remind-select-wrap">
-                        <select id="prog-edit-remind-${index}"><option value="" ${!note.reminder ? 'selected' : ''}>Без увд.</option><option value="5" ${note.reminder == '5' ? 'selected' : ''}>За 5 мин</option><option value="15" ${note.reminder == '15' ? 'selected' : ''}>За 15 мин</option><option value="30" ${note.reminder == '30' ? 'selected' : ''}>За 30 мин</option><option value="60" ${note.reminder == '60' ? 'selected' : ''}>За 1 час</option></select>
-                        <label class="timer-toggle-label"><input type="checkbox" id="prog-edit-hasTimer-${index}" ${note.hasTimer ? 'checked' : ''}> Таймер</label>
+                        <select id="prog-edit-remind-${index}">
+                            <option value="" ${!note.reminder ? 'selected' : ''}>Без увд.</option>
+                            <option value="5" ${note.reminder == '5' ? 'selected' : ''}>За 5 мин</option>
+                            <option value="15" ${note.reminder == '15' ? 'selected' : ''}>За 15 мин</option>
+                            <option value="30" ${note.reminder == '30' ? 'selected' : ''}>За 30 мин</option>
+                            <option value="60" ${note.reminder == '60' ? 'selected' : ''}>За 1 час</option>
+                        </select>
                     </div>
+                    <label class="timer-toggle-label">
+                        Таймер:
+                        <label class="switch" style="margin:0;"><input type="checkbox" id="prog-edit-timer-${index}" ${note.hasTimer ? 'checked' : ''}><span class="slider"></span></label>
+                    </label>
                 </div>
                 <div class="prog-edit-bottom-row">
                     <div class="color-ui-wrap">
                         <input type="color" id="prog-edit-color-${index}" value="${note.color}">
-                        <div class="custom-ui-select"><input type="hidden" id="prog-edit-ui-${index}" value="${uiVal}"><div class="custom-ui-trigger" onclick="toggleCustomSelect('prog-ui-options-${index}', event)"><div class="ui-mock-wrap" id="prog-ui-display-${index}">${uiDisplayHtml}</div></div><div class="custom-ui-options" id="prog-ui-options-${index}"><div class="custom-ui-option" onclick="selectUiOption('prog', 'none', ${index}, event)"><div class="ui-mock-wrap">—</div> Нет</div><div class="custom-ui-option" onclick="selectUiOption('prog', 'checkbox', ${index}, event)"><div class="ui-mock-wrap"><input type="checkbox" class="ui-checkbox" checked></div> Чек-бокс</div><div class="custom-ui-option" onclick="selectUiOption('prog', 'toggle', ${index}, event)"><div class="ui-mock-wrap"><label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label></div> Тогл</div><div class="custom-ui-option" onclick="selectUiOption('prog', 'radio', ${index}, event)"><div class="ui-mock-wrap"><input type="radio" class="ui-radio" checked></div> Радио</div></div></div>
+                        <div class="custom-ui-select">
+                            <input type="hidden" id="prog-edit-ui-${index}" value="${uiVal}">
+                            <div class="custom-ui-trigger" onclick="toggleCustomSelect('prog-ui-options-${index}', event)">
+                                <div class="ui-mock-wrap" id="prog-ui-display-${index}">${uiDisplayHtml}</div>
+                            </div>
+                            <div class="custom-ui-options" id="prog-ui-options-${index}">
+                                <div class="custom-ui-option" onclick="selectUiOption('prog', 'none', ${index}, event)"><div class="ui-mock-wrap">—</div> Нет</div>
+                                <div class="custom-ui-option" onclick="selectUiOption('prog', 'checkbox', ${index}, event)"><div class="ui-mock-wrap"><input type="checkbox" class="ui-checkbox" checked></div> Чек-бокс</div>
+                                <div class="custom-ui-option" onclick="selectUiOption('prog', 'toggle', ${index}, event)"><div class="ui-mock-wrap"><label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label></div> Тогл</div>
+                                <div class="custom-ui-option" onclick="selectUiOption('prog', 'radio', ${index}, event)"><div class="ui-mock-wrap"><input type="radio" class="ui-radio" checked></div> Радио</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="prog-edit-actions"><button class="cancel-btn" onclick="cancelProgEdit()">Отмена</button><button class="save-btn" onclick="saveProgEdit(${index})">Сохранить</button></div>
+                    <div class="prog-edit-actions">
+                        <button class="cancel-btn" onclick="cancelProgEdit()">Отмена</button>
+                        <button class="save-btn" onclick="saveProgEdit(${index})">Сохранить</button>
+                    </div>
                 </div>
             </div>`;
         } else {
             let remIcon = note.reminder ? ' 🔔' : ''; let themeColor = getThemeColor(note.color); let uiHtml = '';
-            if (note.uiType && note.uiType !== 'none') { let checked = note.uiState ? 'checked' : ''; if (note.uiType === 'checkbox') uiHtml = `<input type="checkbox" class="ui-checkbox" onclick="handleUiAction(event, ${index})" ${checked}>`; else if (note.uiType === 'toggle') uiHtml = `<label class="ui-switch" onclick="event.stopPropagation()"><input type="checkbox" onchange="handleUiAction(event, ${index})" ${checked}><span class="ui-slider"></span></label>`; else if (note.uiType === 'radio') uiHtml = `<input type="radio" class="ui-radio" onclick="handleUiAction(event, ${index})" ${checked}>`; }
+            if (note.uiType && note.uiType !== 'none') { 
+                let checked = note.uiState ? 'checked' : ''; 
+                if (note.uiType === 'checkbox') uiHtml = `<input type="checkbox" class="ui-checkbox" onclick="handleUiAction(event, ${index})" ${checked}>`; 
+                else if (note.uiType === 'toggle') uiHtml = `<label class="ui-switch" onclick="event.stopPropagation()"><input type="checkbox" onchange="handleUiAction(event, ${index})" ${checked}><span class="ui-slider"></span></label>`; 
+                else if (note.uiType === 'radio') uiHtml = `<input type="radio" class="ui-radio" onclick="handleUiAction(event, ${index})" ${checked}>`; 
+            }
             
             let isTaskActiveNow = (activeTask.interval && activeTask.dateKey === progressModalDate && activeTask.noteIndex === index);
             
-            // Если выбран таймер и сейчас он не активен — показываем зеленую кнопку Play
-            let playBtnHtml = "";
-            if (note.hasTimer && !isTaskActiveNow) {
-                playBtnHtml = `<button class="task-start-btn" onclick="startTaskTimer(${index}, '${progressModalDate}', event)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>`;
-            } else if (isTaskActiveNow) {
-                playBtnHtml = `<div class="task-start-btn" style="color:var(--primary-color);font-size:1.2em;animation: segmentPulse 1.5s infinite;">⏱</div>`;
-            }
+            // Если включен таймер для задачи, показываем кнопку запуска (зеленый треугольник слева)
+            let playBtnHtml = note.hasTimer && !isTaskActiveNow ? 
+                `<button class="task-start-btn" onclick="startTaskTimer(${index}, '${progressModalDate}', event)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>` 
+                : (isTaskActiveNow ? `<div style="position: absolute; left:0; font-size:1.2em;">⏱</div>` : '');
 
             listContainer.innerHTML += `
             <div class="prog-list-item">
@@ -784,35 +774,92 @@ function renderProgressModalContent() {
             </div>`;
         }
     });
-    
-    if (activeTask.interval && activeTask.dateKey === progressModalDate) updateRingUI();
     setTimeout(updateMarquees, 0);
-}
-
-function toggleProgMenu(index, e) {
-    e.stopPropagation(); const menus = document.getElementsByClassName("prog-menu-dropdown");
-    for (let i = 0; i < menus.length; i++) { if (menus[i].id !== `prog-menu-${index}`) menus[i].classList.remove('show'); }
-    const menu = document.getElementById(`prog-menu-${index}`);
-    if (!menu.classList.contains('show')) { menu.classList.remove('drop-up'); menu.style.visibility = 'hidden'; menu.style.display = 'block'; const rect = menu.getBoundingClientRect(); const modalRect = document.getElementById('progress-modal').querySelector('.modal').getBoundingClientRect(); if (rect.bottom > modalRect.bottom - 10) menu.classList.add('drop-up'); menu.style.display = ''; menu.style.visibility = ''; }
-    menu.classList.toggle('show');
 }
 
 function enterProgEdit(index) { editingNoteIndex = index; renderProgressModalContent(); }
 function cancelProgEdit() { editingNoteIndex = -1; renderProgressModalContent(); }
+
 function saveProgEdit(index) { 
     const start = document.getElementById(`prog-edit-start-${index}`).value; 
     const end = document.getElementById(`prog-edit-end-${index}`).value; 
     let time = ""; 
-    if (start && end) time = `${start}-${end}`; else if (start) time = start; else if (end) time = `-${end}`; 
+    if (start && end) time = `${start}-${end}`; 
+    else if (start) time = start; 
+    else if (end) time = `-${end}`; // Только конец
     
-    const text = document.getElementById(`prog-edit-text-${index}`).value; const reminder = document.getElementById(`prog-edit-remind-${index}`).value; const color = document.getElementById(`prog-edit-color-${index}`).value; const uiType = document.getElementById(`prog-edit-ui-${index}`).value; const hasTimer = document.getElementById(`prog-edit-hasTimer-${index}`).checked; const ruleId = currentDayEvents[index].ruleId; const uiState = currentDayEvents[index].uiState || false; 
+    const text = document.getElementById(`prog-edit-text-${index}`).value; 
+    const reminder = document.getElementById(`prog-edit-remind-${index}`).value; 
+    const color = document.getElementById(`prog-edit-color-${index}`).value; 
+    const uiType = document.getElementById(`prog-edit-ui-${index}`).value; 
+    const hasTimer = document.getElementById(`prog-edit-timer-${index}`).checked;
     
-    if (time || text) { currentDayEvents[index] = { time, text, color, reminder, uiType, uiState, hasTimer }; if (ruleId) currentDayEvents[index].ruleId = ruleId; } else { currentDayEvents.splice(index, 1); } 
+    const ruleId = currentDayEvents[index].ruleId; 
+    const uiState = currentDayEvents[index].uiState || false; 
+    
+    if (time || text) { 
+        currentDayEvents[index] = { time, text, color, reminder, uiType, uiState, hasTimer }; 
+        if (ruleId) currentDayEvents[index].ruleId = ruleId; 
+    } else { 
+        currentDayEvents.splice(index, 1); 
+    } 
     editingNoteIndex = -1; saveDayEvents(progressModalDate, currentDayEvents); renderCalendar(); renderProgressModalContent(); 
 }
 
-function deleteProgNote(index) { if (confirm("Точно удалить?")) { if(activeTask.noteIndex === index && activeTask.dateKey === progressModalDate) cancelTaskTimer(null); currentDayEvents.splice(index, 1); saveDayEvents(progressModalDate, currentDayEvents); renderCalendar(); renderProgressModalContent(); } }
-function addProgNote() { const existingColors = currentDayEvents.map(n => n.color); currentDayEvents.push({ time: "", text: "", color: generateDistinctColor(existingColors), reminder: "", uiType: "none", uiState: false, hasTimer: false }); editingNoteIndex = currentDayEvents.length - 1; renderProgressModalContent(); }
+function deleteProgNote(index) { 
+    if (confirm("Точно удалить?")) { 
+        if(activeTask.noteIndex === index && activeTask.dateKey === progressModalDate) cancelTaskTimer(null); 
+        currentDayEvents.splice(index, 1); saveDayEvents(progressModalDate, currentDayEvents); renderCalendar(); renderProgressModalContent(); 
+    } 
+}
+
+function addProgNote() { 
+    const existingColors = currentDayEvents.map(n => n.color); 
+    currentDayEvents.push({ time: "", text: "", color: generateDistinctColor(existingColors), reminder: "", uiType: "none", uiState: false, hasTimer: false }); 
+    editingNoteIndex = currentDayEvents.length - 1; renderProgressModalContent(); 
+}
+
+
+// --- ЛОГИКА МЕНЮ И ПЕРЕМЕЩЕНИЯ ЗАМЕТОК ---
+function toggleProgMenu(index, e) {
+    e.stopPropagation(); const menus = document.getElementsByClassName("prog-menu-dropdown");
+    for (let i = 0; i < menus.length; i++) { if (menus[i].id !== `prog-menu-${index}`) menus[i].classList.remove('show'); }
+    const menu = document.getElementById(`prog-menu-${index}`);
+    if (!menu.classList.contains('show')) { 
+        menu.classList.remove('drop-up'); menu.style.visibility = 'hidden'; menu.style.display = 'block'; 
+        const rect = menu.getBoundingClientRect(); const modalRect = document.getElementById('progress-modal').querySelector('.modal').getBoundingClientRect(); 
+        if (rect.bottom > modalRect.bottom - 10) menu.classList.add('drop-up'); 
+        menu.style.display = ''; menu.style.visibility = ''; 
+    }
+    menu.classList.toggle('show');
+}
+
+function handleUiAction(e, index) {
+    e.stopPropagation(); let note = currentDayEvents[index];
+    if (note.uiType === 'radio') { currentDayEvents.forEach((n, i) => { if (n.uiType === 'radio' && i !== index) n.uiState = false; }); note.uiState = true; } 
+    else { note.uiState = !note.uiState; }
+    saveDayEvents(progressModalDate, currentDayEvents); renderProgressModalContent();
+}
+
+function toggleCustomSelect(menuId, event) {
+    event.stopPropagation(); document.querySelectorAll('.custom-ui-options').forEach(el => { if(el.id !== menuId) el.classList.remove('open'); });
+    document.getElementById(menuId).classList.toggle('open');
+}
+
+function selectUiOption(prefix, value, index = null, event = null) {
+    if(event) event.stopPropagation();
+    let inputId = prefix === 'reg' ? 'reg-ui' : `prog-edit-ui-${index}`;
+    let displayId = prefix === 'reg' ? 'reg-ui-display' : `prog-ui-display-${index}`;
+    let optionsId = prefix === 'reg' ? 'reg-ui-options' : `prog-ui-options-${index}`;
+    document.getElementById(inputId).value = value;
+    let uiDisplayHtml = '—';
+    if(value === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>';
+    if(value === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>';
+    if(value === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>';
+    document.getElementById(displayId).innerHTML = uiDisplayHtml; document.getElementById(optionsId).classList.remove('open');
+}
+
+function clearHighlights() { document.querySelectorAll('.highlighted-segment').forEach(el => el.classList.remove('highlighted-segment')); }
 
 function startMoveProgNote(index) { moveNoteIndex = index; moveNoteData = JSON.parse(JSON.stringify(currentDayEvents[index])); moveSourceDate = progressModalDate; closeProgressModal(); isMoveMode = true; moveTargetDate = ""; document.getElementById('move-action-bar').classList.add('show'); updateMoveBar(); renderCalendar(); }
 function selectMoveTarget(dateKey) { moveTargetDate = dateKey; updateMoveBar(); renderCalendar(); }
@@ -820,29 +867,269 @@ function updateMoveBar() { const btn = document.getElementById('move-confirm-btn
 function cancelMove() { isMoveMode = false; document.getElementById('move-action-bar').classList.remove('show'); moveTargetDate = ""; moveNoteData = null; renderCalendar(); openProgressModal(null, moveSourceDate); }
 function confirmMove() { if (!moveTargetDate) return; currentDayEvents.splice(moveNoteIndex, 1); saveDayEvents(moveSourceDate, currentDayEvents); delete moveNoteData.ruleId; if (!calendarData[moveTargetDate]) calendarData[moveTargetDate] = []; calendarData[moveTargetDate].push(moveNoteData); saveToLocalStorage(); isMoveMode = false; document.getElementById('move-action-bar').classList.remove('show'); moveTargetDate = ""; moveNoteData = null; renderCalendar(); openProgressModal(null, moveSourceDate); }
 
-// --- РЕГУЛЯРНЫЕ СОБЫТИЯ ---
-function openRegularEventsModal() { initRegularEventsForm(); editingRegEventId = null; resetRegForm(); document.getElementById('regular-events-modal').classList.add('show'); renderRegularEventsList(); }
+// --- ЛОГИКА РЕГУЛЯРНЫХ СОБЫТИЙ ---
+function openRegularEventsModal() { editingRegEventId = null; resetRegForm(); document.getElementById('regular-events-modal').classList.add('show'); renderRegularEventsList(); }
 function closeRegularEventsModal() { document.getElementById('regular-events-modal').classList.remove('show'); renderCalendar(); }
-function resetRegForm() { editingRegEventId = null; document.getElementById('reg-form-title').innerText = "Добавить новое"; document.getElementById('reg-save-btn').innerText = "Сохранить событие"; document.getElementById('reg-cancel-btn').style.display = "none"; document.getElementById('reg-text').value = ''; document.getElementById('reg-start').value = ''; document.getElementById('reg-end').value = ''; document.getElementById('reg-reminder').value = ''; document.getElementById('reg-color').value = '#2ECC71'; document.getElementById('reg-timer-checkbox').checked = false; if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = 'none'; if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = '—'; }
+function resetRegForm() { 
+    editingRegEventId = null; document.getElementById('reg-form-title').innerText = "Добавить новое"; 
+    document.getElementById('reg-save-btn').innerText = "Сохранить событие"; document.getElementById('reg-cancel-btn').style.display = "none"; 
+    document.getElementById('reg-text').value = ''; document.getElementById('reg-start').value = ''; document.getElementById('reg-end').value = ''; 
+    document.getElementById('reg-reminder').value = ''; document.getElementById('reg-color').value = '#2ECC71'; 
+    document.getElementById('reg-timer-checkbox').checked = false;
+    if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = 'none'; 
+    if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = '—'; 
+}
+function cancelRegEdit() { resetRegForm(); document.getElementById('reg-form-title').scrollIntoView({behavior: "smooth"}); }
 function toggleRegType() { const type = document.querySelector('input[name="reg-type"]:checked').value; document.getElementById('reg-weekly-settings').style.display = type === 'weekly' ? 'flex' : 'none'; document.getElementById('reg-schedule-settings').style.display = type === 'schedule' ? 'flex' : 'none'; }
 
 function editRegularEvent(id) { 
     const ev = regularEvents.find(r => r.id === id); if (!ev) return; 
     editingRegEventId = id; document.getElementById('reg-form-title').innerText = "Редактировать событие"; document.getElementById('reg-save-btn').innerText = "Обновить"; document.getElementById('reg-cancel-btn').style.display = "block"; 
-    document.getElementById('reg-text').value = ev.text || ""; document.getElementById('reg-reminder').value = ev.reminder || ""; document.getElementById('reg-color').value = ev.color || "#2ECC71"; document.getElementById('reg-timer-checkbox').checked = ev.hasTimer || false;
-    let uiVal = ev.uiType || "none"; if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = uiVal; let uiDisplayHtml = '—'; if(uiVal === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>'; if(uiVal === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>'; if(uiVal === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>'; if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = uiDisplayHtml; 
-    if (ev.time) { const parts = ev.time.split('-'); document.getElementById('reg-start').value = ev.time.startsWith('-') ? "" : (parts[0] ? parts[0].trim() : ""); document.getElementById('reg-end').value = ev.time.startsWith('-') ? parts[1].trim() : (parts[1] ? parts[1].trim() : ""); } else { document.getElementById('reg-start').value = ""; document.getElementById('reg-end').value = ""; } 
+    document.getElementById('reg-text').value = ev.text || ""; document.getElementById('reg-reminder').value = ev.reminder || ""; document.getElementById('reg-color').value = ev.color || "#2ECC71"; 
+    document.getElementById('reg-timer-checkbox').checked = ev.hasTimer || false;
+    
+    let uiVal = ev.uiType || "none"; if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = uiVal; 
+    let uiDisplayHtml = '—'; if(uiVal === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>'; if(uiVal === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>'; if(uiVal === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>'; 
+    if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = uiDisplayHtml; 
+    
+    if (ev.time) { 
+        const parts = ev.time.split('-'); 
+        document.getElementById('reg-start').value = ev.time.startsWith('-') ? "" : (parts[0] ? parts[0].trim() : ""); 
+        document.getElementById('reg-end').value = ev.time.startsWith('-') ? parts[1].trim() : (parts[1] ? parts[1].trim() : ""); 
+    } else { document.getElementById('reg-start').value = ""; document.getElementById('reg-end').value = ""; } 
     document.querySelector(`input[name="reg-type"][value="${ev.type}"]`).checked = true; toggleRegType(); 
     if (ev.type === 'weekly') { document.querySelectorAll('.reg-day').forEach(cb => { cb.checked = ev.days.includes(cb.value); }); } else { document.getElementById('reg-start-date').value = ev.startDate; document.getElementById('reg-work-days').value = ev.workDays; document.getElementById('reg-rest-days').value = ev.restDays; } document.getElementById('reg-form-title').scrollIntoView({behavior: "smooth"}); 
 }
 
 function saveRegularEvent() { 
-    const text = document.getElementById('reg-text').value; const start = document.getElementById('reg-start').value; const end = document.getElementById('reg-end').value; const color = document.getElementById('reg-color').value; const reminder = document.getElementById('reg-reminder').value; const hasTimer = document.getElementById('reg-timer-checkbox').checked; const uiType = document.getElementById('reg-ui') ? document.getElementById('reg-ui').value : 'none'; const type = document.querySelector('input[name="reg-type"]:checked').value; 
+    const text = document.getElementById('reg-text').value; const start = document.getElementById('reg-start').value; const end = document.getElementById('reg-end').value; const color = document.getElementById('reg-color').value; const reminder = document.getElementById('reg-reminder').value; 
+    const hasTimer = document.getElementById('reg-timer-checkbox').checked;
+    const uiType = document.getElementById('reg-ui') ? document.getElementById('reg-ui').value : 'none'; const type = document.querySelector('input[name="reg-type"]:checked').value; 
     if (!text) return alert("Введите название события!"); 
     let time = ""; if (start && end) time = `${start}-${end}`; else if (start) time = start; else if (end) time = `-${end}`; 
     const newEvent = { id: editingRegEventId || Date.now(), text, time, color, reminder, uiType, type, hasTimer }; 
-    if (type === 'weekly') { const checkedDays = Array.from(document.querySelectorAll('.reg-day:checked')).map(cb => cb.value); if (checkedDays.length === 0) return alert("Выберите дни недели!"); newEvent.days = checkedDays; } else { const startDate = document.getElementById('reg-start-date').value; const workDays = document.getElementById('reg-work-days').value; const restDays = document.getElementById('reg-rest-days').value; if (!startDate) return alert("Выберите дату начала графика!"); newEvent.startDate = startDate;
+    if (type === 'weekly') { const checkedDays = Array.from(document.querySelectorAll('.reg-day:checked')).map(cb => cb.value); if (checkedDays.length === 0) return alert("Выберите дни недели!"); newEvent.days = checkedDays; } else { const startDate = document.getElementById('reg-start-date').value; const workDays = document.getElementById('reg-work-days').value; const restDays = document.getElementById('reg-rest-days').value; if (!startDate) return alert("Выберите дату начала графика!"); newEvent.startDate = startDate; newEvent.workDays = parseInt(workDays); newEvent.restDays = parseInt(restDays); } 
+    if (editingRegEventId) { const idx = regularEvents.findIndex(r => r.id === editingRegEventId); if (idx !== -1) regularEvents[idx] = newEvent; } else regularEvents.push(newEvent); saveToLocalStorage(); resetRegForm(); renderRegularEventsList(); renderCalendar(); 
+}
 
+function renderRegularEventsList() { const list = document.getElementById('regular-events-list'); list.innerHTML = ""; regularEvents.forEach((ev, index) => { let ruleText = ev.type === 'weekly' ? `Дни: ${ev.days.map(d => ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"][d]).join(', ')}` : `График ${ev.workDays}/${ev.restDays}`; let remIcon = ev.reminder ? `🔔 (-${ev.reminder}м)` : ''; let timerIcon = ev.hasTimer ? '⏱' : ''; let themeColor = getThemeColor(ev.color); list.innerHTML += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color); background: var(--cell-bg); border-radius: 4px; margin-bottom: 4px;"><div style="flex:1;"><div style="font-weight: bold; color: ${themeColor}; font-size: 1.05em;">${ev.time ? ev.time.replace('-','') + ' ' : ''}${ev.text} <span style="font-size: 0.8em; color:var(--text-color); opacity: 0.7;">${remIcon} ${timerIcon}</span></div><div style="font-size: 0.85em; opacity: 0.7; margin-top: 2px;">${ruleText}</div></div><div style="display:flex; gap: 5px;"><button class="edit-btn" onclick="editRegularEvent(${ev.id})">✏️</button><button class="del-btn" onclick="deleteRegularEvent(${index})">✖</button></div></div>`; }); if (regularEvents.length === 0) list.innerHTML = `<div style="text-align: center; opacity: 0.5; padding: 10px;">Нет добавленных регулярных событий</div>`; }
+function deleteRegularEvent(index) { if(confirm("Удалить это регулярное событие? Оно исчезнет из всех дней.")) { const ruleId = regularEvents[index].id; regularEvents.splice(index, 1); for (let dateKey in calendarData) { calendarData[dateKey] = calendarData[dateKey].filter(note => note.ruleId !== ruleId); if (calendarData[dateKey].length === 0) delete calendarData[dateKey]; } saveToLocalStorage(); renderRegularEventsList(); renderCalendar(); } }
+
+
+// --- ЛОГИКА ТАЙМЕРОВ ---
+function startTaskTimer(index, dateKey, event) {
+    if(event) event.stopPropagation();
+    if(activeTask.interval) clearInterval(activeTask.interval);
+
+    let note = currentDayEvents[index];
+    if (!note) return;
+
+    let times = note.time ? note.time.split('-').map(t => t.trim()) : ["", ""];
+    let startStr = times[0]; let endStr = times[1];
+    if (note.time && note.time.startsWith('-')) { startStr = ""; endStr = times[1] || times[0]; }
+
+    activeTask.noteIndex = index;
+    activeTask.dateKey = dateKey;
+    activeTask.isPaused = false;
+    
+    let now = new Date();
+    let currentMin = now.getHours() * 60 + now.getMinutes();
+
+    if (startStr && endStr) {
+        activeTask.mode = 'countdown';
+        activeTask.durationSec = Math.max(1, (parseTimeMins(endStr) - parseTimeMins(startStr)) * 60);
+        activeTask.elapsedSec = 0; 
+        document.getElementById('global-timer-ring-fill').style.stroke = "var(--primary-color)";
+    } else if (startStr && !endStr) {
+        activeTask.mode = 'stopwatch';
+        activeTask.durationSec = 0;
+        activeTask.elapsedSec = 0;
+        document.getElementById('global-timer-ring-fill').style.stroke = "#2196F3"; 
+    } else if (!startStr && endStr) {
+        activeTask.mode = 'countdown';
+        startStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        note.time = `${startStr} - ${endStr}`;
+        saveDayEvents(dateKey, currentDayEvents);
+        
+        let remain = parseTimeMins(endStr) - currentMin;
+        if (remain <= 0) { alert("Время дедлайна уже прошло!"); return; }
+        activeTask.durationSec = remain * 60;
+        activeTask.elapsedSec = 0;
+        document.getElementById('global-timer-ring-fill').style.stroke = "#ff9800"; 
+    } else {
+        alert("Для запуска таймера укажите время задачи!"); return;
+    }
+
+    renderProgressModalContent(); 
+    tickTask(); 
+    activeTask.interval = setInterval(tickTask, 1000);
+}
+
+function tickTask() {
+    if (activeTask.isPaused) return;
+    let displayTime = "";
+    let progressPct = 0;
+
+    if (activeTask.mode === 'countdown') {
+        let remaining = activeTask.durationSec - activeTask.elapsedSec;
+        if (remaining <= 0) {
+            stopTaskTimer(); 
+            alert(`Время задачи вышло!`);
+            return;
+        }
+        displayTime = formatSeconds(remaining);
+        progressPct = (activeTask.elapsedSec / activeTask.durationSec) * 100;
+        activeTask.elapsedSec++;
+    } else {
+        displayTime = formatSeconds(activeTask.elapsedSec);
+        progressPct = 100; 
+        activeTask.elapsedSec++;
+    }
+
+    document.getElementById('global-timer-time').innerText = displayTime;
+    const modalDisplay = document.getElementById('active-timer-time');
+    if (modalDisplay) modalDisplay.innerText = displayTime;
+    updateRingUI(progressPct);
+}
+
+function updateRingUI(pct = null) {
+    if(pct === null) pct = activeTask.mode === 'countdown' ? (activeTask.elapsedSec / activeTask.durationSec) * 100 : 100;
+    const offset = 283 - (283 * pct) / 100;
+    const gtFill = document.getElementById('global-timer-ring-fill');
+    if(gtFill) gtFill.style.strokeDashoffset = activeTask.mode === 'stopwatch' ? 0 : offset;
+    const mtFill = document.getElementById('modal-ring-fill');
+    if(mtFill) mtFill.style.strokeDashoffset = activeTask.mode === 'stopwatch' ? 0 : offset;
+}
+
+function pauseTaskTimer(e) {
+    if(e) e.stopPropagation();
+    activeTask.isPaused = !activeTask.isPaused;
+    const gTimer = document.getElementById('global-timer');
+    if (activeTask.isPaused) {
+        gTimer.style.opacity = "0.5";
+        gTimer.classList.remove('timer-pulse');
+    } else {
+        gTimer.style.opacity = "1";
+        gTimer.classList.add('timer-pulse');
+    }
+    if(document.getElementById('progress-modal').classList.contains('show')) renderProgressModalContent();
+}
+
+function stopTaskTimer(e) {
+    if(e) e.stopPropagation();
+    if (activeTask.mode === 'stopwatch') {
+        let eventList = calendarData[activeTask.dateKey] || currentDayEvents;
+        let note = eventList[activeTask.noteIndex];
+        if (note) {
+            let startStr = note.time.replace('-', '').trim();
+            let now = new Date();
+            let endStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            note.time = `${startStr} - ${endStr}`;
+            saveDayEvents(activeTask.dateKey, eventList);
+        }
+    }
+    cancelTaskTimer();
+}
+
+function cancelTaskTimer(e) {
+    if(e) e.stopPropagation();
+    clearInterval(activeTask.interval);
+    activeTask.interval = null;
+    document.getElementById('global-timer').classList.remove('visible');
+    if(document.getElementById('progress-modal').classList.contains('show')) renderProgressModalContent();
+    renderCalendar();
+}
+
+function openTimerDayModal() {
+    if (timerDrag.wasDragged || !activeTask.dateKey) return;
+    if(!document.getElementById('progress-modal').classList.contains('show')) {
+        currentDate = new Date(activeTask.dateKey);
+        renderCalendar(); openProgressModal(null, activeTask.dateKey);
+    }
+}
+
+// --- ПЕРЕТАСКИВАНИЕ ГЛОБАЛЬНОГО ТАЙМЕРА (LONG PRESS) ---
+const globalTimerEl = document.getElementById('global-timer');
+let timerDrag = { active: false, currentX: 0, currentY: 0, initialX: 0, initialY: 0, xOffset: 0, yOffset: 0, longPressTimer: null, wasDragged: false };
+
+globalTimerEl.addEventListener('touchstart', dragStart, {passive: false});
+globalTimerEl.addEventListener('touchend', dragEnd, {passive: false});
+globalTimerEl.addEventListener('touchmove', drag, {passive: false});
+globalTimerEl.addEventListener('mousedown', dragStart, {passive: false});
+window.addEventListener('mouseup', dragEnd, {passive: false});
+window.addEventListener('mousemove', drag, {passive: false});
+
+function dragStart(e) {
+    if (!activeTask.interval) return;
+    timerDrag.wasDragged = false;
+    timerDrag.initialX = e.type === "touchstart" ? e.touches[0].clientX - timerDrag.xOffset : e.clientX - timerDrag.xOffset;
+    timerDrag.initialY = e.type === "touchstart" ? e.touches[0].clientY - timerDrag.yOffset : e.clientY - timerDrag.yOffset;
+    
+    if (e.target === globalTimerEl || globalTimerEl.contains(e.target)) {
+        // Задержка в 300мс (длинный тап)
+        timerDrag.longPressTimer = setTimeout(() => {
+            timerDrag.active = true;
+            globalTimerEl.classList.add('dragging');
+            globalTimerEl.style.transition = 'none'; // Убираем скачки от transition
+            if (navigator.vibrate) navigator.vibrate([50]); // Вибро
+        }, 300);
+    }
+}
+
+function drag(e) {
+    if (!timerDrag.active) { clearTimeout(timerDrag.longPressTimer); return; }
+    
+    e.preventDefault();
+    timerDrag.wasDragged = true;
+    let clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+    let clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+    
+    timerDrag.currentX = clientX - timerDrag.initialX;
+    timerDrag.currentY = clientY - timerDrag.initialY;
+    
+    const rect = globalTimerEl.getBoundingClientRect();
+    const maxW = window.innerWidth - rect.width;
+    const maxH = window.innerHeight - rect.height;
+    
+    if (timerDrag.currentX < 0) timerDrag.currentX = 0;
+    if (timerDrag.currentY < 0) timerDrag.currentY = 0;
+    if (timerDrag.currentX > maxW) timerDrag.currentX = maxW;
+    if (timerDrag.currentY > maxH) timerDrag.currentY = maxH;
+
+    timerDrag.xOffset = timerDrag.currentX;
+    timerDrag.yOffset = timerDrag.currentY;
+    globalTimerEl.style.transform = `translate3d(${timerDrag.currentX}px, ${timerDrag.currentY}px, 0)`;
+}
+
+function dragEnd(e) {
+    clearTimeout(timerDrag.longPressTimer);
+    if (timerDrag.active) {
+        timerDrag.active = false;
+        globalTimerEl.classList.remove('dragging');
+        globalTimerEl.style.transition = ''; // Возвращаем стили
+    }
+}
+
+// --- АВТОМАТИЧЕСКОЕ РАЗМЕЩЕНИЕ ТАЙМЕРА НА ПУСТЫХ ЯЧЕЙКАХ ---
+function autoPlaceGlobalTimer() {
+    if (!activeTask.interval) return;
+    if (document.getElementById('progress-modal').classList.contains('show')) {
+        globalTimerEl.classList.remove('visible'); return;
+    }
+
+    globalTimerEl.classList.add('visible');
+    if (!activeTask.isPaused) globalTimerEl.classList.add('timer-pulse');
+
+    // Оставляем там, куда юзер его перетащил
+    if (timerDrag.xOffset !== 0 || timerDrag.yOffset !== 0) {
+        globalTimerEl.style.transform = `translate3d(${timerDrag.xOffset}px, ${timerDrag.yOffset}px, 0)`;
+        return;
+    }
+
+    const cells = document.querySelectorAll('.day-cell');
+    let bestStart = -1, maxRun = 0, currentRun = 0, currentStart = -1;
+
+    cells.f
 </script>
 </body>
 </html>
