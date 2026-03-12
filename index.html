@@ -3,25 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Мой Календарь</title>
-    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJpZCI6ICJteS1jYWxlbmRhci1hcHAiLAogICJuYW1lIjogIk1veSBDYWxlbmRhciIsCiAgInNob3J0X25hbWUiOiAiQ2FsZW5kYXIiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3ciOiAiI2Y0ZjRmOSIsCiAgInRoZW1lX2NvbG9yIjogIiM0Q0FGNTAiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi84NDcvODQ3MzI5LnBuZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvcG5nIiwKICAgICAgInB1cnBvc2UiOiAiYW55IG1hc2thYmxlIgogICAgfQogIF0KfQ==">
-    <meta name="theme-color" content="#4CAF50">
+    <title>Мой Календарь PWA</title>
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJpZCI6ICJteS1jYWxlbmRhci1hcHAiLAogICJuYW1lIjogIk1veSBDYWxlbmRhciBQV0EiLAogICJuYW1lX3J1IjogIk1veSBDYWxlbmRhciBQV0EiLAogICJzaG9ydF9uYW1lIjogIkNhbGVuZGFyIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMxZTFlMWUiLAogICJ0aGVtZV9jb2xvciI6ICIjMkVDRzcxIiwKICAiaWNvbnMiOiBbCiAgICB7Ci      "src": "https://cdn-icons-png.flaticon.com/512/847/847329.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "orientation": "portrait"
+}">
+    <meta name="theme-color" content="#2ECC71">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-         <style>
+    <style>
         :root {
             --bg-color: #f4f4f9; --cell-bg: #ffffff; --border-color: #ddd; --text-color: #333;
-            --primary-color: #4CAF50; --cell-hover-bg: #f9f9f9; --cell-empty-bg: #fafafa;
+            --primary-color: #2ECC71; --primary-hover: #27AE60; --cell-hover-bg: #f9f9f9; --cell-empty-bg: #fafafa;
             --weekdays-bg: #eee; --today-bg: #f4fdf4; --prog-active-bg: #e6e6e6;
             --prog-inactive-bg: #d8d8d8; --empty-color: #a0a0a0; --scroll-thumb: #ccc;
             --modal-bg: #ffffff; --input-bg: #ffffff; --input-border: #ccc;
             --menu-bg: #ffffff; --menu-hover: #f5f5f5;
-            --transition-speed: 0.3s;
+            --transition-speed: 0.3s; --task-menu-btn-color: #ff9800;
         }
         .dark-theme {
             --bg-color: #1e1e1e; --cell-bg: #2b2b2b; --border-color: #404040; --text-color: #f0f0f0;
-            --primary-color: #5cd661; --cell-hover-bg: #333333; --cell-empty-bg: #242424;
+            --primary-color: #2ECC71; --primary-hover: #27AE60; --cell-hover-bg: #333333; --cell-empty-bg: #242424;
             --weekdays-bg: #242424; --today-bg: #2a3b2a; --prog-active-bg: #444444;
             --prog-inactive-bg: #666666; --empty-color: #888888; --scroll-thumb: #666;
             --modal-bg: #2b2b2b; --input-bg: #383838; --input-border: #555555;
@@ -50,7 +57,7 @@
 
         #install-pwa { display: none; background-color: #2196F3; margin-right: 10px; }
 
-        .calendar-container { width: 100%; max-width: 1400px; background: var(--cell-bg); box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; flex: 1; display: flex; flex-direction: column; min-height: 0; border: 1px solid var(--border-color); transition: background-color var(--transition-speed); }
+        .calendar-container { width: 100%; max-width: 1400px; background: var(--cell-bg); box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; flex: 1; display: flex; flex-direction: column; min-height: 0; border: 1px solid var(--border-color); transition: background-color var(--transition-speed); position: relative; }
         .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); background-color: var(--weekdays-bg); text-align: center; font-weight: bold; border-bottom: 1px solid var(--border-color); flex-shrink: 0; transition: background-color var(--transition-speed); }
         .weekdays div { padding: 10px 0; border-right: 1px solid var(--border-color); }
         .weekdays div:last-child { border-right: none; }
@@ -73,31 +80,15 @@
         .progress-period { position: relative; overflow: visible; transition: flex-grow 0.4s ease; }
         .progress-period.active { flex-grow: 1; border-radius: 4px; background-color: var(--prog-active-bg); overflow: hidden; }
         .progress-period.inactive { aspect-ratio: 1 / 1; height: 100%; border-radius: 50%; background-color: var(--prog-inactive-bg); flex-shrink: 0; }
-        
+
         .progress-segment { position: absolute; top: 0; height: 100%; border-radius: 4px; min-width: 4px; transition: left 0.3s ease, width 0.3s ease; }
         .point-segment::before { content: ''; position: absolute; top: -10px; bottom: -10px; left: -10px; right: -10px; z-index: 10; cursor: pointer; }
         .big-progress { height: 28px !important; gap: 4px !important; cursor: pointer; margin-bottom: 20px; }
         .big-progress .progress-period.active { border-radius: 14px; }
 
-        /* --- ИСПРАВЛЕННАЯ ПЛАВНАЯ АНИМАЦИЯ ПУЛЬСАЦИИ --- */
-        .highlighted-segment {
-            /* 1.5s = ровно два мягких пульса за 3000мс. ease-in-out делает это плавно */
-            animation: segmentPulse 1.5s ease-in-out infinite; 
-        }
-        @keyframes segmentPulse {
-            0%, 100% { 
-                transform: scaleX(1) scaleY(1); 
-                filter: brightness(1); 
-                opacity: 1;
-            }
-            50% { 
-                /* Очень нежное увеличение */
-                transform: scaleX(1.005) scaleY(1.08); 
-                /* ТУТ НАСТРОЙКИ: opacity делает черный чуть светлее (пропуская фон), brightness подсвечивает цветные */
-                filter: brightness(1.2) drop-shadow(0 2px 4px rgba(0,0,0,0.4)); 
-                opacity: 0.8; 
-            }
-        }
+        /* --- ПЛАВНАЯ АНИМАЦИЯ ПУЛЬСАЦИИ --- */
+        .highlighted-segment { animation: segmentPulse 1.5s ease-in-out infinite; }
+        @keyframes segmentPulse { 0%, 100% { transform: scaleX(1) scaleY(1); filter: brightness(1); opacity: 1; } 50% { transform: scaleX(1.005) scaleY(1.08); filter: brightness(1.2) drop-shadow(0 2px 4px rgba(0,0,0,0.4)); opacity: 0.8; } }
 
         .day-notes-preview { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding-right: 2px; font-size: 0.75em; margin-top: 2px; pointer-events: none; }
         .day-notes-preview::-webkit-scrollbar { width: 3px; }
@@ -122,34 +113,12 @@
         .tooltip-time { font-weight: bold; color: #a1d0ff; font-size: 0.9em; letter-spacing: 0.5px; }
         .tooltip-text { font-size: 1em; }
 
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
-            display: flex; justify-content: center; align-items: center; z-index: 1000;
-            opacity: 0; visibility: hidden; pointer-events: none;
-            backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; pointer-events: none; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); transition: opacity 0.3s ease, visibility 0.3s ease; }
         .modal-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
-
-        .modal {
-            background: var(--modal-bg); padding: 15px 20px; border-radius: 12px; width: 95%; max-width: 550px;
-            min-height: 75vh; min-height: 75dvh; 
-            max-height: 90vh; max-height: 90dvh; 
-            display: flex; flex-direction: column; 
-            overflow-y: auto; overflow-x: hidden; 
-            box-sizing: border-box; border: 1px solid var(--border-color);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transform: translateY(30px) scale(0.95); opacity: 0;
-            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
-        }
+        .modal { background: var(--modal-bg); padding: 15px 20px; border-radius: 12px; width: 95%; max-width: 550px; min-height: 75vh; min-height: 75dvh; max-height: 90vh; max-height: 90dvh; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: translateY(30px) scale(0.95); opacity: 0; transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease; }
         .modal-overlay.show .modal { transform: translateY(0) scale(1); opacity: 1; }
-        
-        #progress-notes-list, #regular-events-list { 
-            overflow: visible; 
-            flex: 1 1 auto; 
-            padding-bottom: 30px; 
-        }
 
+        #progress-notes-list, #regular-events-list { overflow: visible; flex: 1 1 auto; padding-bottom: 30px; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
         .close-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; padding: 0 5px; color: var(--text-color); transition: transform 0.2s, color 0.2s; }
         .close-btn:hover { color: #ff4d4d; transform: scale(1.1); }
@@ -157,34 +126,22 @@
         input[type="time"], input[type="text"], input[type="date"], input[type="number"], select { background-color: var(--input-bg); color: var(--text-color); border: 1px solid var(--input-border); font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s; }
         input[type="text"]:focus, select:focus, input[type="time"]:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2); }
 
-        .del-btn, .edit-btn { cursor: pointer; border: none; background: none; font-size: 1.3em; padding: 0 5px; color: var(--text-color); opacity: 0.7; transition: transform 0.2s, opacity 0.2s; }
+        .del-btn, .edit-btn, .task-start-btn { cursor: pointer; border: none; background: none; font-size: 1.3em; padding: 0 5px; color: var(--text-color); opacity: 0.7; transition: transform 0.2s, opacity 0.2s; }
         .del-btn { color: #ff4d4d; opacity: 1;}
-        .edit-btn:hover, .del-btn:hover { opacity: 1; transform: scale(1.15); }
-        
+        .task-start-btn { color: var(--task-menu-btn-color); opacity: 1; font-size: 1.1em; }
+        .edit-btn:hover, .del-btn:hover, .task-start-btn:hover { opacity: 1; transform: scale(1.15); }
+
         .add-btn { width: 100%; padding: 12px; background: var(--primary-color); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.2s, transform 0.1s; flex-shrink: 0; }
         .add-btn:active { transform: scale(0.98); }
-        .sticky-add-btn { 
-            position: sticky; 
-            bottom: -5px; 
-            z-index: 50; 
-            margin-top: auto; 
-            box-shadow: 0 -10px 15px var(--modal-bg); 
-        }
+        .sticky-add-btn { position: sticky; bottom: -5px; z-index: 50; margin-top: auto; box-shadow: 0 -10px 15px var(--modal-bg); }
 
-        .prog-list-item { display: flex; align-items: center; gap: 8px; padding: 10px 8px; border-bottom: 1px solid var(--border-color); position: relative; } 
+        .prog-list-item { display: flex; align-items: center; gap: 8px; padding: 10px 8px; border-bottom: 1px solid var(--border-color); position: relative; flex-wrap: wrap; } 
         .prog-list-item:last-child { border-bottom: none; }
-        
-        .prog-list-item.edit-mode { 
-            background-color: var(--cell-hover-bg); border-radius: 8px; border: 1px solid var(--border-color); 
-            padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            display: flex; flex-direction: column; gap: 10px;
-            animation: editModeOpen 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-            transform-origin: top;
-        }
-        @keyframes editModeOpen {
-            from { opacity: 0; transform: scaleY(0.9) translateY(-10px); }
-            to { opacity: 1; transform: scaleY(1) translateY(0); }
-        }
+        .prog-item-main { display: flex; align-items: center; gap: 8px; flex-grow: 1; flex-shrink: 0; width: 100%; }
+        .prog-item-main .badge-text-container { flex-grow: 1; overflow: hidden; white-space: nowrap; position: relative; }
+
+        .prog-list-item.edit-mode { background-color: var(--cell-hover-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 10px; animation: editModeOpen 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1); transform-origin: top; }
+        @keyframes editModeOpen { from { opacity: 0; transform: scaleY(0.9) translateY(-10px); } to { opacity: 1; transform: scaleY(1) translateY(0); } }
 
         .prog-num { font-weight: bold; opacity: 0.5; width: 20px; text-align: center; flex-shrink: 0; }
         .prog-time { font-size: 0.9em; font-weight: bold; white-space: nowrap; flex-shrink: 0; }
@@ -193,18 +150,8 @@
         .prog-menu-wrap { position: relative; }
         .prog-menu-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; padding: 0 5px; color: var(--text-color); opacity: 0.7; line-height: 1; transition: color 0.2s; }
         .prog-menu-btn:hover { color: var(--primary-color); opacity: 1; }
-
-        .prog-menu-dropdown {
-            position: absolute; right: 0; top: 100%; background: var(--menu-bg);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-radius: 8px; z-index: 100;
-            min-width: 170px; overflow: hidden; border: 1px solid var(--border-color);
-            opacity: 0; visibility: hidden; transform: translateY(-10px) scale(0.95);
-            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
-            transform-origin: top right;
-        }
-        .prog-menu-dropdown.drop-up {
-            top: auto; bottom: 100%; transform-origin: bottom right; transform: translateY(10px) scale(0.95); margin-bottom: 5px;
-        }
+        .prog-menu-dropdown { position: absolute; right: 0; top: 100%; background: var(--menu-bg); box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-radius: 8px; z-index: 100; min-width: 170px; overflow: hidden; border: 1px solid var(--border-color); opacity: 0; visibility: hidden; transform: translateY(-10px) scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease; transform-origin: top right; }
+        .prog-menu-dropdown.drop-up { top: auto; bottom: 100%; transform-origin: bottom right; transform: translateY(10px) scale(0.95); margin-bottom: 5px; }
         .prog-menu-dropdown.show { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
         .prog-menu-dropdown div { padding: 12px; cursor: pointer; font-size: 0.9em; border-bottom: 1px solid var(--border-color); transition: background 0.2s; }
         .prog-menu-dropdown div:last-child { border-bottom: none; }
@@ -214,24 +161,15 @@
         .prog-edit-inputs input[type="time"] { width: 66px; padding: 6px; border-radius: 4px;}
         .prog-edit-inputs input[type="text"] { flex-grow: 1; padding: 6px; min-width: 100px; border-radius: 4px;}
         .prog-edit-inputs select { padding: 6px; border-radius: 4px; font-size: 0.9em;}
-        
+
         .prog-edit-bottom-row { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; }
         .color-ui-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-top: 0; }
         .color-ui-wrap input[type="color"] { width: 32px; height: 32px; border: none; padding: 0; border-radius: 4px; cursor: pointer; flex-shrink: 0; }
-        
+
         .custom-ui-select { position: relative; width: 85px; height: 32px; flex-shrink: 0; user-select: none; }
         .custom-ui-trigger { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); cursor: pointer; }
-        
-        .custom-ui-options { 
-            position: absolute; bottom: 100%; right: 0; margin-bottom: 5px; background: var(--menu-bg); 
-            border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-            display: flex; flex-direction: column; z-index: 100; min-width: 120px;
-            opacity: 0; visibility: hidden; transform: translateY(10px) scale(0.95);
-            transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.1), visibility 0.2s ease;
-            transform-origin: bottom right;
-        }
+        .custom-ui-options { position: absolute; bottom: 100%; right: 0; margin-bottom: 5px; background: var(--menu-bg); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; flex-direction: column; z-index: 100; min-width: 120px; opacity: 0; visibility: hidden; transform: translateY(10px) scale(0.95); transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.1), visibility 0.2s ease; transform-origin: bottom right; }
         .custom-ui-options.open { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
-        
         .custom-ui-option { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 8px 12px; cursor: pointer; transition: background 0.2s; min-height: 32px; font-size: 0.9em; }
         .custom-ui-option:hover { background: var(--menu-hover); }
         .ui-mock-wrap { display: flex; align-items: center; justify-content: center; pointer-events: none; }
@@ -250,11 +188,7 @@
         .cancel-btn { background-color: #777; }
         .save-btn:active, .cancel-btn:active { transform: scale(0.95); }
 
-        #move-action-bar {
-            display: flex; gap: 10px; justify-content: center; width: 100%; max-width: 1400px; flex-shrink: 0;
-            height: 0; padding: 0; opacity: 0; overflow: hidden;
-            transition: height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), padding 0.4s ease, opacity 0.3s ease;
-        }
+        #move-action-bar { display: flex; gap: 10px; justify-content: center; width: 100%; max-width: 1400px; flex-shrink: 0; height: 0; padding: 0; opacity: 0; overflow: hidden; transition: height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), padding 0.4s ease, opacity 0.3s ease; }
         #move-action-bar.show { height: 48px; padding-top: 15px; opacity: 1; }
         #move-action-bar button { padding: 12px 24px; font-size: 1em; border-radius: 8px; border: none; font-weight: bold; flex: 1; max-width: 200px; transform: translateY(10px); transition: all 0.3s; }
         #move-action-bar.show button { transform: translateY(0); }
@@ -262,6 +196,64 @@
         .move-btn-confirm { background: #ccc; color: #888; cursor: not-allowed; }
         .dark-theme .move-btn-confirm { background: #444; color: #777; }
         .move-btn-confirm.active { background: var(--primary-color); color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3); }
+
+        /* --- ГЛОБАЛЬНЫЙ ТАЙМЕР --- */
+        .global-timer { position: absolute; z-index: 100; cursor: grab; transition: transform 0.1s ease, box-shadow 0.2s ease, opacity 0.3s ease; border-radius: 12px; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); color: #fff; padding: 8px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); opacity: 0; visibility: hidden; }
+        .dark-theme .global-timer { background: rgba(30,30,30,0.8); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.7); }
+        .global-timer.visible { opacity: 1; visibility: visible; }
+        .global-timer.dragging { cursor: grabbing; box-shadow: 0 8px 30px rgba(0,0,0,0.7); transform: scale(1.1); }
+        .dark-theme .global-timer.dragging { box-shadow: 0 8px 30px rgba(0,0,0,0.9); }
+        .global-timer .tp-ring { width: 50px; height: 50px; transform: rotate(-90deg); flex-shrink: 0; }
+        .global-timer .tp-ring-bg { fill: none; stroke: rgba(255,255,255,0.2); stroke-width: 4; }
+        .global-timer .tp-ring-fill { fill: none; stroke: var(--primary-color); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease; }
+        .global-timer .time-display { font-size: 1.2em; font-weight: bold; margin-left: 8px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .dark-theme .global-timer .time-display { color: var(--primary-color); }
+        .global-timer .timer-pulse { animation: segmentPulse 1.5s ease-in-out infinite; }
+
+        /* --- SVG ТАЙМЕРА (SVG `stroke-dasharray`, `stroke-dashoffset`) --- */
+        .tp-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .tp-ring-bg { fill: none; stroke: var(--prog-inactive-bg); stroke-width: 4; }
+        .dark-theme .tp-ring-bg { stroke: #555; }
+        .tp-ring-fill { fill: none; stroke: var(--primary-color); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease; }
+
+        /* --- МОДАЛЬНОЕ ОКНО ПРОГРЕССА (список заметков) --- */
+        #progress-notes-list .prog-item-main .badge-text-container { flex-grow: 1; overflow: hidden; white-space: nowrap; position: relative; }
+        #progress-notes-list .del-btn, #progress-notes-list .edit-btn, #progress-notes-list .task-start-btn { flex-shrink: 0; }
+        
+        /* Кнопка старта слева */
+        #progress-notes-list .prog-item-main { display: flex; align-items: center; gap: 8px; flex-grow: 1; flex-shrink: 0; width: 100%; position: relative; padding-left: 30px; }
+        #progress-notes-list .task-start-btn { position: absolute; left: 0; opacity: 1; visibility: visible; transform: none; }
+        #progress-notes-list .edit-btn, #progress-notes-list .del-btn { opacity: 0.7; visibility: visible; }
+        #progress-notes-list .prog-item-main:hover .edit-btn, #progress-notes-list .prog-item-main:hover .del-btn { opacity: 1; visibility: visible; }
+        #progress-notes-list .prog-item-main.hidden-controls .edit-btn, #progress-notes-list .prog-item-main.hidden-controls .del-btn { opacity: 0; visibility: hidden; pointer-events: none; }
+        
+        #progress-timer-modal-container { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 15px 0 0; flex-shrink: 0; border-top: 1px solid var(--border-color); }
+        #progress-timer-display-container { display: flex; align-items: center; gap: 15px; }
+        #progress-timer-modal-ring { width: 100px; height: 100px; }
+        #progress-timer-time-display { font-size: 2.2em; font-weight: bold; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text-color); }
+        .dark-theme #progress-timer-time-display { color: var(--primary-color); }
+        #progress-timer-controls { display: flex; gap: 15px; margin-top: 10px; }
+        .timer-ctrl-btn { cursor: pointer; border: none; background: rgba(0,0,0,0.1); border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 1.5em; color: var(--text-color); opacity: 0.7; transition: transform 0.2s, background 0.2s, opacity 0.2s; }
+        .dark-theme .timer-ctrl-btn { background: rgba(255,255,255,0.1); color: var(--text-color); }
+        .timer-ctrl-btn:hover { opacity: 1; transform: scale(1.1); background: rgba(0,0,0,0.15); }
+        .dark-theme .timer-ctrl-btn:hover { background: rgba(255,255,255,0.15); }
+        .timer-ctrl-btn:active { transform: scale(0.95); }
+        .timer-cancel-btn { color: #f44336; }
+        .timer-pause-btn { color: #ff9800; }
+        .timer-stop-btn { color: #4caf50; }
+        .timer-play-btn { color: #4caf50; font-size: 1.8em; }
+
+        /* --- АНИМАЦИИ --- */
+        @keyframes segmentPulse { 0%, 100% { transform: scaleX(1) scaleY(1); filter: brightness(1); opacity: 1; } 50% { transform: scaleX(1.005) scaleY(1.08); filter: brightness(1.2) drop-shadow(0 2px 4px rgba(0,0,0,0.4)); opacity: 0.8; } }
+        @keyframes globalTimerPulse { 0%, 100% { transform: scale(1); filter: brightness(1); box-shadow: 0 4px 15px rgba(0,0,0,0.5); } 50% { transform: scale(1.05); filter: brightness(1.2); box-shadow: 0 6px 20px rgba(0,0,0,0.7); } }
+        @keyframes modalOpen { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes globalTimerImpulse { 0% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.2); filter: brightness(1.4); } 100% { transform: scale(1); filter: brightness(1); } }
+
+        /* --- ВТОРОЕ МОДАЛЬНОЕ ОКНО --- */
+        #regular-events-modal .reg-form-row { flex-direction: row; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+        #reg-reminder { min-width: 100px; flex-shrink: 1; }
+        #reg-timer-toggle-wrap { display: flex; align-items: center; gap: 5px; font-size: 0.9em; flex-shrink: 0; }
+        #reg-type- weekly-schedule { flex-direction: row; gap: 10px; align-items: center; justify-content: flex-start; margin-bottom: 10px; }
 
         @media (max-width: 768px) {
             body { padding: 10px; }
@@ -282,137 +274,48 @@
             .prog-edit-inputs input[type="time"] { flex: 1; }
             .prog-edit-inputs input[type="text"] { width: 100%; }
             .prog-edit-inputs select { width: 100%; }
-            
-            .prog-edit-bottom-row { 
-                flex-wrap: nowrap !important; 
-                justify-content: space-between; 
-                gap: 5px; 
-            }
+
+            .prog-edit-bottom-row { flex-wrap: nowrap !important; justify-content: space-between; gap: 5px; }
             .color-ui-wrap { width: auto; justify-content: flex-start; gap: 5px; }
             .prog-edit-actions { width: auto; justify-content: flex-end; gap: 5px; }
-            
+
             .color-ui-wrap input[type="color"] { width: 28px; height: 28px; }
             .custom-ui-select { width: 65px; height: 28px; }
             .save-btn, .cancel-btn { padding: 8px 10px; font-size: 0.8em; white-space: nowrap; }
 
             .sticky-add-btn { margin-top: 10px; }
-            
+
             .custom-ui-options { min-width: 105px; }
             .custom-ui-option { font-size: 0.8em; padding: 6px 10px; min-height: 28px; }
-            
+
             .prog-menu-dropdown { min-width: 140px; }
             .prog-menu-dropdown div { padding: 10px; font-size: 0.85em; }
 
             #move-action-bar.show { padding-top: 10px; height: 42px; }
             #move-action-bar button { padding: 10px 15px; font-size: 0.9em; }
+
+            /* Глобальный таймер на мобилке */
+            .global-timer { width: 40px; height: 40px; padding: 4px; border-radius: 50%; }
+            .global-timer .tp-ring { width: 32px; height: 32px; }
+            .global-timer .time-display { display: none; }
+            .global-timer.visible { display: flex; align-items: center; justify-content: center; opacity: 1; visibility: visible; }
+            
+            /* Модальное окно прогресса на мобилке */
+            #progress-notes-list .prog-item-main { gap: 4px; }
+            #progress-notes-list .task-start-btn { font-size: 1.1em; }
+            #progress-timer-modal-ring { width: 80px; height: 80px; }
+            #progress-timer-time-display { font-size: 1.8em; }
+            #progress-timer-controls { gap: 10px; }
+            .timer-ctrl-btn { width: 40px; height: 40px; font-size: 1.3em; }
+            .timer-cancel-btn { color: #f44336; }
+            .timer-pause-btn { color: #ff9800; }
+            .timer-stop-btn { color: #4caf50; }
+            .timer-play-btn { color: #4caf50; font-size: 1.6em; }
         }
         @keyframes slideFromRight { 0% { transform: translateX(30px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
         @keyframes slideFromLeft { 0% { transform: translateX(-30px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
         .anim-slide-from-right { animation: slideFromRight 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
         .anim-slide-from-left { animation: slideFromLeft 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
-
-        /* --- АНИМАЦИИ КАРУСЕЛИ (СВАЙП В МОДАЛКЕ) --- */
-        .anim-carousel {
-            animation-duration: 0.12s;
-            animation-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
-            animation-fill-mode: forwards;
-        }
-        
-        .carouselExitLeft { animation-name: exitLeft; }
-        .carouselExitRight { animation-name: exitRight; }
-        .carouselEnterLeft { animation-name: enterLeft; }
-        .carouselEnterRight { animation-name: enterRight; }
-
-        @keyframes exitLeft {
-            0% { transform: translateX(0) scale(1); opacity: 1; }
-            100% { transform: translateX(-50px) scale(0.95); opacity: 0; }
-        }
-        @keyframes exitRight {
-            0% { transform: translateX(0) scale(1); opacity: 1; }
-            100% { transform: translateX(50px) scale(0.95); opacity: 0; }
-        }
-        @keyframes enterLeft {
-            0% { transform: translateX(-50px) scale(0.95); opacity: 0; }
-            100% { transform: translateX(0) scale(1); opacity: 1; }
-        }
-        @keyframes enterRight {
-            0% { transform: translateX(50px) scale(0.95); opacity: 0; }
-            100% { transform: translateX(0) scale(1); opacity: 1; }
-        }
-
-
-
-
-
-/* Мини-плеер внизу */
-.task-player {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    width: 90%;
-    max-width: 400px;
-    background: var(--cell-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    display: flex;
-    align-items: center;
-    padding: 10px 15px;
-    z-index: 9999;
-    opacity: 0;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2), opacity 0.3s;
-    overflow: hidden;
-}
-.task-player.visible {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-}
-/* Линия прогресса сверху мини-плеера */
-.tp-progress {
-    position: absolute;
-    top: 0; left: 0; height: 3px;
-    background: var(--primary-color);
-    width: 50%; /* Будет меняться через JS */
-    transition: width 1s linear;
-}
-.tp-info {
-    flex-grow: 1;
-    cursor: pointer;
-    overflow: hidden;
-}
-.tp-title { font-weight: bold; font-size: 0.95em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tp-time { font-size: 0.85em; opacity: 0.7; font-variant-numeric: tabular-nums; }
-.tp-controls { display: flex; gap: 10px; }
-.tp-btn {
-    background: var(--menu-hover); border: none; border-radius: 50%;
-    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 1.1em; color: var(--text-color);
-}
-.tp-stop { color: #ff4d4d; background: rgba(255, 77, 77, 0.1); }
-
-/* Полноэкранный режим (Оверлей) */
-.task-fullscreen {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: var(--bg-color); z-index: 10000;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    transform: translateY(100%); transition: transform 0.4s ease;
-}
-.task-fullscreen.visible { transform: translateY(0); }
-.tp-close-full { position: absolute; top: 20px; left: 20px; background: none; border: none; font-size: 1.5em; color: var(--text-color); cursor: pointer; }
-.tp-ring { width: 250px; height: 250px; transform: rotate(-90deg); margin: 30px 0; }
-.tp-ring-bg { fill: none; stroke: var(--border-color); stroke-width: 4; }
-.tp-ring-fill {
-    fill: none; stroke: var(--primary-color); stroke-width: 6;
-    stroke-linecap: round;
-    stroke-dasharray: 283; /* 2 * pi * 45 */
-    stroke-dashoffset: 0; 
-    transition: stroke-dashoffset 1s linear;
-}
-.tp-full-time { font-size: 3.5em; font-weight: bold; font-variant-numeric: tabular-nums; }
-.tp-full-mode { opacity: 0.6; font-size: 0.9em; margin-top: -10px; }
-
-
     </style>
 
 </head>
@@ -443,7 +346,7 @@
                 </label>
             </div>
         </div>
-        <button onclick="openRegularEventsModal()" style="background-color: #2196F3;">🔁 Регулярные</button>
+        <button onclick="openRegularEventsModal()" style="background-color: #2ECC71;">🔁 Регулярные</button>
         <button onclick="exportData()">Экспорт</button>
         <button onclick="document.getElementById('import-file').click()">Импорт</button>
         <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importData(event)">
@@ -464,24 +367,19 @@
 
 <div class="modal-overlay" id="progress-modal">
     <div class="modal">
-        <div class="modal-content-wrapper" style="display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%;">
-            
-            <div class="modal-header">
-                <h3 id="progress-modal-title" style="margin: 0;">Детали дня</h3>
-                <button class="close-btn" onclick="closeProgressModal()">&times;</button>
-            </div>
-            
-            <div id="big-progress-container" style="flex-shrink: 0;"></div>
-            
-            <div id="progress-notes-list"></div>
-            
-            <button class="add-btn sticky-add-btn" onclick="addProgNote()">+ Добавить заметку</button>
-            
+        <div class="modal-header">
+            <h3 id="progress-modal-title" style="margin: 0;">Детали дня</h3>
+            <button class="close-btn" onclick="closeProgressModal()">&times;</button>
         </div>
+
+        <div id="big-progress-container" style="flex-shrink: 0;"></div>
+
+        <div id="progress-notes-list"></div>
+
+        <button class="add-btn sticky-add-btn" onclick="addProgNote()">+ Добавить заметку</button>
+
     </div>
 </div>
-
-
 
 <div class="modal-overlay" id="regular-events-modal">
     <div class="modal">
@@ -497,7 +395,7 @@
         <div class="reg-form-row" style="display: flex; flex-direction: column; align-items: stretch; flex-shrink: 0;">
             <input type="text" id="reg-text" class="note-text" placeholder="Название (например: Автошкола, Смена)" style="width: 100%; margin-bottom: 8px;">
 
-            <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; align-items: center;">
+            <div class="reg-form-row form-inline-row" style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; flex-shrink: 0;">
                 <input type="time" id="reg-start">
                 <span>-</span>
                 <input type="time" id="reg-end">
@@ -509,6 +407,14 @@
                     <option value="30">За 30 мин</option>
                     <option value="60">За 1 час</option>
                 </select>
+
+                <div id="reg-timer-toggle-wrap" style="display: flex; align-items: center; gap: 5px; font-size: 0.9em; flex-shrink: 0;">
+                    таймер: 
+                    <label class="switch">
+                        <input type="checkbox" id="reg-timer-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
 
                 <div class="color-ui-wrap">
                     <input type="color" id="reg-color" value="#4CAF50">
@@ -528,9 +434,9 @@
                 </div>
             </div>
 
-            <div style="margin-bottom: 10px;">
+            <div class="reg-form-row reg-type-weekly-schedule" style="display: flex; flex-direction: row; gap: 10px; align-items: center; justify-content: flex-start; margin-bottom: 10px; flex-shrink: 0;">
                 <label><input type="radio" name="reg-type" value="weekly" checked onchange="toggleRegType()"> По дням недели</label>
-                <label style="margin-left: 10px;"><input type="radio" name="reg-type" value="schedule" onchange="toggleRegType()"> По графику (2/2)</label>
+                <label><input type="radio" name="reg-type" value="schedule" onchange="toggleRegType()"> По графику (2/2)</label>
             </div>
 
             <div id="reg-weekly-settings" style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px;">
@@ -576,32 +482,16 @@
     </div>
 </div>
 
-<div id="task-player" class="task-player hidden">
-    <div class="tp-progress" id="tp-progress-bar"></div>
-    <div class="tp-info" onclick="toggleTaskPlayerFull()">
-        <div class="tp-title" id="tp-title">Название задачи</div>
-        <div class="tp-time" id="tp-time">00:00</div>
-    </div>
-    <div class="tp-controls">
-        <button class="tp-btn" id="tp-playpause" onclick="toggleTaskPause()">⏸</button>
-        <button class="tp-btn tp-stop" onclick="stopTask()">⏹</button>
-    </div>
-</div>
-
-<div id="task-fullscreen" class="task-fullscreen hidden">
-    <button class="tp-close-full" onclick="toggleTaskPlayerFull()">▼</button>
-    <h2 id="tp-full-title">Название задачи</h2>
+<div id="global-timer" class="global-timer" title="Таймер (зажмите для перетаскивания)">
     <svg class="tp-ring" viewBox="0 0 100 100">
         <circle class="tp-ring-bg" cx="50" cy="50" r="45"></circle>
-        <circle class="tp-ring-fill" id="tp-ring-fill" cx="50" cy="50" r="45"></circle>
+        <circle id="global-timer-ring-fill" class="tp-ring-fill" cx="50" cy="50" r="45"></circle>
     </svg>
-    <div class="tp-full-time" id="tp-full-time">00:00</div>
-    <div class="tp-full-mode" id="tp-full-mode">Обратный отсчет</div>
+    <div id="global-timer-time" class="time-display">00:00</div>
 </div>
 
-
 <script>
-       const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
     let currentDate = new Date();
     const realToday = new Date();
     let calendarData = {};
@@ -621,6 +511,17 @@
     let moveSourceDate = "";
     let moveTargetDate = "";
 
+    // --- ЛОГИКА ТАЙМЕРА ---
+    let activeTask = {
+        interval: null,
+        mode: null, // 'countdown' или 'stopwatch'
+        durationSec: 0,
+        elapsedSec: 0,
+        isPaused: false,
+        noteIndex: null,
+        dateKey: null
+    };
+
     function getContrastYIQ(hexcolor){
         if(!hexcolor) return '#000000';
         hexcolor = hexcolor.replace("#", "");
@@ -633,7 +534,7 @@
     }
 
     function getThemeColor(color) {
-        if(!color) return '#4CAF50';
+        if(!color) return '#2ECC71';
         let c = color.toLowerCase();
         if (c === '#ffffff' || c === '#fff') return isDarkMode ? '#000000' : '#ffffff';
         if (c === '#000000' || c === '#000') return isDarkMode ? '#ffffff' : '#000000';
@@ -648,7 +549,7 @@
         }
     }
 
-    // --- ЛОГИКА СВАЙПОВ (КАЛЕНДАРЬ И МОДАЛЬНОЕ ОКНО С КАРУСЕЛЬЮ) ---
+    // --- СВАЙПЫ ---
     let touchStartX = 0; let touchStartY = 0;
     let modalTouchStartX = 0; let modalTouchStartY = 0;
 
@@ -677,45 +578,25 @@
     }, {passive: true});
 
     function changeModalDay(offset) {
-        const wrapper = document.querySelector('.modal-content-wrapper');
-        if (!wrapper) return;
+        let [y, m, d] = progressModalDate.split('-').map(Number);
+        let dateObj = new Date(y, m - 1, d);
+        dateObj.setDate(dateObj.getDate() + offset);
 
-        const exitAnimation = offset > 0 ? 'carouselExitLeft' : 'carouselExitRight';
-        const enterAnimation = offset > 0 ? 'carouselEnterRight' : 'carouselEnterLeft';
+        let newY = dateObj.getFullYear();
+        let newM = String(dateObj.getMonth() + 1).padStart(2, '0');
+        let newD = String(dateObj.getDate()).padStart(2, '0');
+        progressModalDate = `${newY}-${newM}-${newD}`;
 
-        wrapper.classList.add('anim-carousel', exitAnimation);
+        if (currentDate.getMonth() !== dateObj.getMonth() || currentDate.getFullYear() !== dateObj.getFullYear()) {
+            currentDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
+            renderCalendar();
+        }
 
-        setTimeout(() => {
-            let [y, m, d] = progressModalDate.split('-').map(Number);
-            let dateObj = new Date(y, m - 1, d);
-            dateObj.setDate(dateObj.getDate() + offset);
-
-            let newY = dateObj.getFullYear();
-            let newM = String(dateObj.getMonth() + 1).padStart(2, '0');
-            let newD = String(dateObj.getDate()).padStart(2, '0');
-            progressModalDate = `${newY}-${newM}-${newD}`;
-
-            if (currentDate.getMonth() !== dateObj.getMonth() || currentDate.getFullYear() !== dateObj.getFullYear()) {
-                currentDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
-                renderCalendar();
-            }
-
-            clearHighlights();
-            document.getElementById('custom-tooltip').classList.remove('show');
-            document.querySelectorAll('.custom-ui-options').forEach(el => el.classList.remove('open'));
-            document.querySelectorAll('.prog-menu-dropdown').forEach(el => el.classList.remove('show'));
-
-            document.getElementById('progress-modal-title').innerText = `${parseInt(newD)} ${monthNames[dateObj.getMonth()]} ${newY}`;
-            currentDayEvents = getEventsForDate(progressModalDate);
-            renderProgressModalContent();
-
-            wrapper.classList.remove(exitAnimation);
-            wrapper.classList.add(enterAnimation);
-
-            setTimeout(() => {
-                wrapper.classList.remove('anim-carousel', enterAnimation);
-            }, 120);
-        }, 120);
+        clearHighlights();
+        document.getElementById('custom-tooltip').classList.remove('show');
+        document.getElementById('progress-modal-title').innerText = `${parseInt(newD)} ${monthNames[dateObj.getMonth()]} ${newY}`;
+        currentDayEvents = getEventsForDate(progressModalDate);
+        renderProgressModalContent();
     }
 
     let deferredPrompt;
@@ -758,7 +639,7 @@
         regularEvents.forEach(re => {
             if (deletedRules.includes(re.id)) return;
             if (events.some(e => e.ruleId === re.id)) return;
-            if (checkRuleActive(re, dateObj)) events.push({ time: re.time, text: re.text, color: re.color, ruleId: re.id, reminder: re.reminder, uiType: re.uiType, uiState: false });
+            if (checkRuleActive(re, dateObj)) events.push({ time: re.time, text: re.text, color: re.color, ruleId: re.id, reminder: re.reminder, uiType: re.uiType, uiState: false, hasTimer: re.hasTimer || false });
         });
         events.sort((a, b) => parseTimeMins(a.time) - parseTimeMins(b.time));
         return events;
@@ -782,9 +663,15 @@
         const todayEvents = getEventsForDate(dateKey);
         if (todayEvents.length > 0) {
             todayEvents.forEach(note => {
-                if (!note.time) return; const times = [...note.time.matchAll(/(\d{1,2}):(\d{2})/g)]; if (times.length === 0) return;
+                if (!note.time) return; 
+                // Fix for deadline "-20:00" logic
+                const timeStr = note.time.startsWith('-') ? `00:00 ${note.time}` : note.time;
+                const times = [...timeStr.matchAll(/(\d{1,2}):(\d{2})/g)]; 
+                if (times.length === 0) return;
+                
                 let startMin = parseInt(times[0][1], 10) * 60 + parseInt(times[0][2], 10); let endMin = startMin; let isPoint = true;
                 if (times.length > 1) { endMin = parseInt(times[1][1], 10) * 60 + parseInt(times[1][2], 10); isPoint = false; } else endMin = startMin + 10;
+                
                 const themeColor = getThemeColor(note.color);
                 dayPeriods.forEach(period => {
                     if (startMin < period.end && endMin > period.start) {
@@ -831,7 +718,11 @@
         const grid = document.getElementById('calendar-grid'); grid.innerHTML = "";
         const firstDay = new Date(year, month, 1).getDay(); const startOffset = firstDay === 0 ? 6 : firstDay - 1;
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-        for (let i = 0; i < startOffset; i++) { const emptyCell = document.createElement('div'); emptyCell.className = 'day-cell empty'; grid.appendChild(emptyCell); }
+        
+        for (let i = 0; i < startOffset; i++) { 
+            const emptyCell = document.createElement('div'); emptyCell.className = 'day-cell empty'; grid.appendChild(emptyCell); 
+        }
+        
         for (let i = 1; i <= daysInMonth; i++) {
             const cell = document.createElement('div'); cell.className = 'day-cell';
             if (year === realToday.getFullYear() && month === realToday.getMonth() && i === realToday.getDate()) cell.classList.add('today');
@@ -858,7 +749,11 @@
             cell.onclick = (e) => { if (isMoveMode) selectMoveTarget(dateKey); else openProgressModal(e, dateKey); };
             grid.appendChild(cell);
         }
-        setTimeout(updateMarquees, 0);
+        
+        setTimeout(() => {
+            updateMarquees();
+            autoPlaceGlobalTimer(); // Помещаем таймер в свободное место
+        }, 0);
     }
 
     function updateMarquees() {
@@ -868,7 +763,6 @@
             if (overflow > 0) { textEl.style.setProperty('--scroll-amount', `-${overflow}px`); textEl.style.animationDuration = `${Math.max(3, overflow / 30)}s`; textEl.classList.add('scrolling'); }
         });
     }
-
     window.addEventListener('resize', updateMarquees);
 
     function changeMonth(direction) {
@@ -883,9 +777,19 @@
         document.getElementById('progress-modal-title').innerText = `${parseInt(d)} ${monthNames[dateObj.getMonth()]} ${y}`;
         currentDayEvents = getEventsForDate(progressModalDate); renderProgressModalContent();
         document.getElementById('progress-modal').classList.add('show');
+        document.getElementById('global-timer').classList.remove('visible'); // Прячем глобальный таймер пока открыта модалка
     }
 
-    function closeProgressModal() { document.getElementById('progress-modal').classList.remove('show'); document.getElementById('custom-tooltip').classList.remove('show'); clearHighlights(); renderCalendar(); }
+    function closeProgressModal() { 
+        document.getElementById('progress-modal').classList.remove('show'); 
+        document.getElementById('custom-tooltip').classList.remove('show'); 
+        clearHighlights(); 
+        renderCalendar(); 
+        if (activeTask.interval) {
+            document.getElementById('global-timer').classList.add('visible');
+            autoPlaceGlobalTimer();
+        }
+    }
 
     function handleUiAction(e, index) {
         e.stopPropagation(); let note = currentDayEvents[index];
@@ -914,42 +818,33 @@
 
     function clearHighlights() { document.querySelectorAll('.highlighted-segment').forEach(el => { el.classList.remove('highlighted-segment'); }); }
 
-    function highlightSegment(index, e, isFromProgressBar = false) {
-        if (e && e.target && (e.target.closest('.prog-menu-wrap') || e.target.closest('.ui-checkbox') || e.target.closest('.ui-switch') || e.target.closest('.ui-radio') || e.target.closest('.custom-ui-select'))) return;
-        clearHighlights();
-        let note = currentDayEvents[index]; if (!note) return;
-        let segments = document.querySelectorAll('#big-progress-container .progress-segment');
-        let matchedSegments = [];
-        let targetText = note.text ? note.text.replace(/"/g, '&quot;') : 'Без описания';
-        let targetTime = note.time ? note.time.replace(/"/g, '&quot;') : '';
-        segments.forEach(seg => { if (seg.getAttribute('data-text') === targetText && seg.getAttribute('data-time') === targetTime) { matchedSegments.push(seg); seg.classList.add('highlighted-segment'); } });
-        if (matchedSegments.length === 0) return;
-        let targetX = 0; let targetSeg = matchedSegments[0];
-        if (isFromProgressBar && e && e.clientX) { targetX = e.clientX; targetSeg = e.target; } 
-        else {
-            let bestRun = []; let bestSeg = matchedSegments[0];
-            matchedSegments.forEach(seg => {
-                let rect = seg.getBoundingClientRect(); let y = rect.top + rect.height / 2;
-                let currentRun = []; let steps = Math.max(10, Math.floor(rect.width / 3));
-                for (let i = 0; i <= steps; i++) {
-                    let testX = rect.left + (rect.width * i / steps); if (i === 0) testX += 1; if (i === steps) testX -= 1;
-                    let topElement = document.elementFromPoint(testX, y);
-                    if (topElement && topElement.closest('.progress-segment') === seg) { currentRun.push(testX); } 
-                    else { if (currentRun.length > bestRun.length) { bestRun = currentRun; bestSeg = seg; } currentRun = []; }
-                }
-                if (currentRun.length > bestRun.length) { bestRun = currentRun; bestSeg = seg; }
-            });
-            targetSeg = bestSeg;
-            if (bestRun.length > 0) { targetX = bestRun[Math.floor(bestRun.length / 2)]; } 
-            else { let r = targetSeg.getBoundingClientRect(); targetX = r.left + r.width / 2; }
-        }
-        let fakeEvent = { clientX: targetX }; showTooltip(fakeEvent, targetSeg);
-        clearTimeout(hideTooltipTimeout); hideTooltipTimeout = setTimeout(() => { document.getElementById('custom-tooltip').classList.remove('show'); clearHighlights(); }, 3000);
-    }
-
     function renderProgressModalContent() {
         document.getElementById('big-progress-container').innerHTML = getProgressBarHTML(progressModalDate, true);
         const listContainer = document.getElementById('progress-notes-list'); listContainer.innerHTML = "";
+        
+        // Вставка UI таймера если он активен в этот день
+        if (activeTask.interval && activeTask.dateKey === progressModalDate) {
+            let note = currentDayEvents[activeTask.noteIndex];
+            // Создаем блок таймера снизу (перед кнопкой добавления)
+            const timerHtml = `
+            <div id="progress-timer-modal-container">
+                <div style="font-weight: bold; margin-bottom: 5px; color: ${getThemeColor(note?.color)}">${note?.text || 'Задача'}</div>
+                <div id="progress-timer-display-container">
+                    <svg id="progress-timer-modal-ring" class="tp-ring" viewBox="0 0 100 100">
+                        <circle class="tp-ring-bg" cx="50" cy="50" r="45"></circle>
+                        <circle id="modal-ring-fill" class="tp-ring-fill" cx="50" cy="50" r="45"></circle>
+                    </svg>
+                    <div id="progress-timer-time-display">${formatSeconds(activeTask.elapsedSec)}</div>
+                </div>
+                <div id="progress-timer-controls">
+                    <button class="timer-ctrl-btn timer-cancel-btn" onclick="cancelTaskTimer(event)">✖</button>
+                    <button class="timer-ctrl-btn timer-pause-btn" onclick="pauseTaskTimer(event)">${activeTask.isPaused ? '▶' : '⏸'}</button>
+                    <button class="timer-ctrl-btn timer-stop-btn" onclick="stopTaskTimer(event)">⏹</button>
+                </div>
+            </div>`;
+            listContainer.innerHTML += timerHtml;
+        }
+
         currentDayEvents.forEach((note, index) => {
             if (editingNoteIndex === index) {
                 let startVal = "", endVal = ""; if (note.time) { const parts = note.time.split(note.time.includes(" - ") ? " - " : "-"); startVal = parts[0] ? parts[0].trim() : ""; endVal = parts[1] ? parts[1].trim() : ""; }
@@ -961,9 +856,36 @@
             } else {
                 let remIcon = note.reminder ? ' 🔔' : ''; let themeColor = getThemeColor(note.color); let uiHtml = '';
                 if (note.uiType && note.uiType !== 'none') { let checked = note.uiState ? 'checked' : ''; if (note.uiType === 'checkbox') uiHtml = `<input type="checkbox" class="ui-checkbox" onclick="handleUiAction(event, ${index})" ${checked}>`; else if (note.uiType === 'toggle') uiHtml = `<label class="ui-switch" onclick="event.stopPropagation()"><input type="checkbox" onchange="handleUiAction(event, ${index})" ${checked}><span class="ui-slider"></span></label>`; else if (note.uiType === 'radio') uiHtml = `<input type="radio" class="ui-radio" onclick="handleUiAction(event, ${index})" ${checked}>`; }
-                listContainer.innerHTML += `<div class="prog-list-item" style="cursor: pointer;" onclick="highlightSegment(${index}, event, false)"><div class="prog-num">${index + 1}</div>${uiHtml}<div class="prog-time">${note.time || '—'}</div><div class="badge-text-container"><span class="badge-text">${note.text}${remIcon} ${note.ruleId ? '<small style="opacity:0.5;">(рег)</small>' : ''}</span></div><div class="prog-color" style="background-color: ${themeColor};"></div><div class="prog-menu-wrap"><button class="prog-menu-btn" onclick="toggleProgMenu(${index}, event)">⋮</button><div class="prog-menu-dropdown" id="prog-menu-${index}"><div onclick="enterProgEdit(${index})">✏️ Редактировать</div><div onclick="startMoveProgNote(${index})">➡️ Переместить</div><div onclick="deleteProgNote(${index})" style="color: #ff4d4d;">🗑️ Удалить</div></div></div></div>`;
+                
+                let isTaskActiveNow = (activeTask.interval && activeTask.dateKey === progressModalDate && activeTask.noteIndex === index);
+                
+                listContainer.innerHTML += `
+                <div class="prog-list-item">
+                    <div class="prog-item-main ${isTaskActiveNow ? 'hidden-controls' : ''}">
+                        ${!isTaskActiveNow ? `<button class="task-start-btn" onclick="startTaskTimer(${index}, '${progressModalDate}', event)">▶</button>` : `<div class="timer-pulse" style="color:var(--primary-color);font-size:1.2em;">⏱</div>`}
+                        <div class="prog-num">${index + 1}</div>
+                        ${uiHtml}
+                        <div class="prog-time">${note.time || '—'}</div>
+                        <div class="badge-text-container"><span class="badge-text">${note.text}${remIcon} ${note.ruleId ? '<small style="opacity:0.5;">(рег)</small>' : ''}</span></div>
+                        <div class="prog-color" style="background-color: ${themeColor};"></div>
+                    </div>
+                    <div class="prog-menu-wrap">
+                        <button class="prog-menu-btn" onclick="toggleProgMenu(${index}, event)">⋮</button>
+                        <div class="prog-menu-dropdown" id="prog-menu-${index}">
+                            <div onclick="enterProgEdit(${index})">✏️ Редактировать</div>
+                            <div onclick="startMoveProgNote(${index})">➡️ Переместить</div>
+                            <div onclick="deleteProgNote(${index})" style="color: #ff4d4d;">🗑️ Удалить</div>
+                        </div>
+                    </div>
+                </div>`;
             }
         });
+        
+        // Синхронизация кольца после рендера, если активен таймер
+        if (activeTask.interval && activeTask.dateKey === progressModalDate) {
+            updateRingUI();
+        }
+        
         setTimeout(updateMarquees, 0);
     }
 
@@ -977,23 +899,338 @@
 
     function enterProgEdit(index) { editingNoteIndex = index; renderProgressModalContent(); }
     function cancelProgEdit() { editingNoteIndex = -1; renderProgressModalContent(); }
-    function saveProgEdit(index) { const start = document.getElementById(`prog-edit-start-${index}`).value; const end = document.getElementById(`prog-edit-end-${index}`).value; let time = ""; if (start && end) time = `${start}-${end}`; else if (start) time = start; else if (end) time = end; const text = document.getElementById(`prog-edit-text-${index}`).value; const reminder = document.getElementById(`prog-edit-remind-${index}`).value; const color = document.getElementById(`prog-edit-color-${index}`).value; const uiType = document.getElementById(`prog-edit-ui-${index}`).value; const ruleId = currentDayEvents[index].ruleId; const uiState = currentDayEvents[index].uiState || false; if (time || text) { currentDayEvents[index] = { time, text, color, reminder, uiType, uiState }; if (ruleId) currentDayEvents[index].ruleId = ruleId; } else { currentDayEvents.splice(index, 1); } editingNoteIndex = -1; saveDayEvents(progressModalDate, currentDayEvents); renderCalendar(); renderProgressModalContent(); }
-    function deleteProgNote(index) { if (confirm("Точно удалить?")) { currentDayEvents.splice(index, 1); saveDayEvents(progressModalDate, currentDayEvents); renderCalendar(); renderProgressModalContent(); } }
+    function saveProgEdit(index) { 
+        const start = document.getElementById(`prog-edit-start-${index}`).value; 
+        const end = document.getElementById(`prog-edit-end-${index}`).value; 
+        let time = ""; 
+        if (start && end) time = `${start}-${end}`; 
+        else if (start) time = start; 
+        else if (end) time = `-${end}`; // Дефис спереди - только дедлайн
+        
+        const text = document.getElementById(`prog-edit-text-${index}`).value; const reminder = document.getElementById(`prog-edit-remind-${index}`).value; const color = document.getElementById(`prog-edit-color-${index}`).value; const uiType = document.getElementById(`prog-edit-ui-${index}`).value; const ruleId = currentDayEvents[index].ruleId; const uiState = currentDayEvents[index].uiState || false; 
+        
+        if (time || text) { currentDayEvents[index] = { time, text, color, reminder, uiType, uiState }; if (ruleId) currentDayEvents[index].ruleId = ruleId; } else { currentDayEvents.splice(index, 1); } 
+        editingNoteIndex = -1; saveDayEvents(progressModalDate, currentDayEvents); renderCalendar(); renderProgressModalContent(); 
+    }
+    
+    function deleteProgNote(index) { if (confirm("Точно удалить?")) { if(activeTask.noteIndex === index && activeTask.dateKey === progressModalDate) cancelTaskTimer(null); currentDayEvents.splice(index, 1); saveDayEvents(progressModalDate, currentDayEvents); renderCalendar(); renderProgressModalContent(); } }
     function addProgNote() { const existingColors = currentDayEvents.map(n => n.color); currentDayEvents.push({ time: "", text: "", color: generateDistinctColor(existingColors), reminder: "", uiType: "none", uiState: false }); editingNoteIndex = currentDayEvents.length - 1; renderProgressModalContent(); }
     function startMoveProgNote(index) { moveNoteIndex = index; moveNoteData = JSON.parse(JSON.stringify(currentDayEvents[index])); moveSourceDate = progressModalDate; closeProgressModal(); isMoveMode = true; moveTargetDate = ""; document.getElementById('move-action-bar').classList.add('show'); updateMoveBar(); renderCalendar(); }
     function selectMoveTarget(dateKey) { moveTargetDate = dateKey; updateMoveBar(); renderCalendar(); }
     function updateMoveBar() { const btn = document.getElementById('move-confirm-btn'); if (moveTargetDate) { btn.classList.add('active'); btn.disabled = false; } else { btn.classList.remove('active'); btn.disabled = true; } }
     function cancelMove() { isMoveMode = false; document.getElementById('move-action-bar').classList.remove('show'); moveTargetDate = ""; moveNoteData = null; renderCalendar(); openProgressModal(null, moveSourceDate); }
     function confirmMove() { if (!moveTargetDate) return; currentDayEvents.splice(moveNoteIndex, 1); saveDayEvents(moveSourceDate, currentDayEvents); delete moveNoteData.ruleId; if (!calendarData[moveTargetDate]) calendarData[moveTargetDate] = []; calendarData[moveTargetDate].push(moveNoteData); saveToLocalStorage(); isMoveMode = false; document.getElementById('move-action-bar').classList.remove('show'); moveTargetDate = ""; moveNoteData = null; renderCalendar(); openProgressModal(null, moveSourceDate); }
+    
+    // РЕГУЛЯРНЫЕ СОБЫТИЯ
     function openRegularEventsModal() { editingRegEventId = null; resetRegForm(); document.getElementById('regular-events-modal').classList.add('show'); renderRegularEventsList(); }
     function closeRegularEventsModal() { document.getElementById('regular-events-modal').classList.remove('show'); renderCalendar(); }
-    function resetRegForm() { editingRegEventId = null; document.getElementById('reg-form-title').innerText = "Добавить новое"; document.getElementById('reg-save-btn').innerText = "Сохранить событие"; document.getElementById('reg-cancel-btn').style.display = "none"; document.getElementById('reg-text').value = ''; document.getElementById('reg-start').value = ''; document.getElementById('reg-end').value = ''; document.getElementById('reg-reminder').value = ''; document.getElementById('reg-color').value = '#4CAF50'; if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = 'none'; if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = '—'; }
+    function resetRegForm() { editingRegEventId = null; document.getElementById('reg-form-title').innerText = "Добавить новое"; document.getElementById('reg-save-btn').innerText = "Сохранить событие"; document.getElementById('reg-cancel-btn').style.display = "none"; document.getElementById('reg-text').value = ''; document.getElementById('reg-start').value = ''; document.getElementById('reg-end').value = ''; document.getElementById('reg-reminder').value = ''; document.getElementById('reg-color').value = '#2ECC71'; document.getElementById('reg-timer-checkbox').checked = false; if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = 'none'; if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = '—'; }
     function toggleRegType() { const type = document.querySelector('input[name="reg-type"]:checked').value; document.getElementById('reg-weekly-settings').style.display = type === 'weekly' ? 'flex' : 'none'; document.getElementById('reg-schedule-settings').style.display = type === 'schedule' ? 'flex' : 'none'; }
-    function editRegularEvent(id) { const ev = regularEvents.find(r => r.id === id); if (!ev) return; editingRegEventId = id; document.getElementById('reg-form-title').innerText = "Редактировать событие"; document.getElementById('reg-save-btn').innerText = "Обновить"; document.getElementById('reg-cancel-btn').style.display = "block"; document.getElementById('reg-text').value = ev.text || ""; document.getElementById('reg-reminder').value = ev.reminder || ""; document.getElementById('reg-color').value = ev.color || "#4CAF50"; let uiVal = ev.uiType || "none"; if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = uiVal; let uiDisplayHtml = '—'; if(uiVal === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>'; if(uiVal === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>'; if(uiVal === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>'; if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = uiDisplayHtml; if (ev.time) { const parts = ev.time.split('-'); document.getElementById('reg-start').value = parts[0] ? parts[0].trim() : ""; document.getElementById('reg-end').value = parts[1] ? parts[1].trim() : ""; } else { document.getElementById('reg-start').value = ""; document.getElementById('reg-end').value = ""; } document.querySelector(`input[name="reg-type"][value="${ev.type}"]`).checked = true; toggleRegType(); if (ev.type === 'weekly') { document.querySelectorAll('.reg-day').forEach(cb => { cb.checked = ev.days.includes(cb.value); }); } else { document.getElementById('reg-start-date').value = ev.startDate; document.getElementById('reg-work-days').value = ev.workDays; document.getElementById('reg-rest-days').value = ev.restDays; } document.getElementById('reg-form-title').scrollIntoView({behavior: "smooth"}); }
-    function saveRegularEvent() { const text = document.getElementById('reg-text').value; const start = document.getElementById('reg-start').value; const end = document.getElementById('reg-end').value; const color = document.getElementById('reg-color').value; const reminder = document.getElementById('reg-reminder').value; const uiType = document.getElementById('reg-ui') ? document.getElementById('reg-ui').value : 'none'; const type = document.querySelector('input[name="reg-type"]:checked').value; if (!text) return alert("Введите название события!"); let time = ""; if (start && end) time = `${start}-${end}`; else if (start) time = start; else if (end) time = end; const newEvent = { id: editingRegEventId || Date.now(), text, time, color, reminder, uiType, type }; if (type === 'weekly') { const checkedDays = Array.from(document.querySelectorAll('.reg-day:checked')).map(cb => cb.value); if (checkedDays.length === 0) return alert("Выберите дни недели!"); newEvent.days = checkedDays; } else { const startDate = document.getElementById('reg-start-date').value; const workDays = document.getElementById('reg-work-days').value; const restDays = document.getElementById('reg-rest-days').value; if (!startDate) return alert("Выберите дату начала графика!"); newEvent.startDate = startDate; newEvent.workDays = parseInt(workDays); newEvent.restDays = parseInt(restDays); } if (editingRegEventId) { const idx = regularEvents.findIndex(r => r.id === editingRegEventId); if (idx !== -1) regularEvents[idx] = newEvent; } else regularEvents.push(newEvent); saveToLocalStorage(); resetRegForm(); renderRegularEventsList(); renderCalendar(); }
-    function renderRegularEventsList() { const list = document.getElementById('regular-events-list'); list.innerHTML = ""; regularEvents.forEach((ev, index) => { let ruleText = ev.type === 'weekly' ? `Дни: ${ev.days.map(d => ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"][d]).join(', ')}` : `График ${ev.workDays}/${ev.restDays} (с ${ev.startDate.split('-').reverse().join('.')})`; let remIcon = ev.reminder ? `🔔 (-${ev.reminder}м)` : ''; let themeColor = getThemeColor(ev.color); list.innerHTML += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color); background: var(--cell-bg); border-radius: 4px; margin-bottom: 4px;"><div style="flex:1;"><div style="font-weight: bold; color: ${themeColor}; font-size: 1.05em;">${ev.time ? ev.time + ' ' : ''}${ev.text} <span style="font-size: 0.8em; color:var(--text-color); opacity: 0.7;">${remIcon}</span></div><div style="font-size: 0.85em; opacity: 0.7; margin-top: 2px;">${ruleText}</div></div><div style="display:flex; gap: 5px;"><button class="edit-btn" onclick="editRegularEvent(${ev.id})">✏️</button><button class="del-btn" onclick="deleteRegularEvent(${index})">✖</button></div></div>`; }); if (regularEvents.length === 0) list.innerHTML = `<div style="text-align: center; opacity: 0.5; padding: 10px;">Нет добавленных регулярных событий</div>`; }
-    function deleteRegularEvent(index) { if(confirm("Удалить это регулярное событие? Оно исчезнет из всех дней (кроме тех, где вы его отредактировали вручную).")) { const ruleId = regularEvents[index].id; regularEvents.splice(index, 1); for (let dateKey in calendarData) { calendarData[dateKey] = calendarData[dateKey].filter(note => note.ruleId !== ruleId); if (calendarData[dateKey].length === 0) delete calendarData[dateKey]; } saveToLocalStorage(); renderRegularEventsList(); renderCalendar(); } }
+    
+    function editRegularEvent(id) { 
+        const ev = regularEvents.find(r => r.id === id); if (!ev) return; 
+        editingRegEventId = id; document.getElementById('reg-form-title').innerText = "Редактировать событие"; document.getElementById('reg-save-btn').innerText = "Обновить"; document.getElementById('reg-cancel-btn').style.display = "block"; 
+        document.getElementById('reg-text').value = ev.text || ""; document.getElementById('reg-reminder').value = ev.reminder || ""; document.getElementById('reg-color').value = ev.color || "#2ECC71"; 
+        document.getElementById('reg-timer-checkbox').checked = ev.hasTimer || false;
+        
+        let uiVal = ev.uiType || "none"; if(document.getElementById('reg-ui')) document.getElementById('reg-ui').value = uiVal; 
+        let uiDisplayHtml = '—'; if(uiVal === 'checkbox') uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>'; if(uiVal === 'toggle') uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>'; if(uiVal === 'radio') uiDisplayHtml = '<input type="radio" class="ui-radio" checked>'; 
+        if(document.getElementById('reg-ui-display')) document.getElementById('reg-ui-display').innerHTML = uiDisplayHtml; 
+        
+        if (ev.time) { 
+            const parts = ev.time.split('-'); 
+            document.getElementById('reg-start').value = ev.time.startsWith('-') ? "" : (parts[0] ? parts[0].trim() : ""); 
+            document.getElementById('reg-end').value = ev.time.startsWith('-') ? parts[1].trim() : (parts[1] ? parts[1].trim() : ""); 
+        } else { document.getElementById('reg-start').value = ""; document.getElementById('reg-end').value = ""; } 
+        document.querySelector(`input[name="reg-type"][value="${ev.type}"]`).checked = true; toggleRegType(); 
+        if (ev.type === 'weekly') { document.querySelectorAll('.reg-day').forEach(cb => { cb.checked = ev.days.includes(cb.value); }); } else { document.getElementById('reg-start-date').value = ev.startDate; document.getElementById('reg-work-days').value = ev.workDays; document.getElementById('reg-rest-days').value = ev.restDays; } document.getElementById('reg-form-title').scrollIntoView({behavior: "smooth"}); 
+    }
+    
+    function saveRegularEvent() { 
+        const text = document.getElementById('reg-text').value; const start = document.getElementById('reg-start').value; const end = document.getElementById('reg-end').value; const color = document.getElementById('reg-color').value; const reminder = document.getElementById('reg-reminder').value; 
+        const hasTimer = document.getElementById('reg-timer-checkbox').checked;
+        const uiType = document.getElementById('reg-ui') ? document.getElementById('reg-ui').value : 'none'; const type = document.querySelector('input[name="reg-type"]:checked').value; 
+        if (!text) return alert("Введите название события!"); 
+        let time = ""; if (start && end) time = `${start}-${end}`; else if (start) time = start; else if (end) time = `-${end}`; 
+        const newEvent = { id: editingRegEventId || Date.now(), text, time, color, reminder, uiType, type, hasTimer }; 
+        if (type === 'weekly') { const checkedDays = Array.from(document.querySelectorAll('.reg-day:checked')).map(cb => cb.value); if (checkedDays.length === 0) return alert("Выберите дни недели!"); newEvent.days = checkedDays; } else { const startDate = document.getElementById('reg-start-date').value; const workDays = document.getElementById('reg-work-days').value; const restDays = document.getElementById('reg-rest-days').value; if (!startDate) return alert("Выберите дату начала графика!"); newEvent.startDate = startDate; newEvent.workDays = parseInt(workDays); newEvent.restDays = parseInt(restDays); } 
+        if (editingRegEventId) { const idx = regularEvents.findIndex(r => r.id === editingRegEventId); if (idx !== -1) regularEvents[idx] = newEvent; } else regularEvents.push(newEvent); saveToLocalStorage(); resetRegForm(); renderRegularEventsList(); renderCalendar(); 
+    }
+    function renderRegularEventsList() { const list = document.getElementById('regular-events-list'); list.innerHTML = ""; regularEvents.forEach((ev, index) => { let ruleText = ev.type === 'weekly' ? `Дни: ${ev.days.map(d => ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"][d]).join(', ')}` : `График ${ev.workDays}/${ev.restDays} (с ${ev.startDate.split('-').reverse().join('.')})`; let remIcon = ev.reminder ? `🔔 (-${ev.reminder}м)` : ''; let timerIcon = ev.hasTimer ? '⏱' : ''; let themeColor = getThemeColor(ev.color); list.innerHTML += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color); background: var(--cell-bg); border-radius: 4px; margin-bottom: 4px;"><div style="flex:1;"><div style="font-weight: bold; color: ${themeColor}; font-size: 1.05em;">${ev.time ? ev.time + ' ' : ''}${ev.text} <span style="font-size: 0.8em; color:var(--text-color); opacity: 0.7;">${remIcon} ${timerIcon}</span></div><div style="font-size: 0.85em; opacity: 0.7; margin-top: 2px;">${ruleText}</div></div><div style="display:flex; gap: 5px;"><button class="edit-btn" onclick="editRegularEvent(${ev.id})">✏️</button><button class="del-btn" onclick="deleteRegularEvent(${index})">✖</button></div></div>`; }); if (regularEvents.length === 0) list.innerHTML = `<div style="text-align: center; opacity: 0.5; padding: 10px;">Нет добавленных регулярных событий</div>`; }
+    function deleteRegularEvent(index) { if(confirm("Удалить это регулярное событие? Оно исчезнет из всех дней.")) { const ruleId = regularEvents[index].id; regularEvents.splice(index, 1); for (let dateKey in calendarData) { calendarData[dateKey] = calendarData[dateKey].filter(note => note.ruleId !== ruleId); if (calendarData[dateKey].length === 0) delete calendarData[dateKey]; } saveToLocalStorage(); renderRegularEventsList(); renderCalendar(); } }
 
+
+    // --- ЛОГИКА ТАЙМЕРА (FUNCTIONS) ---
+    function startTaskTimer(index, dateKey, event) {
+        if(event) event.stopPropagation();
+        
+        // Останавливаем предыдущий, если был
+        if(activeTask.interval) {
+            clearInterval(activeTask.interval);
+        }
+
+        let note = currentDayEvents[index];
+        if (!note) return;
+
+        let times = note.time ? note.time.split('-').map(t => t.trim()) : ["", ""];
+        let startStr = times[0];
+        let endStr = times[1];
+        
+        if (note.time && note.time.startsWith('-')) {
+            startStr = ""; endStr = times[1] || times[0];
+        }
+
+        activeTask.noteIndex = index;
+        activeTask.dateKey = dateKey;
+        activeTask.isPaused = false;
+        
+        let now = new Date();
+        let currentMin = now.getHours() * 60 + now.getMinutes();
+
+        if (startStr && endStr) {
+            // Countdown
+            activeTask.mode = 'countdown';
+            activeTask.durationSec = Math.max(1, (parseTimeMins(endStr) - parseTimeMins(startStr)) * 60);
+            activeTask.elapsedSec = 0; 
+            document.getElementById('global-timer-ring-fill').style.stroke = "var(--primary-color)";
+        } else if (startStr && !endStr) {
+            // Stopwatch
+            activeTask.mode = 'stopwatch';
+            activeTask.durationSec = 0;
+            activeTask.elapsedSec = 0;
+            document.getElementById('global-timer-ring-fill').style.stroke = "#2196F3"; 
+        } else if (!startStr && endStr) {
+            // Deadline
+            activeTask.mode = 'countdown';
+            startStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            note.time = `${startStr} - ${endStr}`;
+            saveDayEvents(dateKey, currentDayEvents);
+            
+            let remain = parseTimeMins(endStr) - currentMin;
+            if (remain <= 0) { alert("Время дедлайна уже прошло!"); return; }
+            activeTask.durationSec = remain * 60;
+            activeTask.elapsedSec = 0;
+            document.getElementById('global-timer-ring-fill').style.stroke = "#ff9800"; 
+        } else {
+            alert("Укажите время (начало или конец) для запуска таймера!");
+            return;
+        }
+
+        renderProgressModalContent(); // Перересуем чтобы показать крупный таймер
+        
+        tickTask(); 
+        activeTask.interval = setInterval(tickTask, 1000);
+    }
+
+    function tickTask() {
+        if (activeTask.isPaused) return;
+        
+        let displayTime = "";
+        let progressPct = 0;
+
+        if (activeTask.mode === 'countdown') {
+            let remaining = activeTask.durationSec - activeTask.elapsedSec;
+            if (remaining <= 0) {
+                stopTaskTimer(); // Время вышло
+                alert(`Время вышло!`);
+                return;
+            }
+            displayTime = formatSeconds(remaining);
+            progressPct = (activeTask.elapsedSec / activeTask.durationSec) * 100;
+            activeTask.elapsedSec++;
+        } else {
+            displayTime = formatSeconds(activeTask.elapsedSec);
+            progressPct = 100; // Секундомер, полный круг
+            activeTask.elapsedSec++;
+        }
+
+        // Обновляем Global Timer
+        document.getElementById('global-timer-time').innerText = displayTime;
+        
+        // Обновляем UI внутри модалки, если она открыта
+        const modalDisplay = document.getElementById('progress-timer-time-display');
+        if (modalDisplay) {
+            modalDisplay.innerText = displayTime;
+        }
+        
+        updateRingUI(progressPct);
+    }
+
+    function updateRingUI(pct = null) {
+        if(pct === null) {
+            pct = activeTask.mode === 'countdown' ? (activeTask.elapsedSec / activeTask.durationSec) * 100 : 100;
+        }
+        const offset = 283 - (283 * pct) / 100;
+        
+        // Глобальный таймер
+        const gtFill = document.getElementById('global-timer-ring-fill');
+        if(gtFill) gtFill.style.strokeDashoffset = activeTask.mode === 'stopwatch' ? 0 : offset;
+        
+        // Модальный таймер
+        const mtFill = document.getElementById('modal-ring-fill');
+        if(mtFill) mtFill.style.strokeDashoffset = activeTask.mode === 'stopwatch' ? 0 : offset;
+    }
+
+    function pauseTaskTimer(e) {
+        if(e) e.stopPropagation();
+        activeTask.isPaused = !activeTask.isPaused;
+        
+        const gTimer = document.getElementById('global-timer');
+        if (activeTask.isPaused) {
+            gTimer.style.opacity = "0.5";
+            gTimer.classList.remove('timer-pulse');
+        } else {
+            gTimer.style.opacity = "1";
+            gTimer.classList.add('timer-pulse');
+        }
+        
+        // Перересуем контролы модалки
+        renderProgressModalContent();
+    }
+
+    function stopTaskTimer(e) {
+        if(e) e.stopPropagation();
+        
+        if (activeTask.mode === 'stopwatch') {
+            let eventList = calendarData[activeTask.dateKey] || currentDayEvents;
+            let note = eventList[activeTask.noteIndex];
+            if (note) {
+                let startStr = note.time.replace('-', '').trim();
+                let now = new Date();
+                let endStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                note.time = `${startStr} - ${endStr}`;
+                saveDayEvents(activeTask.dateKey, eventList);
+            }
+        }
+        cancelTaskTimer();
+    }
+
+    function cancelTaskTimer(e) {
+        if(e) e.stopPropagation();
+        clearInterval(activeTask.interval);
+        activeTask.interval = null;
+        document.getElementById('global-timer').classList.remove('visible');
+        renderProgressModalContent();
+        renderCalendar();
+    }
+
+    function formatSeconds(sec) {
+        let h = Math.floor(sec / 3600);
+        let m = Math.floor((sec % 3600) / 60);
+        let s = sec % 60;
+        if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    // --- ПЕРЕТАСКИВАНИЕ ГЛОБАЛЬНОГО ТАЙМЕРА ---
+    const globalTimerEl = document.getElementById('global-timer');
+    let timerDrag = { active: false, currentX: 0, currentY: 0, initialX: 0, initialY: 0, xOffset: 0, yOffset: 0 };
+
+    globalTimerEl.addEventListener('touchstart', dragStart, {passive: false});
+    globalTimerEl.addEventListener('touchend', dragEnd, {passive: false});
+    globalTimerEl.addEventListener('touchmove', drag, {passive: false});
+    globalTimerEl.addEventListener('mousedown', dragStart, {passive: false});
+    window.addEventListener('mouseup', dragEnd, {passive: false});
+    window.addEventListener('mousemove', drag, {passive: false});
+
+    function dragStart(e) {
+        if (!activeTask.interval) return;
+        timerDrag.initialX = e.type === "touchstart" ? e.touches[0].clientX - timerDrag.xOffset : e.clientX - timerDrag.xOffset;
+        timerDrag.initialY = e.type === "touchstart" ? e.touches[0].clientY - timerDrag.yOffset : e.clientY - timerDrag.yOffset;
+        
+        if (e.target === globalTimerEl || globalTimerEl.contains(e.target)) {
+            timerDrag.active = true;
+            globalTimerEl.classList.add('dragging');
+            if (navigator.vibrate) navigator.vibrate([50]); // Вибро отклик
+            
+            // Импульс анимация
+            globalTimerEl.style.animation = 'none';
+            void globalTimerEl.offsetWidth; 
+            globalTimerEl.style.animation = 'globalTimerImpulse 0.4s ease-out forwards';
+        }
+    }
+
+    function drag(e) {
+        if (timerDrag.active) {
+            e.preventDefault();
+            let clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+            let clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+            
+            timerDrag.currentX = clientX - timerDrag.initialX;
+            timerDrag.currentY = clientY - timerDrag.initialY;
+            
+            // Ограничение по краям экрана
+            const rect = globalTimerEl.getBoundingClientRect();
+            const maxW = window.innerWidth - rect.width;
+            const maxH = window.innerHeight - rect.height;
+            
+            if (timerDrag.currentX < 0) timerDrag.currentX = 0;
+            if (timerDrag.currentY < 0) timerDrag.currentY = 0;
+            if (timerDrag.currentX > maxW) timerDrag.currentX = maxW;
+            if (timerDrag.currentY > maxH) timerDrag.currentY = maxH;
+
+            timerDrag.xOffset = timerDrag.currentX;
+            timerDrag.yOffset = timerDrag.currentY;
+
+            globalTimerEl.style.transform = `translate3d(${timerDrag.currentX}px, ${timerDrag.currentY}px, 0)`;
+        }
+    }
+
+    function dragEnd(e) {
+        timerDrag.active = false;
+        globalTimerEl.classList.remove('dragging');
+        globalTimerEl.style.animation = 'none'; // Убрать импульс
+    }
+
+    // --- АВТОМАТИЧЕСКОЕ РАЗМЕЩЕНИЕ ТАЙМЕРА НА ПУСТЫХ ЯЧЕЙКАХ ---
+    function autoPlaceGlobalTimer() {
+        if (!activeTask.interval) return;
+        if (document.getElementById('progress-modal').classList.contains('show')) return; // Не показываем за модалкой
+
+        globalTimerEl.classList.add('visible');
+        if (!activeTask.isPaused) globalTimerEl.classList.add('timer-pulse');
+
+        // Если мы уже таскали таймер, оставляем его на месте
+        if (timerDrag.xOffset !== 0 || timerDrag.yOffset !== 0) {
+            globalTimerEl.style.transform = `translate3d(${timerDrag.xOffset}px, ${timerDrag.yOffset}px, 0)`;
+            return;
+        }
+
+        // Поиск самой пустой области (подряд пустые ячейки)
+        const cells = document.querySelectorAll('.day-cell');
+        let bestStart = -1, maxRun = 0, currentRun = 0, currentStart = -1;
+
+        cells.forEach((cell, i) => {
+            const isEmpty = cell.querySelectorAll('.note-badge').length === 0;
+            if (isEmpty) {
+                if (currentRun === 0) currentStart = i;
+                currentRun++;
+                if (currentRun > maxRun) { maxRun = currentRun; bestStart = currentStart; }
+            } else { currentRun = 0; }
+        });
+
+        let targetCell = cells[bestStart !== -1 ? bestStart + Math.floor(maxRun / 2) : 15]; // Берем середину пустот или по умолчанию
+        if (!targetCell) targetCell = cells[15];
+        
+        const rect = targetCell.getBoundingClientRect();
+        const tWidth = window.innerWidth <= 768 ? 40 : 66; // Размеры таймера
+        
+        let targetX = rect.left + (rect.width / 2) - (tWidth / 2);
+        let targetY = rect.top + (rect.height / 2) - (tWidth / 2);
+
+        // Ограничиваем
+        targetX = Math.max(0, Math.min(targetX, window.innerWidth - tWidth));
+        targetY = Math.max(0, Math.min(targetY, window.innerHeight - tWidth));
+
+        timerDrag.xOffset = targetX;
+        timerDrag.yOffset = targetY;
+        globalTimerEl.style.transform = `translate3d(${targetX}px, ${targetY}px, 0)`;
+        globalTimerEl.style.left = '0px'; 
+        globalTimerEl.style.top = '0px'; 
+    }
+
+
+    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (УВЕДОМЛЕНИЯ, ЭКСПОРТ) ---
     setInterval(() => {
         if (Notification.permission !== "granted") return;
         const now = new Date(); const currentMins = now.getHours() * 60 + now.getMinutes();
@@ -1002,21 +1239,19 @@
         if (currentMins === 0) notifiedSet.clear();
         todayEvents.forEach(ev => {
             if (ev.time && ev.reminder) {
-                const startStr = ev.time.split('-')[0].trim(); const startMins = parseTimeMins(startStr);
+                const startStr = ev.time.replace('-', '').trim(); const startMins = parseTimeMins(startStr);
                 if (startMins !== Infinity) { const targetMins = startMins - parseInt(ev.reminder); const notifyKey = `${dateKey}-${ev.text}-${startStr}`; if (currentMins === targetMins && !notifiedSet.has(notifyKey)) { new Notification("Скоро: " + ev.text, { body: "Событие начнется в " + startStr, icon: "https://cdn-icons-png.flaticon.com/512/847/847329.png" }); notifiedSet.add(notifyKey); } }
             }
         });
     }, 30000);
 
     const tooltipEl = document.getElementById('custom-tooltip'); let hideTooltipTimeout;
-    function updateTooltipContentAnimated(target) {
+    function showTooltip(e, target) {
+        clearTimeout(hideTooltipTimeout);
         const ttColor = document.getElementById('tt-color'); const ttTime = document.getElementById('tt-time'); const ttText = document.getElementById('tt-text'); const ttContentWrap = document.getElementById('tt-content-wrap');
         const newColor = target.getAttribute('data-color'); const newTime = target.getAttribute('data-time'); const newText = target.getAttribute('data-text');
         if (ttTime.textContent !== newTime || ttText.textContent !== newText) { ttContentWrap.classList.remove('flip'); void ttContentWrap.offsetWidth; ttContentWrap.classList.add('flip'); setTimeout(() => { ttColor.style.backgroundColor = newColor; ttTime.textContent = newTime; ttText.textContent = newText; }, 100); }
-    }
-    
-    function showTooltip(e, target) {
-        clearTimeout(hideTooltipTimeout); updateTooltipContentAnimated(target);
+        
         const bar = target.closest('.day-progress-bar') || target.closest('.big-progress'); if (!bar) return; const barRect = bar.getBoundingClientRect(); tooltipEl.classList.add('show');
         const ttWidth = tooltipEl.offsetWidth; let x = e.clientX; let y = barRect.top - 8;
         if (target.classList.contains('point-segment')) { const segRect = target.getBoundingClientRect(); x = segRect.left + segRect.width / 2; }
@@ -1024,160 +1259,12 @@
         if (x - ttWidth / 2 < 10) { leftPos = ttWidth / 2 + 10; tailOffset = (x - 10) / ttWidth * 100; } else if (x + ttWidth / 2 > window.innerWidth - 10) { leftPos = window.innerWidth - ttWidth / 2 - 10; tailOffset = (x - (window.innerWidth - ttWidth - 10)) / ttWidth * 100; }
         tailOffset = Math.max(10, Math.min(90, tailOffset)); tooltipEl.style.left = leftPos + 'px'; tooltipEl.style.top = y + 'px'; tooltipEl.style.setProperty('--tail-pos', tailOffset + '%');
     }
-    
+
     document.body.addEventListener('mouseover', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color') && target.closest('.day-progress-bar')) showTooltip(e, target); });
-    document.body.addEventListener('mousemove', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color') && target.closest('.day-progress-bar')) showTooltip(e, target); });
     document.body.addEventListener('mouseout', function(e) { if (window.innerWidth <= 768) return; const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive'); if (target && target.hasAttribute('data-color')) tooltipEl.classList.remove('show'); });
-    
-    document.body.addEventListener('click', function(e) {
-        if (window.innerWidth > 768) return;
-        if (e.target.closest('.prog-list-item')) return;
-        const target = e.target.closest('.progress-segment') || e.target.closest('.progress-period.inactive');
-        if (target && target.closest('.big-progress')) { 
-            e.stopPropagation(); 
-            const text = target.getAttribute('data-text'); const time = target.getAttribute('data-time');
-            const index = currentDayEvents.findIndex(n => { let safeText = n.text ? n.text.replace(/"/g, '&quot;') : 'Без описания'; let safeTime = n.time ? n.time.replace(/"/g, '&quot;') : ''; return safeText === text && safeTime === time; });
-            let clientX = e.clientX; if (clientX === undefined && e.changedTouches) clientX = e.changedTouches[0].clientX; if (!clientX) { const r = target.getBoundingClientRect(); clientX = r.left + r.width / 2; }
-            if(index !== -1) highlightSegment(index, { target: target, clientX: clientX }, true); 
-            else { clearHighlights(); const fauxEvent = { clientX: clientX }; showTooltip(fauxEvent, target); clearTimeout(hideTooltipTimeout); hideTooltipTimeout = setTimeout(() => { tooltipEl.classList.remove('show'); }, 3000); }
-        } else if (!e.target.closest('.custom-tooltip')) { tooltipEl.classList.remove('show'); clearHighlights(); }
-    });
 
     function hslToHex(h, s, l) { l /= 100; const a = s * Math.min(l, 1 - l) / 100; const f = n => { const k = (n + h / 30) % 12; const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1); return Math.round(255 * color).toString(16).padStart(2, '0'); }; return `#${f(0)}${f(8)}${f(4)}`; }
     function generateDistinctColor(existingColors) { let newColor; let isDistinct = false; let attempts = 0; while (!isDistinct && attempts < 50) { const h = Math.floor(Math.random() * 360); const s = Math.floor(Math.random() * 30 + 70); const l = isDarkMode ? Math.floor(Math.random() * 15 + 65) : Math.floor(Math.random() * 15 + 75); newColor = hslToHex(h, s, l); isDistinct = true; for (let existing of existingColors) if (existing === newColor) { isDistinct = false; break; } attempts++; } return newColor; }
-
-
-let activeTask = {
-    interval: null,
-    mode: null, // 'countdown', 'stopwatch'
-    startTime: null,
-    endTime: null,
-    durationSec: 0,
-    elapsedSec: 0,
-    isPaused: false,
-    noteIndex: null, // Чтобы знать, куда сохранить результат
-    dateKey: null
-};
-
-// Вызывается по кнопке "Начать" в меню задачи
-function startTaskTimer(index, dateKey) {
-    let note = calendarData[dateKey][index];
-    let times = note.time ? note.time.split('-').map(t => t.trim()) : [];
-    let startStr = times[0];
-    let endStr = times[1];
-
-    activeTask.noteIndex = index;
-    activeTask.dateKey = dateKey;
-    activeTask.isPaused = false;
-    document.getElementById('tp-title').innerText = note.text;
-    document.getElementById('tp-full-title').innerText = note.text;
-
-    let now = new Date();
-    let currentMin = now.getHours() * 60 + now.getMinutes();
-
-    // Логика определения режима
-    if (startStr && endStr) {
-        // Режим 1: Отрезок (Countdown)
-        activeTask.mode = 'countdown';
-        activeTask.durationSec = (parseTimeMins(endStr) - parseTimeMins(startStr)) * 60;
-        activeTask.elapsedSec = 0; // В идеале вычислять на основе реального времени
-    } else if (startStr && !endStr) {
-        // Режим 2: Секундомер
-        activeTask.mode = 'stopwatch';
-        activeTask.elapsedSec = 0;
-    } else if (!startStr && endStr) {
-        // Режим 3: Дедлайн
-        activeTask.mode = 'countdown';
-        startStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        // Автоматически перезаписываем время задачи
-        note.time = `${startStr} - ${endStr}`;
-        saveDayEvents(dateKey, calendarData[dateKey]); 
-        
-        activeTask.durationSec = (parseTimeMins(endStr) - currentMin) * 60;
-        activeTask.elapsedSec = 0;
-    } else {
-        alert("Укажите хотя бы одно время для запуска таймера!");
-        return;
-    }
-
-    document.getElementById('task-player').classList.add('visible');
-    
-    clearInterval(activeTask.interval);
-    activeTask.interval = setInterval(tickTask, 1000);
-}
-
-function tickTask() {
-    if (activeTask.isPaused) return;
-    
-    activeTask.elapsedSec++;
-    let remaining = activeTask.durationSec - activeTask.elapsedSec;
-    
-    // Форматируем время mm:ss или hh:mm:ss
-    let displayTime = "";
-    let progressPct = 0;
-
-    if (activeTask.mode === 'countdown') {
-        if (remaining <= 0) {
-            stopTask(); // Время вышло
-            return;
-        }
-        displayTime = formatSeconds(remaining);
-        progressPct = (activeTask.elapsedSec / activeTask.durationSec) * 100;
-        
-        // Рисуем кружок
-        const offset = 283 - (283 * progressPct) / 100;
-        document.getElementById('tp-ring-fill').style.strokeDashoffset = offset;
-
-    } else {
-        // Секундомер
-        displayTime = formatSeconds(activeTask.elapsedSec);
-        progressPct = 100; // Прогресс бар просто светится
-        document.getElementById('tp-ring-fill').style.strokeDasharray = "283"; // Полный круг
-    }
-
-    document.getElementById('tp-time').innerText = displayTime;
-    document.getElementById('tp-full-time').innerText = displayTime;
-    document.getElementById('tp-progress-bar').style.width = progressPct + '%';
-}
-
-function toggleTaskPause() {
-    activeTask.isPaused = !activeTask.isPaused;
-    document.getElementById('tp-playpause').innerText = activeTask.isPaused ? "▶" : "⏸";
-}
-
-function stopTask() {
-    clearInterval(activeTask.interval);
-    document.getElementById('task-player').classList.remove('visible');
-    document.getElementById('task-fullscreen').classList.remove('visible');
-
-    // Если это был секундомер, записываем время окончания
-    if (activeTask.mode === 'stopwatch') {
-        let note = calendarData[activeTask.dateKey][activeTask.noteIndex];
-        let startStr = note.time.replace('-', '').trim(); // Берем начало
-        
-        let now = new Date();
-        let endStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        
-        note.time = `${startStr} - ${endStr}`;
-        saveDayEvents(activeTask.dateKey, calendarData[activeTask.dateKey]);
-        renderCalendar(); // Обновляем UI
-        alert(`Задача завершена! Потрачено: ${formatSeconds(activeTask.elapsedSec)}`);
-    }
-}
-
-function toggleTaskPlayerFull() {
-    document.getElementById('task-fullscreen').classList.toggle('visible');
-}
-
-function formatSeconds(sec) {
-    let h = Math.floor(sec / 3600);
-    let m = Math.floor((sec % 3600) / 60);
-    let s = sec % 60;
-    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-}
-
-
 
     function exportData() { const fullData = { calendarData, regularEvents }; const dataStr = JSON.stringify(fullData, null, 2); const blob = new Blob([dataStr], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = "calendar_data.json"; a.click(); URL.revokeObjectURL(url); }
     function importData(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const imported = JSON.parse(e.target.result); if (imported.calendarData) { calendarData = imported.calendarData; regularEvents = imported.regularEvents || []; } else { calendarData = imported; regularEvents = []; } saveToLocalStorage(); renderCalendar(); alert("Импорт успешен!"); } catch (err) { alert("Ошибка JSON!"); } }; reader.readAsText(file); }
@@ -1190,7 +1277,8 @@ function formatSeconds(sec) {
     }
     document.addEventListener('keydown', function(event) { if (event.key === "Escape") { if (document.getElementById('progress-modal').classList.contains('show')) closeProgressModal(); if (document.getElementById('regular-events-modal').classList.contains('show')) closeRegularEventsModal(); } });
 
-    loadFromLocalStorage(); renderCalendar();
+    loadFromLocalStorage(); 
+    renderCalendar();
 
     (function() {
         if (localStorage.getItem('installBtnHiddenPermanently') === 'true') { const style = document.createElement('style'); style.innerHTML = '#btn-install { display: none !important; }'; document.head.appendChild(style); return; }
