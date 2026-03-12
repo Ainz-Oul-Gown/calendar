@@ -341,6 +341,78 @@
         }
 
 
+
+
+
+/* Мини-плеер внизу */
+.task-player {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    width: 90%;
+    max-width: 400px;
+    background: var(--cell-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    z-index: 9999;
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2), opacity 0.3s;
+    overflow: hidden;
+}
+.task-player.visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+/* Линия прогресса сверху мини-плеера */
+.tp-progress {
+    position: absolute;
+    top: 0; left: 0; height: 3px;
+    background: var(--primary-color);
+    width: 50%; /* Будет меняться через JS */
+    transition: width 1s linear;
+}
+.tp-info {
+    flex-grow: 1;
+    cursor: pointer;
+    overflow: hidden;
+}
+.tp-title { font-weight: bold; font-size: 0.95em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tp-time { font-size: 0.85em; opacity: 0.7; font-variant-numeric: tabular-nums; }
+.tp-controls { display: flex; gap: 10px; }
+.tp-btn {
+    background: var(--menu-hover); border: none; border-radius: 50%;
+    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 1.1em; color: var(--text-color);
+}
+.tp-stop { color: #ff4d4d; background: rgba(255, 77, 77, 0.1); }
+
+/* Полноэкранный режим (Оверлей) */
+.task-fullscreen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--bg-color); z-index: 10000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transform: translateY(100%); transition: transform 0.4s ease;
+}
+.task-fullscreen.visible { transform: translateY(0); }
+.tp-close-full { position: absolute; top: 20px; left: 20px; background: none; border: none; font-size: 1.5em; color: var(--text-color); cursor: pointer; }
+.tp-ring { width: 250px; height: 250px; transform: rotate(-90deg); margin: 30px 0; }
+.tp-ring-bg { fill: none; stroke: var(--border-color); stroke-width: 4; }
+.tp-ring-fill {
+    fill: none; stroke: var(--primary-color); stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 283; /* 2 * pi * 45 */
+    stroke-dashoffset: 0; 
+    transition: stroke-dashoffset 1s linear;
+}
+.tp-full-time { font-size: 3.5em; font-weight: bold; font-variant-numeric: tabular-nums; }
+.tp-full-mode { opacity: 0.6; font-size: 0.9em; margin-top: -10px; }
+
+
     </style>
 
 </head>
@@ -503,6 +575,30 @@
         <div id="tt-text" class="tooltip-text"></div>
     </div>
 </div>
+
+<div id="task-player" class="task-player hidden">
+    <div class="tp-progress" id="tp-progress-bar"></div>
+    <div class="tp-info" onclick="toggleTaskPlayerFull()">
+        <div class="tp-title" id="tp-title">Название задачи</div>
+        <div class="tp-time" id="tp-time">00:00</div>
+    </div>
+    <div class="tp-controls">
+        <button class="tp-btn" id="tp-playpause" onclick="toggleTaskPause()">⏸</button>
+        <button class="tp-btn tp-stop" onclick="stopTask()">⏹</button>
+    </div>
+</div>
+
+<div id="task-fullscreen" class="task-fullscreen hidden">
+    <button class="tp-close-full" onclick="toggleTaskPlayerFull()">▼</button>
+    <h2 id="tp-full-title">Название задачи</h2>
+    <svg class="tp-ring" viewBox="0 0 100 100">
+        <circle class="tp-ring-bg" cx="50" cy="50" r="45"></circle>
+        <circle class="tp-ring-fill" id="tp-ring-fill" cx="50" cy="50" r="45"></circle>
+    </svg>
+    <div class="tp-full-time" id="tp-full-time">00:00</div>
+    <div class="tp-full-mode" id="tp-full-mode">Обратный отсчет</div>
+</div>
+
 
 <script>
        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
@@ -949,6 +1045,139 @@
 
     function hslToHex(h, s, l) { l /= 100; const a = s * Math.min(l, 1 - l) / 100; const f = n => { const k = (n + h / 30) % 12; const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1); return Math.round(255 * color).toString(16).padStart(2, '0'); }; return `#${f(0)}${f(8)}${f(4)}`; }
     function generateDistinctColor(existingColors) { let newColor; let isDistinct = false; let attempts = 0; while (!isDistinct && attempts < 50) { const h = Math.floor(Math.random() * 360); const s = Math.floor(Math.random() * 30 + 70); const l = isDarkMode ? Math.floor(Math.random() * 15 + 65) : Math.floor(Math.random() * 15 + 75); newColor = hslToHex(h, s, l); isDistinct = true; for (let existing of existingColors) if (existing === newColor) { isDistinct = false; break; } attempts++; } return newColor; }
+
+
+let activeTask = {
+    interval: null,
+    mode: null, // 'countdown', 'stopwatch'
+    startTime: null,
+    endTime: null,
+    durationSec: 0,
+    elapsedSec: 0,
+    isPaused: false,
+    noteIndex: null, // Чтобы знать, куда сохранить результат
+    dateKey: null
+};
+
+// Вызывается по кнопке "Начать" в меню задачи
+function startTaskTimer(index, dateKey) {
+    let note = calendarData[dateKey][index];
+    let times = note.time ? note.time.split('-').map(t => t.trim()) : [];
+    let startStr = times[0];
+    let endStr = times[1];
+
+    activeTask.noteIndex = index;
+    activeTask.dateKey = dateKey;
+    activeTask.isPaused = false;
+    document.getElementById('tp-title').innerText = note.text;
+    document.getElementById('tp-full-title').innerText = note.text;
+
+    let now = new Date();
+    let currentMin = now.getHours() * 60 + now.getMinutes();
+
+    // Логика определения режима
+    if (startStr && endStr) {
+        // Режим 1: Отрезок (Countdown)
+        activeTask.mode = 'countdown';
+        activeTask.durationSec = (parseTimeMins(endStr) - parseTimeMins(startStr)) * 60;
+        activeTask.elapsedSec = 0; // В идеале вычислять на основе реального времени
+    } else if (startStr && !endStr) {
+        // Режим 2: Секундомер
+        activeTask.mode = 'stopwatch';
+        activeTask.elapsedSec = 0;
+    } else if (!startStr && endStr) {
+        // Режим 3: Дедлайн
+        activeTask.mode = 'countdown';
+        startStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        // Автоматически перезаписываем время задачи
+        note.time = `${startStr} - ${endStr}`;
+        saveDayEvents(dateKey, calendarData[dateKey]); 
+        
+        activeTask.durationSec = (parseTimeMins(endStr) - currentMin) * 60;
+        activeTask.elapsedSec = 0;
+    } else {
+        alert("Укажите хотя бы одно время для запуска таймера!");
+        return;
+    }
+
+    document.getElementById('task-player').classList.add('visible');
+    
+    clearInterval(activeTask.interval);
+    activeTask.interval = setInterval(tickTask, 1000);
+}
+
+function tickTask() {
+    if (activeTask.isPaused) return;
+    
+    activeTask.elapsedSec++;
+    let remaining = activeTask.durationSec - activeTask.elapsedSec;
+    
+    // Форматируем время mm:ss или hh:mm:ss
+    let displayTime = "";
+    let progressPct = 0;
+
+    if (activeTask.mode === 'countdown') {
+        if (remaining <= 0) {
+            stopTask(); // Время вышло
+            return;
+        }
+        displayTime = formatSeconds(remaining);
+        progressPct = (activeTask.elapsedSec / activeTask.durationSec) * 100;
+        
+        // Рисуем кружок
+        const offset = 283 - (283 * progressPct) / 100;
+        document.getElementById('tp-ring-fill').style.strokeDashoffset = offset;
+
+    } else {
+        // Секундомер
+        displayTime = formatSeconds(activeTask.elapsedSec);
+        progressPct = 100; // Прогресс бар просто светится
+        document.getElementById('tp-ring-fill').style.strokeDasharray = "283"; // Полный круг
+    }
+
+    document.getElementById('tp-time').innerText = displayTime;
+    document.getElementById('tp-full-time').innerText = displayTime;
+    document.getElementById('tp-progress-bar').style.width = progressPct + '%';
+}
+
+function toggleTaskPause() {
+    activeTask.isPaused = !activeTask.isPaused;
+    document.getElementById('tp-playpause').innerText = activeTask.isPaused ? "▶" : "⏸";
+}
+
+function stopTask() {
+    clearInterval(activeTask.interval);
+    document.getElementById('task-player').classList.remove('visible');
+    document.getElementById('task-fullscreen').classList.remove('visible');
+
+    // Если это был секундомер, записываем время окончания
+    if (activeTask.mode === 'stopwatch') {
+        let note = calendarData[activeTask.dateKey][activeTask.noteIndex];
+        let startStr = note.time.replace('-', '').trim(); // Берем начало
+        
+        let now = new Date();
+        let endStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        
+        note.time = `${startStr} - ${endStr}`;
+        saveDayEvents(activeTask.dateKey, calendarData[activeTask.dateKey]);
+        renderCalendar(); // Обновляем UI
+        alert(`Задача завершена! Потрачено: ${formatSeconds(activeTask.elapsedSec)}`);
+    }
+}
+
+function toggleTaskPlayerFull() {
+    document.getElementById('task-fullscreen').classList.toggle('visible');
+}
+
+function formatSeconds(sec) {
+    let h = Math.floor(sec / 3600);
+    let m = Math.floor((sec % 3600) / 60);
+    let s = sec % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+
 
     function exportData() { const fullData = { calendarData, regularEvents }; const dataStr = JSON.stringify(fullData, null, 2); const blob = new Blob([dataStr], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = "calendar_data.json"; a.click(); URL.revokeObjectURL(url); }
     function importData(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const imported = JSON.parse(e.target.result); if (imported.calendarData) { calendarData = imported.calendarData; regularEvents = imported.regularEvents || []; } else { calendarData = imported; regularEvents = []; } saveToLocalStorage(); renderCalendar(); alert("Импорт успешен!"); } catch (err) { alert("Ошибка JSON!"); } }; reader.readAsText(file); }
