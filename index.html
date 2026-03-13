@@ -714,6 +714,7 @@ function renderProgressModalContent() {
         if(titleEl) {
             titleEl.innerText = activeNote ? activeNote.text : 'Задача';
             titleEl.style.color = activeNote ? getThemeColor(activeNote.color) : 'var(--text-color)';
+        }
         const timeEl = document.getElementById('active-timer-time');
         if(timeEl) {
             // Проверяем режим таймера и выводим правильное время при перерисовке (паузе)
