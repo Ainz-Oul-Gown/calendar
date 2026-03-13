@@ -714,9 +714,15 @@ function renderProgressModalContent() {
         if(titleEl) {
             titleEl.innerText = activeNote ? activeNote.text : 'Задача';
             titleEl.style.color = activeNote ? getThemeColor(activeNote.color) : 'var(--text-color)';
-        }
         const timeEl = document.getElementById('active-timer-time');
-        if(timeEl) timeEl.innerText = formatSeconds(activeTask.elapsedSec);
+        if(timeEl) {
+            // Проверяем режим таймера и выводим правильное время при перерисовке (паузе)
+            let displaySecs = activeTask.mode === 'countdown' 
+                ? (activeTask.durationSec - activeTask.elapsedSec) 
+                : activeTask.elapsedSec;
+            timeEl.innerText = formatSeconds(Math.max(0, displaySecs));
+        }
+
 
         let pauseIconHtml = activeTask.isPaused ? `<path d="M8 5v14l11-7z"/>` : `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
         const iconPause = document.getElementById('icon-pause');
@@ -1123,22 +1129,26 @@ function dragStart(e) {
     let clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
     
     if (e.target === globalTimerEl || globalTimerEl.contains(e.target)) {
-        // Уменьшил задержку до 200мс для большей отзывчивости
         timerDrag.longPressTimer = setTimeout(() => {
             timerDrag.active = true;
             globalTimerEl.classList.add('dragging');
-            globalTimerEl.style.transition = 'none'; // Отключаем CSS-анимации, чтобы не было лагов
-            if (navigator.vibrate) navigator.vibrate([50]); 
+            globalTimerEl.style.transition = 'none'; 
             
-            // Фиксируем базовую точку отсчета относительно текущего смещения (без багов со scale)
             timerDrag.initialX = clientX - timerDrag.xOffset;
             timerDrag.initialY = clientY - timerDrag.yOffset;
             
+            // --- ДОБАВИТЬ ЭТИ ДВЕ СТРОКИ ---
+            // Задаем стартовые координаты для анимации, чтобы не было прыжка в 0,0
+            timerDrag.currentX = timerDrag.xOffset;
+            timerDrag.currentY = timerDrag.yOffset;
+            // -------------------------------
+
             if (timerDrag.animFrame) cancelAnimationFrame(timerDrag.animFrame);
             updateDragAnimation();
         }, 200); 
     }
 }
+
 
 function drag(e) {
     // Если мы двигаем пальцем ДО активации таймера - отменяем захват (это обычный скролл страницы)
