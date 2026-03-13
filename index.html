@@ -656,11 +656,34 @@
             padding-bottom: 10px;
         }
 
+        /* Элемент списка - строго в ряд */
         .prog-list-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 8px 8px 0;
-            border-bottom: 1px solid var(--border-color);
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            /* УБИРАЕМ overflow: hidden отсюда */
+            overflow: visible !important;
+            max-height: 200px; /* Достаточно для обычной строки */
+        }
+
+        /* Специальный класс ТОЛЬКО для процесса анимации */
+        .item-animating {
+            overflow: hidden !important;
+        }
+
+
+        /* Состояние скрытия */
+        .item-hidden-collapse {
+            max-height: 0 !important;
+            opacity: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            overflow: hidden !important; /* Тут он нужен */
+            pointer-events: none;
         }
 
         .prog-list-item:last-child {
@@ -669,15 +692,16 @@
 
         /* --- 1. Отступы кнопки старта и текста --- */
         .prog-item-main {
-            display: flex;
-            align-items: center;
-            gap: 4px; /* Уменьшили зазор между элементами */
-            flex-grow: 1;
-            flex-shrink: 0;
-            width: 100%;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 8px; /* Зазор между элементами */
+            flex: 1; /* Занимает всё свободное место */
+            min-width: 0; /* Важно для обрезки длинного текста */
             position: relative;
-            padding-left: 22px; /* Уменьшили левый отступ под кнопку */
+            padding-left: 28px; /* Место под кнопку Play */
         }
+
 
         .task-start-btn {
             position: absolute;
@@ -732,8 +756,10 @@
 
         /* Меню точек */
         .prog-menu-wrap {
-            position: relative;
-            margin-left: auto;
+            flex-shrink: 0;
+            margin-left: 10px;
+            display: flex;
+            align-items: center;
         }
 
         .prog-menu-btn {
@@ -758,7 +784,7 @@
             background: var(--menu-bg);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
             border-radius: 8px;
-            z-index: 100;
+            z-index: 1000 !important;;
             min-width: 170px;
             overflow: hidden;
             border: 1px solid var(--border-color);
@@ -796,13 +822,14 @@
 
         /* Режим редактирования */
         .prog-list-item.edit-mode {
+            flex-direction: column !important; /* Форма растет ВНИЗ, а не вбок */
+            align-items: stretch !important;   /* Растягиваем поля на всю ширину */
+            gap: 12px !important;              /* Расстояние между строками формы */
+            padding: 15px !important;
             background-color: var(--cell-hover-bg);
             border-radius: 8px;
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 10px;
+            height: auto !important;           /* Убираем ограничения по высоте */
+            max-height: none !important;
         }
 
         .prog-edit-row {
@@ -813,9 +840,22 @@
             width: 100%;
         }
 
+        /* Чтобы инпуты времени не сплющивались */
+        .prog-edit-row input[type="time"] {
+            flex: 1;
+            min-width: 80px;
+        }
+
+        /* Чтобы текстовое поле занимало всю оставшуюся ширину */
+        .prog-edit-row input[type="text"] {
+            flex: 2;
+            min-width: 150px;
+        }
+
         .prog-edit-remind-row {
             display: flex;
             align-items: center;
+            border-top: 1px solid var(--border-color);
             justify-content: space-between;
             width: 100%;
             gap: 10px;
@@ -855,8 +895,8 @@
         }
 
         .color-ui-wrap input[type="color"] {
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
             border: none;
             padding: 0;
             border-radius: 4px;
@@ -865,7 +905,7 @@
 
         .custom-ui-select {
             position: relative;
-            width: 85px;
+            width: 65px;
             height: 32px;
             user-select: none;
         }
@@ -931,7 +971,7 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            padding: 8px 15px;
+            padding: 8px 13px;
             color: white;
             font-weight: bold;
             transition: transform 0.1s;
@@ -1486,6 +1526,123 @@
         .prog-menu-dropdown {
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s, visibility 0.2s !important;
         }
+
+        /* ПАНЕЛЬ ПЕРЕМЕЩЕНИЯ (скрыта по умолчанию) */
+        #move-action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--modal-bg);
+            padding: 15px 20px;
+            display: none; /* Скрываем панель */
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.2);
+            z-index: 2000; /* Поверх всего */
+            border-top: 1px solid var(--border-color);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Когда добавлен класс .show через JS */
+        #move-action-bar.show {
+            display: flex;
+            animation: slideUpMove 0.4s ease-out;
+        }
+
+        @keyframes slideUpMove {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        /* Стили кнопок внутри панели */
+        .move-btn-cancel, .move-btn-confirm {
+            padding: 12px 25px;
+            border-radius: 10px;
+            border: none;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .move-btn-cancel {
+            background-color: #777;
+            color: white;
+        }
+
+        .move-btn-confirm {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .move-btn-confirm:disabled {
+            background-color: #ccc;
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .move-btn-confirm.active {
+            background-color: var(--primary-color);
+        }
+
+        /* Эффект нажатия */
+        .move-btn-cancel:active, .move-btn-confirm:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        /* Плавные переходы для всех ячеек */
+        .day-cell {
+            transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease !important;
+        }
+
+        /* Красивое выделение выбранного дня при перемещении */
+        .day-cell.selected-move {
+            box-shadow: inset 0 0 0 3px #2196F3 !important;
+            background-color: rgba(33, 150, 243, 0.15) !important;
+            transform: scale(0.98);
+            z-index: 10;
+        }
+
+        /* Убираем анимацию появления сетки, если она не нужна при простом рендере */
+        .no-anim {
+            animation: none !important;
+        }
+
+        /* Начальное состояние формы редактирования для анимации появления */
+        .prog-list-item.edit-mode {
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 500px; /* Достаточно, чтобы вместить форму */
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Класс для анимации появления (схлопнуто) */
+        .edit-mode.anim-entering {
+            max-height: 0 !important;
+            opacity: 0 !important;
+            transform: translateY(-20px) !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            margin: 0 !important;
+        }
+
+        /* Класс для анимации исчезновения (уходящая форма) */
+        .edit-mode.anim-leaving {
+            max-height: 0 !important;
+            opacity: 0 !important;
+            transform: translateY(-20px) !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            margin: 0 !important;
+            pointer-events: none;
+        }
+
     </style>
 </head>
 <body>
@@ -1515,7 +1672,7 @@
                 </label>
             </div>
         </div>
-        <button onclick="openRegularEventsModal()" style="background-color: var(--primary-color);">🔁 Регулярные</button>
+        <button onclick="openRegularEventsModal()" style="background-color: var(--primary-color);">Регулярные</button>
         <button onclick="exportData()">Экспорт</button>
         <button onclick="document.getElementById('import-file').click()">Импорт</button>
         <input accept=".json" id="import-file" onchange="importData(event)" style="display: none;" type="file">
@@ -1728,6 +1885,8 @@
     let moveNoteIndex = - 1;
     let moveSourceDate = "";
     let moveTargetDate = "";
+
+    let lastAnimatedIndex = -1;
 
     // --- СОСТОЯНИЕ ТАЙМЕРА ---
     let activeTask = {
@@ -2072,6 +2231,9 @@
 
             if ( year === realToday.getFullYear() && month === realToday.getMonth() && i === realToday.getDate() ) cell.classList.add('today');
             const dateKey = `${year}-${String(month + 1).padStart(2 , '0')}-${String(i).padStart(2 , '0')}`;
+
+            cell.dataset.date = dateKey;
+
             const todayEvents = getEventsForDate(dateKey);
 
             if ( isMoveMode && dateKey === moveTargetDate ) cell.classList.add('selected-move');
@@ -2141,14 +2303,19 @@
 
     window.addEventListener('resize' , updateMarquees);
 
-    function changeMonth ( direction ) {
+    function changeMonth(direction) {
         currentDate.setMonth(currentDate.getMonth() + direction);
+
+        // Сначала рендерим
         renderCalendar();
+
+        // Применяем анимацию скольжения только к сетке
         const grid = document.getElementById('calendar-grid');
-        if ( grid ) {
-            grid.classList.remove('anim-slide-from-right' , 'anim-slide-from-left');
-            void grid.offsetWidth;
-            grid.classList.add(direction > 0 ? 'anim-slide-from-right' : 'anim-slide-from-left');
+        if (grid) {
+            const animClass = direction > 0 ? 'anim-slide-from-right' : 'anim-slide-from-left';
+            grid.classList.remove('anim-slide-from-right', 'anim-slide-from-left');
+            void grid.offsetWidth; // Магия для перезапуска анимации
+            grid.classList.add(animClass);
         }
     }
 
@@ -2331,7 +2498,10 @@
                 let uiVal = note.uiType || 'none';
                 let uiDisplayHtml = '—';
                 if ( uiVal === 'checkbox' ) uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>';
-                if ( uiVal === 'toggle' ) uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>';
+                if ( uiVal === 'toggle' ) { uiDisplayHtml = `<label class="switch" style="margin:0; transform: scale(0.7); pointer-events:none;">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                         </label>`; }
                 if ( uiVal === 'radio' ) uiDisplayHtml = '<input type="radio" class="ui-radio" checked>';
 
                 listContainer.innerHTML += `
@@ -2363,13 +2533,23 @@
                         <div class="custom-ui-select">
                             <input type="hidden" id="prog-edit-ui-${index}" value="${uiVal}">
                             <div class="custom-ui-trigger" onclick="toggleCustomSelect('prog-ui-options-${index}', event)">
-                                <div class="ui-mock-wrap"><label class="switch" style="margin:0; transform: scale(0.7); pointer-events:none;"><input type="checkbox" checked><span class="slider"></span></label></div>
+                                <div class="ui-mock-wrap" id="prog-ui-display-${index}">${uiDisplayHtml}</div>
                             </div>
                             <div class="custom-ui-options" id="prog-ui-options-${index}">
                                 <div class="custom-ui-option" onclick="selectUiOption('prog', 'none', ${index}, event)"><div class="ui-mock-wrap">—</div> Нет</div>
                                 <div class="custom-ui-option" onclick="selectUiOption('prog', 'checkbox', ${index}, event)"><div class="ui-mock-wrap"><input type="checkbox" class="ui-checkbox" checked></div> Чек-бокс</div>
-                                <div class="custom-ui-option" onclick="selectUiOption('prog', 'toggle', ${index}, event)"><div class="ui-mock-wrap"><label class="switch" style="margin:0; transform: scale(0.7); pointer-events:none;"><input type="checkbox" checked><span class="slider"></span></label></div>
-                                <div class="custom-ui-option" onclick="selectUiOption('prog', 'radio', ${index}, event)"><div class="ui-mock-wrap"><input type="radio" class="ui-radio" checked></div> Радио</div>
+                                <div class="custom-ui-option" onclick="selectUiOption('prog', 'toggle', ${index}, event)">
+    <div class="ui-mock-wrap">
+        <label class="switch" style="margin:0; transform: scale(0.7); pointer-events:none;">
+            <input type="checkbox" checked><span class="slider"></span>
+        </label>
+    </div> Тогл
+</div>
+<div class="custom-ui-option" onclick="selectUiOption('prog', 'radio', ${index}, event)">
+    <div class="ui-mock-wrap">
+        <input type="radio" class="ui-radio" checked>
+    </div> Радио
+</div>
                             </div>
                         </div>
                     </div>
@@ -2398,8 +2578,10 @@
                 // Красивое время (замена минуса на "до")
                 let displayTime = note.time ? (note.time.startsWith('-') ? '' + note.time.replace('-', '').trim() : note.time) : '—';
 
+                let animClass = (index === lastAnimatedIndex) ? ' item-hidden-collapse' : '';
+
                 listContainer.innerHTML += `
-                    <div class="prog-list-item" onclick="highlightSegment(${index}, event)">
+                    <div class="prog-list-item${animClass}" data-anim-index="${index}" onclick="highlightSegment(${index}, event)">
                         <div class="prog-item-main">
                             ${playBtnHtml}
                             <div class="prog-num">${index + 1}</div>
@@ -2419,38 +2601,84 @@
                     </div>`;
             }
         });
+        if (lastAnimatedIndex !== -1) {
+            const el = listContainer.querySelector(`[data-anim-index="${lastAnimatedIndex}"]`);
+            if (el) {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        el.classList.remove('item-hidden-collapse');
+                        lastAnimatedIndex = -1; // Сбрасываем
+                    });
+                });
+            }
+        }
         setTimeout(updateMarquees , 0);
     }
 
     // --- ЛОГИКА МЕНЮ И ПЕРЕМЕЩЕНИЯ ЗАМЕТОК ---
-    function toggleProgMenu ( index , e ) {
+    function toggleProgMenu(index, e) {
         e.stopPropagation();
-        const menus = document.getElementsByClassName("prog-menu-dropdown");
-        for ( let i = 0 ; i < menus.length ; i ++ ) {
-            if ( menus[ i ].id !== `prog-menu-${index}` ) menus[ i ].classList.remove('show');
-        }
+
+        // Закрываем другие открытые меню
+        document.querySelectorAll('.prog-menu-dropdown.show').forEach(m => {
+            if (m.id !== `prog-menu-${index}`) m.classList.remove('show');
+        });
+
         const menu = document.getElementById(`prog-menu-${index}`);
-        if ( !menu.classList.contains('show') ) {
-            menu.classList.remove('drop-up');
-            menu.style.visibility = 'hidden';
-            menu.style.display = 'block';
-            const rect = menu.getBoundingClientRect();
-            const modalRect = document.getElementById('progress-modal').querySelector('.modal').getBoundingClientRect();
-            if ( rect.bottom > modalRect.bottom - 10 ) menu.classList.add('drop-up');
-            menu.style.display = '';
-            menu.style.visibility = '';
+        if (!menu) return;
+
+        // Сначала показываем меню (невидимым), чтобы измерить его высоту
+        menu.style.display = 'block';
+        menu.classList.remove('drop-up');
+
+        const rect = menu.getBoundingClientRect();
+        const modal = document.querySelector('.modal');
+        const modalRect = modal.getBoundingClientRect();
+
+        // Если меню вылазит за нижнюю границу модалки — открываем вверх
+        if (rect.bottom > modalRect.bottom - 20) {
+            menu.classList.add('drop-up');
         }
+
+        menu.style.display = ''; // Возвращаем как было
         menu.classList.toggle('show');
     }
 
-    function enterProgEdit ( index ) {
+    function enterProgEdit(index) {
         editingNoteIndex = index;
         renderProgressModalContent();
+
+        const editForm = document.querySelector('.prog-list-item.edit-mode');
+        if (editForm) {
+            // Добавляем класс анимации
+            editForm.classList.add('item-hidden-collapse', 'item-animating');
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    editForm.classList.remove('item-hidden-collapse');
+                    // Убираем свойство "обрезания" после того, как форма выехала
+                    setTimeout(() => editForm.classList.remove('item-animating'), 400);
+                });
+            });
+        }
     }
 
-    function cancelProgEdit () {
-        editingNoteIndex = - 1;
-        renderProgressModalContent();
+    function cancelProgEdit() {
+        const editForm = document.querySelector('.prog-list-item.edit-mode');
+        if (editForm) {
+            // Включаем обрезание перед тем как начать сворачивать
+            editForm.classList.add('item-animating');
+            editForm.classList.add('item-hidden-collapse');
+
+            setTimeout(() => {
+                lastAnimatedIndex = editingNoteIndex;
+                editingNoteIndex = -1;
+                renderProgressModalContent();
+            }, 350);
+        } else {
+            editingNoteIndex = -1;
+            renderProgressModalContent();
+        }
     }
 
     function saveProgEdit ( index ) {
@@ -2461,6 +2689,7 @@
         else if ( start ) time = start;
         else if ( end ) time = `-${end}`;
 
+
         const text = document.getElementById(`prog-edit-text-${index}`).value;
         const reminder = document.getElementById(`prog-edit-remind-${index}`).value;
         const color = document.getElementById(`prog-edit-color-${index}`).value;
@@ -2470,16 +2699,29 @@
         const ruleId = currentDayEvents[ index ].ruleId;
         const uiState = currentDayEvents[ index ].uiState || false;
 
-        if ( time || text ) {
-            currentDayEvents[ index ] = { time , text , color , reminder , uiType , uiState , hasTimer };
-            if ( ruleId ) currentDayEvents[ index ].ruleId = ruleId;
-        } else {
-            currentDayEvents.splice(index , 1);
+        if (time || text) {
+            currentDayEvents[index] = { time, text, color, reminder, uiType, uiState, hasTimer };
+            if (ruleId) currentDayEvents[index].ruleId = ruleId;
         }
-        editingNoteIndex = - 1;
-        saveDayEvents(progressModalDate , currentDayEvents);
-        renderCalendar();
-        renderProgressModalContent();
+
+        // Анимация перед сохранением
+        const editForm = document.querySelector('.prog-list-item.edit-mode');
+        if (editForm) {
+            editForm.classList.add('item-hidden-collapse');
+            setTimeout(() => {
+                lastAnimatedIndex = index;
+                editingNoteIndex = -1;
+                saveDayEvents(progressModalDate, currentDayEvents);
+                renderCalendar();
+                renderProgressModalContent();
+            }, 350);
+        } else {
+            lastAnimatedIndex = index;
+            editingNoteIndex = -1;
+            saveDayEvents(progressModalDate, currentDayEvents);
+            renderCalendar();
+            renderProgressModalContent();
+        }
     }
 
     function deleteProgNote ( index ) {
@@ -2538,7 +2780,10 @@
         document.getElementById(inputId).value = value;
         let uiDisplayHtml = '—';
         if ( value === 'checkbox' ) uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>';
-        if ( value === 'toggle' ) uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>';
+        if ( value === 'toggle' ) {uiDisplayHtml = `<label class="switch" style="margin:0; transform: scale(0.7); pointer-events:none;">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                         </label>`;}
         if ( value === 'radio' ) uiDisplayHtml = '<input type="radio" class="ui-radio" checked>';
         document.getElementById(displayId).innerHTML = uiDisplayHtml;
         document.getElementById(optionsId).classList.remove('open');
@@ -2562,10 +2807,22 @@
         renderCalendar();
     }
 
-    function selectMoveTarget ( dateKey ) {
+    function selectMoveTarget(dateKey) {
+        // 1. Находим старую выделенную ячейку и убираем выделение
+        const prevSelected = document.querySelector('.day-cell.selected-move');
+        if (prevSelected) {
+            prevSelected.classList.remove('selected-move');
+        }
+
+        // 2. Находим новую ячейку по data-date и добавляем ей класс
         moveTargetDate = dateKey;
+        const newSelected = document.querySelector(`.day-cell[data-date="${dateKey}"]`);
+        if (newSelected) {
+            newSelected.classList.add('selected-move');
+        }
+
+        // 3. Обновляем кнопку подтверждения (без перерисовки всего календаря)
         updateMoveBar();
-        renderCalendar();
     }
 
     function updateMoveBar () {
@@ -2659,7 +2916,11 @@
         if ( document.getElementById('reg-ui') ) document.getElementById('reg-ui').value = uiVal;
         let uiDisplayHtml = '—';
         if ( uiVal === 'checkbox' ) uiDisplayHtml = '<input type="checkbox" class="ui-checkbox" checked>';
-        if ( uiVal === 'toggle' ) uiDisplayHtml = '<label class="ui-switch"><input type="checkbox" checked><span class="ui-slider"></span></label>';
+        if ( uiVal === 'toggle' ) {uiDisplayHtml = `<label class="switch" style="margin:0; transform: scale(0.7); pointer-events:none;">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                         </label>`;
+        }
         if ( uiVal === 'radio' ) uiDisplayHtml = '<input type="radio" class="ui-radio" checked>';
         if ( document.getElementById('reg-ui-display') ) document.getElementById('reg-ui-display').innerHTML = uiDisplayHtml;
 
